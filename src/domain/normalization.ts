@@ -2,6 +2,36 @@ import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import type { Concert } from './types';
 const text = z.string().optional();
+
+function identityText(value: string): string {
+  return value
+    .normalize('NFKD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]/g, '');
+}
+
+export function normalizeArtistName(value: string): string {
+  return identityText(value);
+}
+
+export type EventIdentityMatch = 'same' | 'ambiguous' | 'different';
+
+export function compareEventIdentity(a: Concert, b: Concert): EventIdentityMatch {
+  const artistsA = [...a.artistIds].sort().join(',');
+  const artistsB = [...b.artistIds].sort().join(',');
+  if (
+    artistsA !== artistsB ||
+    identityText(a.venue) !== identityText(b.venue) ||
+    identityText(a.city) !== identityText(b.city) ||
+    a.country.toUpperCase() !== b.country.toUpperCase() ||
+    a.date !== b.date
+  )
+    return 'different';
+  if (a.localTime && b.localTime) return a.localTime === b.localTime ? 'same' : 'different';
+  return 'ambiguous';
+}
 export const tmEventSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -98,14 +128,8 @@ export function normalizeTicketmaster(
   };
 }
 export function fingerprint(e: Concert): string {
-  const normalize = (s: string) =>
-    s
-      .normalize('NFD')
-      .replace(/\p{Diacritic}/gu, '')
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, '');
   const exact = e.localTime
-    ? `${[...e.artistIds].sort().join(',')}|${normalize(e.venue)}|${normalize(e.city)}|${e.country}|${e.date}|${e.localTime}`
+    ? `${[...e.artistIds].sort().join(',')}|${identityText(e.venue)}|${identityText(e.city)}|${e.country.toUpperCase()}|${e.date}|${e.localTime}`
     : `${e.provider}|${e.externalId}`;
   return createHash('sha256').update(exact).digest('hex');
 }
