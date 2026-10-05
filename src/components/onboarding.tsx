@@ -1,0 +1,472 @@
+'use client';
+import Link from 'next/link';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  ArrowUpRight,
+  Check,
+  AudioLines,
+  MapPin,
+  Bell,
+  Heart,
+  ChevronLeft,
+  Music2,
+} from 'lucide-react';
+import { api, useApp } from './context';
+import { Avatar, Brand } from './ui';
+import { cities, defaults } from '@/domain/catalog';
+import type { Preferences } from '@/domain/types';
+export function Landing() {
+  return (
+    <div className="landing">
+      <header className="landing-header">
+        <Brand />
+        <nav>
+          <Link href="/app">Explore the sample</Link>
+          <Link href="/login">Sign in</Link>
+          <Link className="button small primary" href="/signup">
+            Find your next show <ArrowUpRight size={16} />
+          </Link>
+        </nav>
+      </header>
+      <main>
+        <section className="landing-hero">
+          <img src="/images/stage.jpg" alt="A crowd beneath the lights of a concert stage" />
+          <div className="landing-shade" />
+          <div className="landing-copy">
+            <span className="live-caption">
+              <span /> For the nights you’ll talk about for years.
+            </span>
+            <h1>
+              Your favourite music.
+              <br />
+              Your next great night.
+            </h1>
+            <p>
+              The artists you love are going places.
+              <br />
+              Find your chance to be there.
+            </p>
+            <div className="landing-cta">
+              <Link className="button primary" href="/signup">
+                Find my concerts <ArrowUpRight size={18} />
+              </Link>
+              <Link className="button glass" href="/app">
+                Try the sample experience
+              </Link>
+            </div>
+            <span className="landing-footnote">
+              Choose your artists. Set your city. Follow the music.
+            </span>
+          </div>
+          <div className="hero-caption">
+            <AudioLines size={17} /> A personal shortlist. A world of live music.
+          </div>
+        </section>
+        <section className="landing-intro">
+          <div>
+            <span className="subtle">Made for the way you listen</span>
+            <h2>
+              Some shows are worth
+              <br />
+              leaving town for.
+            </h2>
+          </div>
+          <div className="landing-benefits">
+            <div>
+              <Heart />
+              <h3>Your artists first</h3>
+              <p>A few shows you care about, with a clear reason for every recommendation.</p>
+            </div>
+            <div>
+              <MapPin />
+              <h3>Here. Or a little further.</h3>
+              <p>Keep it local or look across Europe. You decide how far the music takes you.</p>
+            </div>
+            <div>
+              <Bell />
+              <h3>Keep the important ones close</h3>
+              <p>
+                Save a show or add an artist to your must-see list. Your plans stay in one place.
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+      <footer className="landing-footer">
+        <Brand />
+        <p>Early-access pilot. Sample listings are fictional.</p>
+        <Link href="/privacy">Privacy & sources</Link>
+      </footer>
+    </div>
+  );
+}
+export function Auth({ signup }: { signup: boolean }) {
+  const { reload } = useApp(),
+    router = useRouter();
+  const [error, setError] = useState(''),
+    [pending, setPending] = useState(false);
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(true);
+    setError('');
+    const form = new FormData(event.currentTarget);
+    try {
+      await api(signup ? 'auth/signup' : 'auth/login', {
+        name: signup ? form.get('name') : undefined,
+        email: form.get('email'),
+        password: form.get('password'),
+      });
+      await reload();
+      router.push(signup ? '/onboarding' : '/app');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Please try again.');
+    } finally {
+      setPending(false);
+    }
+  }
+  return (
+    <div className="auth-layout">
+      <aside className="auth-art">
+        <img src="/images/crowd.jpg" alt="" />
+        <Brand />
+        <div>
+          <h2>
+            Be there
+            <br />
+            when it happens.
+          </h2>
+          <p>Your next favourite memory starts with a show.</p>
+        </div>
+      </aside>
+      <main className="auth-main">
+        <Link href="/" className="back-link">
+          <ChevronLeft size={16} />
+          Back to Encore
+        </Link>
+        <div className="auth-form">
+          <Music2 className="amber" size={30} />
+          <h1>{signup ? 'Good music. Better plans.' : 'Welcome back.'}</h1>
+          <p>
+            {signup
+              ? 'Create an account and start with the artists you love.'
+              : 'Your next great night is waiting.'}
+          </p>
+          <form onSubmit={submit}>
+            {signup && (
+              <label>
+                Your name
+                <input
+                  name="name"
+                  autoComplete="given-name"
+                  maxLength={60}
+                  required
+                  placeholder="How should we call you?"
+                />
+              </label>
+            )}
+            <label>
+              Email
+              <input
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                placeholder="you@example.com"
+              />
+            </label>
+            <label>
+              Password
+              <input
+                name="password"
+                type="password"
+                autoComplete={signup ? 'new-password' : 'current-password'}
+                minLength={12}
+                maxLength={128}
+                required
+                placeholder={signup ? 'At least 12 characters' : 'Your password'}
+              />
+            </label>
+            {error && (
+              <p className="form-error" role="alert">
+                {error}
+              </p>
+            )}
+            <button className="button primary full" disabled={pending}>
+              {pending ? 'One moment…' : signup ? 'Create account' : 'Sign in'}
+              <ArrowUpRight size={17} />
+            </button>
+          </form>
+          {signup ? (
+            <p className="fineprint">
+              This is a closed pilot with local accounts. Read how we handle your data in our{' '}
+              <Link href="/privacy">privacy notice</Link>. No payment required.
+            </p>
+          ) : (
+            <p className="fineprint">Password recovery is not available in this closed pilot.</p>
+          )}
+          <p className="auth-switch">
+            {signup ? 'Already part of the crowd?' : 'New to Encore?'}{' '}
+            <Link href={signup ? '/login' : '/signup'}>
+              {signup ? 'Sign in' : 'Create an account'}
+            </Link>
+          </p>
+        </div>
+      </main>
+    </div>
+  );
+}
+export function PreferenceFields({
+  value,
+  onChange,
+}: {
+  value: Preferences;
+  onChange: (value: Preferences) => void;
+}) {
+  return (
+    <div className="preference-fields">
+      <label>
+        Home city
+        <select value={value.home} onChange={(e) => onChange({ ...value, home: e.target.value })}>
+          {cities.map((c) => (
+            <option key={c.name}>{c.name}</option>
+          ))}
+        </select>
+      </label>
+      <label>
+        Where would you go?
+        <select
+          value={value.scope}
+          onChange={(e) => onChange({ ...value, scope: e.target.value as Preferences['scope'] })}
+        >
+          <option value="city">My city only</option>
+          <option value="country">Anywhere in my country</option>
+          <option value="europe">Across Europe</option>
+        </select>
+      </label>
+      <label>
+        Maximum travel time
+        <select
+          value={value.maxHours ?? ''}
+          onChange={(e) =>
+            onChange({ ...value, maxHours: e.target.value ? Number(e.target.value) : null })
+          }
+        >
+          <option value="">Flexible</option>
+          <option value="1">1 hour</option>
+          <option value="3">3 hours</option>
+          <option value="8">A weekend trip</option>
+        </select>
+        <small>We’ll flag unverified travel times.</small>
+      </label>
+      <label>
+        Total budget (€), optional
+        <input
+          type="number"
+          min={1}
+          max={10000}
+          value={value.budget ?? ''}
+          onChange={(e) =>
+            onChange({ ...value, budget: e.target.value ? Number(e.target.value) : null })
+          }
+          placeholder="No limit set"
+        />
+        <small>Tickets, travel and a place to stay.</small>
+      </label>
+    </div>
+  );
+}
+export function Onboarding() {
+  const { data, act, busy, toast } = useApp(),
+    router = useRouter();
+  const [step, setStep] = useState(1),
+    [selected, setSelected] = useState<string[]>([]),
+    [prefs, setPrefs] = useState<Preferences>(data.user?.preferences ?? defaults);
+  if (!data.user)
+    return (
+      <main className="failure">
+        <Brand />
+        <h1>Let’s make this yours.</h1>
+        <Link className="button primary" href="/signup">
+          Create an account
+        </Link>
+      </main>
+    );
+  return (
+    <div className="onboarding">
+      <header>
+        <Brand />
+        <span>Step {step} of 2</span>
+      </header>
+      <main>
+        <div className="step-track">
+          <i className="complete" />
+          <i className={step === 2 ? 'complete' : ''} />
+        </div>
+        <span className="subtle">
+          {step === 1 ? 'Start with your kind of music' : 'A great show can be a reason to go'}
+        </span>
+        <h1>{step === 1 ? 'Who would you love to see?' : 'How far would you follow the music?'}</h1>
+        <p className="intro">
+          {step === 1
+            ? 'Pick a few favourites. You can change these any time.'
+            : 'Start close to home, or leave room for a weekend away.'}
+        </p>
+        {step === 1 ? (
+          <>
+            <div className="connect-box">
+              <Music2 />
+              <div>
+                <strong>Bring your music with you</strong>
+                <p>
+                  {data.spotifyAvailable
+                    ? 'Connect an approved Spotify account, then choose which artists to follow.'
+                    : 'Spotify connection is awaiting provider approval. You can choose your artists below.'}
+                </p>
+              </div>
+              {data.spotifyAvailable && (
+                <button
+                  className="button secondary"
+                  onClick={async () => {
+                    try {
+                      const r = await api<{ url: string }>('spotify/connect', {});
+                      window.location.assign(r.url);
+                    } catch (e) {
+                      toast((e as Error).message);
+                    }
+                  }}
+                >
+                  Connect Spotify
+                </button>
+              )}
+            </div>
+            <div className="artist-picker">
+              {data.artists
+                .filter((a) => !a.providerId)
+                .map((a) => (
+                  <button
+                    key={a.id}
+                    className={`artist-choice ${selected.includes(a.id) ? 'selected' : ''}`}
+                    onClick={() =>
+                      setSelected((s) =>
+                        s.includes(a.id) ? s.filter((id) => id !== a.id) : [...s, a.id],
+                      )
+                    }
+                    aria-pressed={selected.includes(a.id)}
+                  >
+                    <Avatar artist={a} />
+                    <strong>{a.name}</strong>
+                    <span>{a.genre}</span>
+                    <i>{selected.includes(a.id) ? <Check size={14} /> : null}</i>
+                  </button>
+                ))}
+            </div>
+            <div className="onboarding-bottom">
+              <span>{selected.length} artists selected</span>
+              <button
+                className="button primary"
+                disabled={!selected.length}
+                onClick={() => setStep(2)}
+              >
+                Continue <ArrowUpRight size={17} />
+              </button>
+            </div>
+          </>
+        ) : (
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              if (
+                await act('onboarding', { artistIds: selected, preferences: prefs, mode: 'sample' })
+              )
+                router.push('/app');
+            }}
+          >
+            <PreferenceFields value={prefs} onChange={setPrefs} />
+            <div className="inline-note">
+              You’ll start with fictional sample concerts. Live listings can be enabled in settings
+              once a Ticketmaster key is configured.
+            </div>
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={prefs.analytics}
+                onChange={(e) => setPrefs({ ...prefs, analytics: e.target.checked })}
+              />
+              <span>
+                Help improve Encore by sharing in-app usage events. Optional; you can turn this off
+                and erase them in settings.
+              </span>
+            </label>
+            <div className="onboarding-bottom">
+              <button className="text-button" type="button" onClick={() => setStep(1)}>
+                <ChevronLeft size={17} />
+                Back to artists
+              </button>
+              <button className="button primary" disabled={busy}>
+                Find my concerts <ArrowUpRight size={17} />
+              </button>
+            </div>
+          </form>
+        )}
+      </main>
+    </div>
+  );
+}
+export function Privacy() {
+  return (
+    <div className="document-page">
+      <Brand />
+      <h1>Your music. Your choices.</h1>
+      <p>
+        This early-access pilot stores your account, explicitly chosen artists, saved shows,
+        must-see preferences, settings and in-app alerts in the app’s database. Sample concerts and
+        prices are fictional.
+      </p>
+      <h2>What we use</h2>
+      <p>
+        Recommendations use the artists you choose, your first-party actions and your travel
+        settings. We do not sell personal listening profiles. Optional usage analytics are stored
+        for up to 30 days, with scheduled cleanup required. Disabling analytics erases them
+        immediately. Essential ticket-click records support the outbound service and are deleted
+        with your account.
+      </p>
+      <h2>Spotify</h2>
+      <p>
+        The connector is disabled until provider approval and credentials are configured. An
+        approved connection requests top-artist access, shows artist names for you to choose, and
+        stores encrypted access tokens. We do not persist Spotify listening metrics. Disconnecting
+        removes tokens and pending connection attempts. You may also revoke Encore in your Spotify
+        account.
+      </p>
+      <h2>Your controls</h2>
+      <p>
+        Export your data, disconnect music services or delete your account in settings. Deletion
+        immediately removes account-linked records from the active database. A production operator
+        must define backup expiry and supply their legal identity, privacy contact, hosting region
+        and lawful bases before opening registration to the public.
+      </p>
+      <h2>Listings and sources</h2>
+      <p>
+        Live event data comes from Ticketmaster when configured. Listed price ranges are indicative
+        and may exclude fees. Availability is confirmed by the seller. No affiliate commission is
+        active in this pilot. Travel and hotels are not quoted or booked.
+      </p>
+      <h2>Photography</h2>
+      <p>
+        Generic concert atmosphere from{' '}
+        <a href="https://unsplash.com" target="_blank" rel="noreferrer">
+          Unsplash
+        </a>
+        , used under the{' '}
+        <a href="https://unsplash.com/license" target="_blank" rel="noreferrer">
+          Unsplash licence
+        </a>
+        . These images do not depict the named sample events or imply artist endorsement.
+      </p>
+      <Link className="button secondary" href="/app">
+        Back to concerts
+      </Link>
+    </div>
+  );
+}

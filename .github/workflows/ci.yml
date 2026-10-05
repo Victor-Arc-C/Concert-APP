@@ -1,0 +1,50 @@
+name: Checks
+on: [push, pull_request]
+permissions:
+  contents: read
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CI: true
+      NEXT_TELEMETRY_DISABLED: 1
+      APP_ENV: test
+      APP_URL: http://127.0.0.1:3000
+      LOCAL_DATABASE_PATH: .data/encore-ci
+      DATABASE_URL: ''
+      TICKETMASTER_API_KEY: ''
+      SPOTIFY_APPROVED: 'false'
+      AUTO_CONCERT_CHECKS: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Browser and API checks
+        shell: bash
+        run: |
+          npm start > /tmp/encore.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for attempt in $(seq 1 60); do
+            if curl -sf http://127.0.0.1:3000/api/state > /dev/null; then
+              ready=true
+              break
+            fi
+            sleep 2
+          done
+          if [ "$ready" != true ]; then
+            cat /tmp/encore.log
+            exit 1
+          fi
+          npm run test:e2e

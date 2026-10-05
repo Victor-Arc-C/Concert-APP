@@ -1,0 +1,20 @@
+node_modules/
+.next/
+.data/
+.env*
+!.env.example
+*.tsbuildinfo
+coverage/
+test-results/
+playwright-report/
+.DS_Store
+
+.dependencies.nosync/
+
+node_modules
+
+# Local session notes and recovery archives are not application source.
+SESSION_HANDOFF.md
+*.log
+*.pem
+*.key
