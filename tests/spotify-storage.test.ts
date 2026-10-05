@@ -1,3 +1,7 @@
+import { rankEvents } from '../src/domain/recommendations';
+import { defaults } from '../src/domain/catalog';
+import { sampleEvents } from '../src/domain/sample';
+import { resolveArtistIdentity } from '../src/server/identity';
 import { PGlite } from '@electric-sql/pglite';
 import { afterEach, expect, it, vi } from 'vitest';
 vi.mock('../src/server/db', () => ({ query: vi.fn() }));
@@ -62,6 +66,22 @@ it('stores only confirmed provider mapping, preserves manual preferences and rem
     });
     expect((await pg.query('SELECT * FROM spotify_artist_preferences')).rows).toEqual([]);
     await confirmSpotifyArtist('u', 'sp-id', 'live');
+    await pg.exec(
+      `INSERT INTO artist_provider_records VALUES('ticketmaster','tm-fixture','live') ON CONFLICT DO NOTHING`,
+    );
+    const identity = await resolveArtistIdentity(
+      'ticketmaster',
+      'tm-fixture',
+      'Different display name',
+    );
+    const follows = (
+      await pg.query<{ artistId: string; favorite: boolean; hidden: boolean }>(
+        'SELECT artist_id AS "artistId",favorite,hidden FROM affinities',
+      )
+    ).rows;
+    const now = new Date('2026-10-06T00:00:00Z');
+    const concert = { ...sampleEvents(now)[0], artistIds: [identity.artistId!] };
+    expect(rankEvents([concert], follows, [], [], defaults, now)).toHaveLength(1);
     await confirmSpotifyArtist('u', 'sp-id', 'live');
     expect(
       (

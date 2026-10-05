@@ -1,14 +1,14 @@
 import type { Artist, Preferences } from './types';
 export const cities = [
-  { name: 'Paris', country: 'FR' },
-  { name: 'Lyon', country: 'FR' },
-  { name: 'London', country: 'GB' },
-  { name: 'Amsterdam', country: 'NL' },
-  { name: 'Brussels', country: 'BE' },
-  { name: 'Berlin', country: 'DE' },
-  { name: 'Barcelona', country: 'ES' },
-  { name: 'Madrid', country: 'ES' },
-  { name: 'Milan', country: 'IT' },
+  { latitude: 48.8566, longitude: 2.3522, name: 'Paris', country: 'FR' },
+  { latitude: 45.764, longitude: 4.8357, name: 'Lyon', country: 'FR' },
+  { latitude: 51.5074, longitude: -0.1278, name: 'London', country: 'GB' },
+  { latitude: 52.3676, longitude: 4.9041, name: 'Amsterdam', country: 'NL' },
+  { latitude: 50.8503, longitude: 4.3517, name: 'Brussels', country: 'BE' },
+  { latitude: 52.52, longitude: 13.405, name: 'Berlin', country: 'DE' },
+  { latitude: 41.3874, longitude: 2.1686, name: 'Barcelona', country: 'ES' },
+  { latitude: 40.4168, longitude: -3.7038, name: 'Madrid', country: 'ES' },
+  { latitude: 45.4642, longitude: 9.19, name: 'Milan', country: 'IT' },
 ];
 export const artists: Artist[] = [
   { id: 'fred-again', name: 'Fred again..', genre: 'Electronic', color: '#BA8269', initials: 'fa' },

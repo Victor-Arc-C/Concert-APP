@@ -33,6 +33,21 @@ const europe = new Set([
   'MT',
   'CY',
 ]);
+// Approximate city-centre distance, never a travel-time or venue-distance claim.
+export function cityDistanceKm(home: string, destination: string, country: string): number | null {
+  const a = cities.find((c) => c.name.toLowerCase() === home.toLowerCase());
+  const b = cities.find(
+    (c) => c.name.toLowerCase() === destination.toLowerCase() && c.country === country,
+  );
+  if (!a || !b) return null;
+  const rad = (degrees: number) => (degrees * Math.PI) / 180;
+  const h =
+    Math.sin(rad(b.latitude - a.latitude) / 2) ** 2 +
+    Math.cos(rad(a.latitude)) *
+      Math.cos(rad(b.latitude)) *
+      Math.sin(rad(b.longitude - a.longitude) / 2) ** 2;
+  return 6371 * 2 * Math.asin(Math.sqrt(Math.min(1, h)));
+}
 export function rankEvents(
   events: Concert[],
   affinities: Affinity[],
@@ -43,11 +58,13 @@ export function rankEvents(
   includeExcluded = false,
 ): RankedConcert[] {
   const homeCountry = cities.find((c) => c.name === prefs.home)?.country;
-  return events
+  return [...new Map(events.map((event) => [event.id, event])).values()]
     .flatMap((event) => {
-      const affinity = affinities.find((a) => event.artistIds.includes(a.artistId) && !a.hidden);
+      const matched = affinities.filter((a) => event.artistIds.includes(a.artistId) && !a.hidden);
+      const affinity = matched.find((a) => a.favorite) ?? matched[0];
       const action = feedback.find((f) => f.eventId === event.id)?.action;
-      const local = event.city.toLowerCase() === prefs.home.toLowerCase();
+      const local =
+        event.city.toLowerCase() === prefs.home.toLowerCase() && event.country === homeCountry;
       const allowed =
         prefs.scope === 'city'
           ? local
@@ -70,7 +87,7 @@ export function rankEvents(
           ['cancelled', 'postponed'].includes(event.status))
       )
         return [];
-      const intent = intents.find((i) => event.artistIds.includes(i.artistId));
+      const intent = intents.find((i) => matched.some((a) => a.artistId === i.artistId));
       const must =
         !!intent &&
         intent.cities.includes(event.city) &&
@@ -111,6 +128,15 @@ export function rankEvents(
         score += 5;
         reasons.push('Ticket range starts within your budget; trip total unknown');
       }
+      const distance = cityDistanceKm(prefs.home, event.city, event.country);
+      if (!local && distance !== null) {
+        score += 5 * Math.max(0, 1 - distance / 1500);
+        reasons.push(`About ${Math.round(distance)} km between city centres`);
+      }
+      const days = Math.max(0, (Date.parse(event.date + 'T00:00:00Z') - now.getTime()) / 86400000);
+      score += 5 * Math.max(0, 1 - days / 180);
+      if (days <= 30 && event.date >= now.toISOString().slice(0, 10))
+        reasons.push('Coming up within 30 days');
       if (!local && prefs.maxHours !== null) reasons.push('Travel time still needs checking');
       return [
         {
