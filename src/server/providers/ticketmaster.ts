@@ -4,8 +4,9 @@ import { query } from '../db';
 import { env } from '../env';
 import { HttpError, rateLimit } from '../security';
 import { ProviderError, providerJson } from './http';
-import { fingerprint, normalizeTicketmaster } from '../../domain/normalization';
+import { compareEventIdentity, fingerprint, normalizeTicketmaster } from '../../domain/normalization';
 import type { Artist, Concert } from '../../domain/types';
+import { recordNormalizationReview, resolveArtistIdentity } from '../identity';
 export interface EventProvider {
   events(artist: Artist): Promise<{ event: Concert; raw: unknown }[]>;
 }
@@ -60,11 +61,8 @@ export async function searchArtists(term: string): Promise<Artist[]> {
   });
   const found: Artist[] = [];
   for (const attraction of data._embedded?.attractions ?? []) {
-    const mapping = await query<{ artist_id: string }>(
-      'SELECT artist_id FROM artist_provider_records WHERE provider=$1 AND external_id=$2',
-      ['ticketmaster', attraction.id],
-    );
-    const id = mapping[0]?.artist_id ?? `tm-artist-${attraction.id}`;
+    const identity = await resolveArtistIdentity('ticketmaster', attraction.id, attraction.name);
+    const id = identity.artistId ?? `tm-artist-${attraction.id}`;
     const artist: Artist = {
       id,
       name: attraction.name,
@@ -118,7 +116,24 @@ export async function storeEvent(event: Concert, raw: unknown) {
   const same = await query<{ id: string }>('SELECT id FROM events WHERE fingerprint=$1', [
     fingerprint(event),
   ]);
-  const id = mapping[0]?.event_id ?? same[0]?.id ?? randomUUID();
+  let id = mapping[0]?.event_id ?? same[0]?.id;
+  if (!id && !event.localTime) {
+    const candidates = await query<{ id: string; data: Concert }>(
+      "SELECT id,data FROM events WHERE sample=FALSE AND data->>'date'=$1",
+      [event.date],
+    );
+    const ambiguous = candidates.filter(({ data }) => compareEventIdentity(event, data) === 'ambiguous');
+    if (ambiguous.length)
+      await recordNormalizationReview(
+        'event',
+        event.provider,
+        event.externalId,
+        'missing_time_candidate',
+        ambiguous.map(({ id: candidateId }) => candidateId),
+        { date: event.date, venue: event.venue, city: event.city, artistIds: event.artistIds },
+      );
+  }
+  id ??= randomUUID();
   const previous = await query<{ data: Concert }>('SELECT data FROM events WHERE id=$1', [id]);
   if (previous[0])
     event = {
