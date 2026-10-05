@@ -71,4 +71,8 @@ CREATE INDEX analytics_time ON analytics(created_at);
 CREATE INDEX rate_limits_window ON rate_limits(window_at);
 `,
   },
+  {
+    version: 3,
+    sql: `CREATE TABLE provider_backoff (provider TEXT PRIMARY KEY, retry_at TIMESTAMPTZ NOT NULL);`,
+  },
 ];

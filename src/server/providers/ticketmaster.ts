@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { query } from '../db';
 import { env } from '../env';
 import { HttpError, rateLimit } from '../security';
-import { providerJson } from './http';
+import { ProviderError, providerJson } from './http';
 import { fingerprint, normalizeTicketmaster } from '../../domain/normalization';
 import type { Artist, Concert } from '../../domain/types';
 export interface EventProvider {
@@ -19,6 +19,15 @@ const responseSchema = z.object({
   page: z.object({ totalPages: z.number() }).optional(),
 });
 async function request(path: string, params: Record<string, string>) {
+  const [cooldown] = await query<{ seconds: number }>(
+    "SELECT EXTRACT(EPOCH FROM retry_at-NOW()) AS seconds FROM provider_backoff WHERE provider='ticketmaster' AND retry_at>NOW()",
+  );
+  if (cooldown?.seconds)
+    throw new ProviderError(
+      'Concert provider retry is scheduled. Please try again later.',
+      429,
+      Number(cooldown.seconds),
+    );
   await rateLimit('ticketmaster-global-second', 2, 1);
   await rateLimit('ticketmaster-global-day', 4900, 86400);
   const url = new URL(`https://app.ticketmaster.com/discovery/v2/${path}.json`);
@@ -28,7 +37,18 @@ async function request(path: string, params: Record<string, string>) {
     locale: '*',
     apikey: env().TICKETMASTER_API_KEY ?? '',
   }).toString();
-  return responseSchema.parse(await providerJson(url.toString()));
+  try {
+    return responseSchema.parse(await providerJson(url.toString()));
+  } catch (error) {
+    if (error instanceof ProviderError && (error.status === 429 || error.status >= 500)) {
+      const seconds = Math.max(900, error.retryAfter ?? 0);
+      await query(
+        "INSERT INTO provider_backoff(provider,retry_at) VALUES('ticketmaster',NOW()+($1 * INTERVAL '1 second')) ON CONFLICT(provider) DO UPDATE SET retry_at=GREATEST(provider_backoff.retry_at,EXCLUDED.retry_at)",
+        [seconds],
+      );
+    }
+    throw error;
+  }
 }
 export async function searchArtists(term: string): Promise<Artist[]> {
   if (!env().TICKETMASTER_API_KEY)

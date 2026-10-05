@@ -7,6 +7,12 @@ export class ProviderError extends Error {
     super(message);
   }
 }
+export function retryAfterSeconds(value: string | null, now = Date.now()): number | null {
+  if (!value) return null;
+  if (/^\d+$/.test(value.trim())) return Number(value);
+  const date = Date.parse(value);
+  return Number.isFinite(date) ? Math.max(0, Math.ceil((date - now) / 1000)) : null;
+}
 export async function providerJson(
   url: string,
   init: RequestInit = {},
@@ -33,7 +39,7 @@ export async function providerJson(
             ? 'The provider has not authorised this account or API access.'
             : 'The provider is unavailable. Try again later.',
       response.status,
-      wait ? Number(wait) || null : null,
+      retryAfterSeconds(wait),
     );
   }
   try {

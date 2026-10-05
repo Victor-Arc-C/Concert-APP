@@ -7,7 +7,7 @@ import {
   verifyPassword,
   checkOrigin,
 } from '../src/server/security';
-import { providerJson } from '../src/server/providers/http';
+import { providerJson, retryAfterSeconds } from '../src/server/providers/http';
 afterEach(() => vi.unstubAllEnvs());
 describe('credentials and request boundaries', () => {
   it('hashes passwords with distinct salts and verifies without storing plaintext', async () => {
@@ -50,6 +50,13 @@ describe('credentials and request boundaries', () => {
   });
 });
 describe('provider failures', () => {
+  it('parses delta and HTTP-date retry delays without accepting malformed values', () => {
+    const now = Date.parse('2026-10-05T12:00:00Z');
+    expect(retryAfterSeconds('3600', now)).toBe(3600);
+    expect(retryAfterSeconds('Mon, 05 Oct 2026 13:00:00 GMT', now)).toBe(3600);
+    expect(retryAfterSeconds('Mon, 05 Oct 2026 11:00:00 GMT', now)).toBe(0);
+    expect(retryAfterSeconds('unknown', now)).toBeNull();
+  });
   it('preserves rate-limit retry information without leaking a credential URL', async () => {
     const fetcher = vi
       .fn<typeof fetch>()
