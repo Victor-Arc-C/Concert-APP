@@ -4,6 +4,7 @@ export const preferencesSchema = z.object({
   home: z.string().refine((v) => cities.some((c) => c.name === v), 'Choose a supported home city'),
   scope: z.enum(['city', 'country', 'europe']),
   maxHours: z.number().min(1).max(48).nullable(),
+  radiusKm: z.number().int().min(1).max(5000).nullable().default(null),
   budget: z.number().min(1).max(10000).nullable(),
   notifications: z.enum(['off', 'critical', 'important', 'everything']),
   analytics: z.boolean(),

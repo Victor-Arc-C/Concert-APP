@@ -125,12 +125,21 @@ function SettingsForm({ initial }: { initial: Preferences }) {
               </p>
             </section>
             <button className="button primary" disabled={busy}>
-              Save preferences
+              {busy ? 'Saving…' : 'Save preferences'}
             </button>
           </form>
           <section className="settings-section">
             <h2>Manage your account</h2>
             <div className="button-row">
+              <button
+                className="button secondary"
+                disabled={busy}
+                onClick={async () => {
+                  if (await act('auth/logout', {})) router.push('/');
+                }}
+              >
+                Sign out
+              </button>
               <a href="/api/export" download="encore-data.json" className="button secondary">
                 <Download size={16} />
                 Export my data

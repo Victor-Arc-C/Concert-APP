@@ -10,6 +10,7 @@ export type Preferences = {
   home: string;
   scope: 'city' | 'country' | 'europe';
   maxHours: number | null;
+  radiusKm?: number | null;
   budget: number | null;
   notifications: 'off' | 'critical' | 'important' | 'everything';
   analytics: boolean;

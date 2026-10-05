@@ -197,6 +197,8 @@ export function Encore() {
             {data.user ? (
               <button
                 className="profile"
+                aria-label="Sign out of Encore"
+                disabled={busy}
                 onClick={async () => {
                   if (await act('auth/logout', {})) {
                     router.push('/');

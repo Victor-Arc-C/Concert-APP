@@ -245,6 +245,21 @@ export function PreferenceFields({
         </select>
       </label>
       <label>
+        Preferred radius (km), optional
+        <input
+          type="number"
+          min={1}
+          max={5000}
+          step={1}
+          value={value.radiusKm ?? ''}
+          onChange={(e) =>
+            onChange({ ...value, radiusKm: e.target.value ? Number(e.target.value) : null })
+          }
+          placeholder="No limit set"
+        />
+        <small>Saved to your profile. Concert filtering currently uses your chosen region.</small>
+      </label>
+      <label>
         Maximum travel time
         <select
           value={value.maxHours ?? ''}

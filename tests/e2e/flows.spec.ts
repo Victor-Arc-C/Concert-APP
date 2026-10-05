@@ -47,9 +47,43 @@ test('founder flow: register, choose artists, save, persist, must-see, alert, di
   ).toBe(false);
   await page.goto('/app/settings');
   await page.getByLabel('Home city').selectOption('London');
+  await page.getByLabel('Preferred radius (km), optional').fill('250');
+  await page.getByRole('radio', { name: 'Off No new alerts.', exact: true }).check();
   await page.getByRole('button', { name: 'Save preferences', exact: true }).click();
+  await expect(page.getByText('Your preferences are saved', { exact: true })).toBeVisible();
   await page.reload();
   await expect(page.getByLabel('Home city')).toHaveValue('London');
+  await expect(page.getByLabel('Preferred radius (km), optional')).toHaveValue('250');
+  expect((await (await page.request.get('/api/state')).json()).user.preferences.notifications).toBe(
+    'off',
+  );
+  const oldSession = (await page.context().cookies()).find((c) => c.name === 'encore_session')!;
+  expect(oldSession.httpOnly).toBe(true);
+  expect(oldSession.sameSite).toBe('Lax');
+  expect(oldSession.expires).toBeGreaterThan(Date.now() / 1000);
+  await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+  await expect
+    .poll(async () => (await (await page.request.get('/api/state')).json()).user)
+    .toBeNull();
+  const replay = await page.request.get('/api/state', {
+    headers: { Cookie: `encore_session=${oldSession.value}` },
+  });
+  expect((await replay.json()).user).toBeNull();
+  await page.goto('/login');
+  await page.getByLabel('Email', { exact: true }).fill(email);
+  await page.getByLabel('Password', { exact: true }).fill('Incorrect-passphrase-2026');
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await expect(
+    page.getByRole('alert').filter({ hasText: 'Email or password is incorrect.' }),
+  ).toBeVisible();
+  await page.getByLabel('Password', { exact: true }).fill(password);
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Your next great night.' })).toBeVisible();
+  await page.goto('/app/settings');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.getByRole('button', { name: 'Sign out', exact: true })).toBeVisible();
+  await expect(page.getByLabel('Home city')).toHaveValue('London');
+  await expect(page.getByLabel('Preferred radius (km), optional')).toHaveValue('250');
   const exportResponse = await page.request.get('/api/export');
   expect(exportResponse.ok()).toBe(true);
   expect(JSON.stringify(await exportResponse.json())).not.toContain('password_hash');

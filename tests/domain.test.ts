@@ -166,6 +166,14 @@ describe('must-see input', () => {
     expect(preferencesSchema.safeParse({ ...defaults, home: 'Unknown' }).success).toBe(false);
     expect(preferencesSchema.safeParse({ ...defaults, budget: -5 }).success).toBe(false);
   });
+  it('accepts legacy profiles and validates an optional radius in kilometres', () => {
+    const legacy = { ...defaults };
+    delete legacy.radiusKm;
+    expect(preferencesSchema.parse(legacy).radiusKm).toBeNull();
+    expect(preferencesSchema.parse({ ...defaults, radiusKm: 250 }).radiusKm).toBe(250);
+    for (const radiusKm of [0, -1, 1.5, 5001, '250'])
+      expect(preferencesSchema.safeParse({ ...defaults, radiusKm }).success).toBe(false);
+  });
 });
 it('puts a home-city date ahead of earlier overseas dates for the same artist', () => {
   const base = events[0];

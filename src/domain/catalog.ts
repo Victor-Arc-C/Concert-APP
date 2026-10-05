@@ -58,6 +58,7 @@ export const defaults: Preferences = {
   home: 'Paris',
   scope: 'europe',
   maxHours: null,
+  radiusKm: null,
   budget: null,
   notifications: 'important',
   analytics: false,
