@@ -266,3 +266,23 @@ test('consented funnel events have validated concert context and disappear on op
   expect((await (await page.request.get('/api/export')).json()).analytics).toEqual([]);
   expect((await send('account/delete', { password })).ok()).toBe(true);
 });
+
+test('feed pages retain unique detail links and reset on search', async ({ page }) => {
+  await page.goto('/app');
+  await page.getByRole('button', { name: /^Show all/ }).click();
+  const cards = page.locator('.concert-card');
+  const initial = await cards.count();
+  expect(initial).toBeLessThanOrEqual(8);
+  const more = page.getByRole('button', { name: 'Show more concerts' });
+  await expect(more).toBeVisible();
+  await more.click();
+  await expect(cards).toHaveCount(9);
+  const urls = await cards
+    .locator('.card-image-link')
+    .evaluateAll((elements) => elements.map((e) => e.getAttribute('href')));
+  expect(new Set(urls).size).toBe(urls.length);
+  await page.getByLabel('Search your concerts').fill('Fred');
+  expect(await cards.count()).toBeLessThanOrEqual(8);
+  await cards.locator('h2 a').first().click();
+  await expect(page).toHaveURL(/\/app\/events\//);
+});

@@ -102,6 +102,9 @@ export function ConcertCard({
   const seen = useRef('');
   const userId = data.user?.id;
   const consent = data.user?.preferences.analytics;
+  const favorite = data.affinities.some(
+    (a) => a.favorite && !a.hidden && event.artistIds.includes(a.artistId),
+  );
   useEffect(() => {
     const key = `${userId}:${event.id}`;
     if (!trackImpression || !consent || !userId || !card.current || seen.current === key) return;
@@ -133,9 +136,9 @@ export function ConcertCard({
         />
       </Link>
       <div className="image-shade" />
-      <span className={`fit-pill ${featured ? 'warm' : ''}`}>
+      <span className={`fit-pill ${featured || favorite ? 'warm' : ''}`}>
         <Sparkles size={13} />
-        {event.tier}
+        {favorite && event.tier !== 'Must see' ? 'Favourite artist' : event.tier}
       </span>
       <button
         className={`save-button ${event.saved ? 'saved' : ''}`}

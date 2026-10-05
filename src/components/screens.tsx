@@ -34,6 +34,7 @@ export function Feed() {
     [tab, setTab] = useState('all'),
     [month, setMonth] = useState(''),
     [showAll, setShowAll] = useState(false),
+    [pageSize, setPageSize] = useState(8),
     [edit, setEdit] = useState(false);
   const followed = data.artists.filter((a) =>
     data.affinities.some((f) => f.artistId === a.id && !f.hidden),
@@ -55,7 +56,9 @@ export function Feed() {
       return true;
     })
     .slice(0, 8);
-  const unique = showAll ? filtered : shortlist;
+  const expanded = showAll || !!query || !!month || tab !== 'all';
+  const candidates = expanded ? filtered : shortlist;
+  const unique = candidates.slice(0, pageSize);
   const months = [...new Set(data.events.map((e) => e.date.slice(0, 7)))].sort();
   return (
     <>
@@ -144,7 +147,10 @@ export function Feed() {
           <button
             className="text-button"
             aria-pressed={showAll}
-            onClick={() => setShowAll(!showAll)}
+            onClick={() => {
+              setShowAll(!showAll);
+              setPageSize(8);
+            }}
           >
             {showAll ? 'Show shortlist' : `Show all ${filtered.length} matching dates`}
           </button>
@@ -160,7 +166,10 @@ export function Feed() {
                 key={value}
                 className={tab === value ? 'selected' : ''}
                 aria-pressed={tab === value}
-                onClick={() => setTab(value)}
+                onClick={() => {
+                  setTab(value);
+                  setPageSize(8);
+                }}
               >
                 {label}
               </button>
@@ -171,7 +180,10 @@ export function Feed() {
               <Search size={16} />
               <input
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setPageSize(8);
+                }}
                 placeholder="Find an artist or city"
                 aria-label="Search your concerts"
               />
@@ -181,7 +193,10 @@ export function Feed() {
               <select
                 aria-label="Filter by month"
                 value={month}
-                onChange={(e) => setMonth(e.target.value)}
+                onChange={(e) => {
+                  setMonth(e.target.value);
+                  setPageSize(8);
+                }}
               >
                 <option value="">Any date</option>
                 {months.map((m) => (
@@ -218,6 +233,7 @@ export function Feed() {
                   setQuery('');
                   setMonth('');
                   setTab('all');
+                  setPageSize(8);
                 }}
               >
                 Clear filters
@@ -247,6 +263,11 @@ export function Feed() {
               />
             ))}
           </div>
+        )}
+        {candidates.length > unique.length && (
+          <button className="button secondary" onClick={() => setPageSize((size) => size + 8)}>
+            Show more concerts
+          </button>
         )}
       </section>
       <div className="quiet-banner">
