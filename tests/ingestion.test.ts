@@ -41,6 +41,23 @@ it('repeated ingestion preserves canonical IDs, updates raw provenance and respe
         raw: { id: 'external-one', version: 2 },
       },
     ]);
+
+    await storeEvent(
+      { ...event, localTime: null, externalId: 'external-unknown-time' },
+      { id: 'external-unknown-time' },
+    );
+    expect(await db.query('SELECT id FROM events')).toHaveLength(2);
+    expect(
+      await db.query('SELECT kind,provider,external_id,reason FROM normalization_reviews'),
+    ).toEqual([
+      {
+        kind: 'event',
+        provider: 'ticketmaster',
+        external_id: 'external-unknown-time',
+        reason: 'missing_time_candidate',
+      },
+    ]);
+
     const fetcher = vi
       .spyOn(globalThis, 'fetch')
       .mockResolvedValue(new Response('{}', { status: 429, headers: { 'Retry-After': '7200' } }));
