@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { rankEvents, comparableTotal } from '../src/domain/recommendations';
-import { fingerprint, normalizeTicketmaster, safeTicketUrl } from '../src/domain/normalization';
+import {
+  compareEventIdentity,
+  fingerprint,
+  normalizeArtistName,
+  normalizeTicketmaster,
+  safeTicketUrl,
+} from '../src/domain/normalization';
 import { sampleEvents } from '../src/domain/sample';
 import { defaults } from '../src/domain/catalog';
 import { intentSchema, preferencesSchema } from '../src/domain/validation';
@@ -128,6 +134,18 @@ describe('normalisation and deduplication', () => {
         'A',
       ),
     ).toBeNull();
+  });
+  it('normalizes common artist-name punctuation, case and accents deterministically', () => {
+    expect(normalizeArtistName('Fred Again..')).toBe(normalizeArtistName('FRED AGAIN'));
+    expect(normalizeArtistName('Beyoncé')).toBe(normalizeArtistName('beyonce'));
+    expect(normalizeArtistName('Simon & Garfunkel')).toBe(normalizeArtistName('Simon and Garfunkel'));
+  });
+  it('compares event identity by canonical artist, venue, city, date and time', () => {
+    const a = events[0];
+    expect(compareEventIdentity(a, { ...a, venue: 'ACCOR-ARENA' })).toBe('same');
+    expect(compareEventIdentity(a, { ...a, localTime: '23:59:00' })).toBe('different');
+    expect(compareEventIdentity(a, { ...a, localTime: null })).toBe('ambiguous');
+    expect(compareEventIdentity(a, { ...a, artistIds: ['different'] })).toBe('different');
   });
   it('merges exact identities but preserves distinct performances and unknown times', () => {
     const a = events[0];
