@@ -3,7 +3,7 @@ import { Pool } from 'pg';
 import { mkdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { env } from './env';
-import { migrations } from './schema';
+import { migrate } from './migrations';
 import { artists } from '../domain/catalog';
 import { sampleEvents } from '../domain/sample';
 import { fingerprint } from '../domain/normalization';
@@ -37,21 +37,7 @@ async function connect(): Promise<DB> {
       },
     };
   }
-  await db.query('CREATE TABLE IF NOT EXISTS schema_migrations (version INT PRIMARY KEY)');
-  for (const migration of migrations) {
-    if (
-      !(
-        await db.query('SELECT version FROM schema_migrations WHERE version=$1', [
-          migration.version,
-        ])
-      ).length
-    ) {
-      // Single-process local migration; managed Postgres migrations must run once before replicas start.
-      await db.execute(
-        `BEGIN; ${migration.sql} INSERT INTO schema_migrations(version) VALUES (${migration.version}); COMMIT;`,
-      );
-    }
-  }
+  await migrate(db);
   for (const artist of artists)
     await db.query('INSERT INTO artists(id,data) VALUES ($1,$2) ON CONFLICT(id) DO NOTHING', [
       artist.id,

@@ -23,4 +23,52 @@ CREATE INDEX alerts_user ON alerts(user_id,created_at);
 CREATE INDEX analytics_user_time ON analytics(user_id,created_at);
 `,
   },
+  {
+    version: 2,
+    sql: `
+-- Additive provider-neutral structures. Existing event snapshots remain intact.
+CREATE TABLE venues (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  city TEXT NOT NULL,
+  country TEXT NOT NULL,
+  latitude DOUBLE PRECISION CHECK(latitude BETWEEN -90 AND 90),
+  longitude DOUBLE PRECISION CHECK(longitude BETWEEN -180 AND 180)
+);
+CREATE TABLE venue_provider_records (
+  provider TEXT NOT NULL,
+  external_id TEXT NOT NULL,
+  venue_id TEXT NOT NULL REFERENCES venues(id),
+  PRIMARY KEY(provider,external_id)
+);
+CREATE TABLE event_venues (
+  event_id TEXT PRIMARY KEY REFERENCES events(id) ON DELETE CASCADE,
+  venue_id TEXT NOT NULL REFERENCES venues(id)
+);
+CREATE TABLE ticket_sources (
+  event_id TEXT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  provider TEXT NOT NULL,
+  external_id TEXT NOT NULL,
+  url TEXT,
+  price_min NUMERIC CHECK(price_min >= 0),
+  price_max NUMERIC CHECK(price_max >= price_min),
+  currency TEXT,
+  observed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  disabled_at TIMESTAMPTZ,
+  PRIMARY KEY(provider,external_id),
+  CHECK(price_max IS NULL OR price_min IS NOT NULL)
+);
+CREATE INDEX ticket_sources_event ON ticket_sources(event_id);
+CREATE INDEX event_venues_venue ON event_venues(venue_id);
+CREATE INDEX artist_provider_artist ON artist_provider_records(artist_id);
+CREATE INDEX event_provider_event ON event_provider_records(event_id);
+CREATE INDEX sessions_user ON sessions(user_id);
+CREATE INDEX events_mode_date ON events(sample,(data->>'date'));
+CREATE INDEX feedback_event ON feedback(event_id);
+CREATE INDEX affiliate_clicks_user_time ON affiliate_clicks(user_id,created_at);
+CREATE INDEX oauth_attempts_expiry ON oauth_attempts(expires_at);
+CREATE INDEX analytics_time ON analytics(created_at);
+CREATE INDEX rate_limits_window ON rate_limits(window_at);
+`,
+  },
 ];
