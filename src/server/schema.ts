@@ -86,4 +86,20 @@ CREATE INDEX rate_limits_window ON rate_limits(window_at);
       FOREIGN KEY(user_id,artist_id) REFERENCES affinities(user_id,artist_id) ON DELETE CASCADE
     );`,
   },
+  {
+    version: 5,
+    sql: `CREATE TABLE normalization_reviews (
+      id TEXT PRIMARY KEY,
+      kind TEXT NOT NULL CHECK(kind IN ('artist','event')),
+      provider TEXT NOT NULL,
+      external_id TEXT NOT NULL,
+      reason TEXT NOT NULL,
+      candidates JSONB NOT NULL,
+      details JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE(kind,provider,external_id,reason)
+    );
+    CREATE INDEX normalization_reviews_kind_time ON normalization_reviews(kind,updated_at);`,
+  },
 ];
