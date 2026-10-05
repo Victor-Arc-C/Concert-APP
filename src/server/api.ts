@@ -18,7 +18,14 @@ import {
 import { getAppData, recordAnalytics, recordConcertAnalytics, userLists } from './data';
 import { reportError } from './monitoring';
 import { env } from './env';
-import { beginSpotify, finishSpotify, spotifyArtists } from './providers/spotify';
+import {
+  beginSpotify,
+  finishSpotify,
+  spotifyArtists,
+  cancelSpotify,
+  disconnectSpotify,
+  confirmSpotifyArtist,
+} from './providers/spotify';
 import { searchArtists, syncArtists } from './providers/ticketmaster';
 import { safeTicketUrl } from '../domain/normalization';
 import { ProviderError } from './providers/http';
@@ -79,8 +86,10 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
       if (key === 'state') return ok(await getAppData());
       if (key === 'spotify/callback') {
         const user = await requireUser();
-        if (url.searchParams.get('error'))
+        if (url.searchParams.get('error')) {
+          await cancelSpotify(user.id, url.searchParams.get('state') ?? '');
           return NextResponse.redirect(new URL('/app/settings?music=denied', env().APP_URL));
+        }
         try {
           await finishSpotify(
             user.id,
@@ -100,7 +109,10 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
         const term = z.string().min(2).max(100).parse(url.searchParams.get('q'));
         return ok({ artists: await searchArtists(term) });
       }
-      if (key === 'spotify/artists') return ok({ artists: await spotifyArtists(user.id) });
+      if (key === 'spotify/artists') {
+        await rateLimit(`spotify:${user.id}`, 10, 60);
+        return ok({ artists: await spotifyArtists(user.id) });
+      }
       if (key === 'export') {
         const lists = await userLists(user.id);
         const alerts = await query('SELECT title,body,created_at FROM alerts WHERE user_id=$1', [
@@ -115,7 +127,17 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
           [user.id],
         );
         return NextResponse.json(
-          { user, ...lists, alerts, analytics, clicks },
+          {
+            user,
+            ...lists,
+            alerts,
+            analytics,
+            clicks,
+            spotifyChoices: await query(
+              'SELECT spotify_id,artist_id,affinity FROM spotify_artist_preferences WHERE user_id=$1',
+              [user.id],
+            ),
+          },
           {
             headers: {
               'Content-Disposition': 'attachment; filename="encore-data.json"',
@@ -282,10 +304,18 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
       await recordAnalytics(user, 'notification_opened', { alertId: id });
       return ok();
     }
+    if (key === 'spotify/confirm') {
+      const input = z
+        .object({ spotifyId: z.string().min(1).max(100), artistId: z.string().min(1).max(200) })
+        .strict()
+        .parse(await body(request));
+      await rateLimit(`spotify:${user.id}`, 10, 60);
+      await confirmSpotifyArtist(user.id, input.spotifyId, input.artistId);
+      return ok();
+    }
     if (key === 'spotify/connect') return ok({ url: await beginSpotify(user.id) });
     if (key === 'spotify/disconnect') {
-      await query('DELETE FROM music_accounts WHERE user_id=$1', [user.id]);
-      await query('DELETE FROM oauth_attempts WHERE user_id=$1', [user.id]);
+      await disconnectSpotify(user.id);
       return ok();
     }
     if (key === 'sync') {

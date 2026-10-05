@@ -75,4 +75,15 @@ CREATE INDEX rate_limits_window ON rate_limits(window_at);
     version: 3,
     sql: `CREATE TABLE provider_backoff (provider TEXT PRIMARY KEY, retry_at TIMESTAMPTZ NOT NULL);`,
   },
+  {
+    version: 4,
+    sql: `CREATE TABLE spotify_artist_preferences (
+      user_id TEXT NOT NULL,
+      spotify_id TEXT NOT NULL,
+      artist_id TEXT NOT NULL,
+      affinity NUMERIC NOT NULL CHECK(affinity BETWEEN 0 AND 1),
+      PRIMARY KEY(user_id,spotify_id),
+      FOREIGN KEY(user_id,artist_id) REFERENCES affinities(user_id,artist_id) ON DELETE CASCADE
+    );`,
+  },
 ];

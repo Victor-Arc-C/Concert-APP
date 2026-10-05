@@ -182,22 +182,25 @@ function SettingsForm({ initial }: { initial: Preferences }) {
                   Disconnect Spotify
                 </button>
               </>
-            ) : (
-              <button
-                className="button secondary full"
-                disabled={!data.spotifyAvailable}
-                onClick={async () => {
-                  try {
-                    const r = await api<{ url: string }>('spotify/connect', {});
-                    window.location.assign(r.url);
-                  } catch (e) {
-                    toast((e as Error).message);
-                  }
-                }}
-              >
-                {data.spotifyAvailable ? 'Connect Spotify' : 'Connection not enabled'}
-              </button>
-            )}
+            ) : null}
+            <button
+              className="button secondary full"
+              disabled={!data.spotifyAvailable}
+              onClick={async () => {
+                try {
+                  const r = await api<{ url: string }>('spotify/connect', {});
+                  window.location.assign(r.url);
+                } catch (e) {
+                  toast((e as Error).message);
+                }
+              }}
+            >
+              {data.spotifyAvailable
+                ? data.spotifyConnected
+                  ? 'Reconnect Spotify'
+                  : 'Connect Spotify'
+                : 'Connection not enabled'}
+            </button>
             <Link href="/app/artists" className="text-button">
               Manage artists manually
             </Link>

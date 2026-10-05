@@ -636,7 +636,8 @@ export function Artists() {
     [results, setResults] = useState<Artist[]>([]),
     [searching, setSearching] = useState(false),
     [message, setMessage] = useState(''),
-    [imported, setImported] = useState<{ name: string; url: string }[]>([]);
+    [imported, setImported] = useState<{ id: string; name: string; url: string }[]>([]),
+    [spotifyChoice, setSpotifyChoice] = useState<{ id: string; name: string } | null>(null);
   const followed = data.artists.filter((a) =>
     data.affinities.some((f) => f.artistId === a.id && !f.hidden),
   );
@@ -692,6 +693,7 @@ export function Artists() {
                     className="button small secondary"
                     disabled={searching || !data.liveAvailable}
                     onClick={() => {
+                      setSpotifyChoice(null);
                       setSearch(a.name);
                       document
                         .getElementById('live-search')
@@ -743,7 +745,10 @@ export function Artists() {
               minLength={2}
               maxLength={100}
               required
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setSpotifyChoice(null);
+              }}
               placeholder="Artist name"
             />
           </label>
@@ -765,21 +770,33 @@ export function Artists() {
             {message}
           </p>
         )}
+        {spotifyChoice && (
+          <p>
+            Confirm which live artist matches {spotifyChoice.name} on Spotify. This saves your
+            choice and follows the artist.
+          </p>
+        )}
         {results.map((a) => (
           <div className="search-result" key={a.id}>
             <span>{a.name}</span>
             <button
               className="button small secondary"
-              disabled={busy || followed.some((artist) => artist.id === a.id)}
+              disabled={busy || (!spotifyChoice && followed.some((artist) => artist.id === a.id))}
               onClick={() =>
                 act(
-                  'affinity',
-                  { artistId: a.id, favorite: false, hidden: false },
-                  'Artist followed',
+                  spotifyChoice ? 'spotify/confirm' : 'affinity',
+                  spotifyChoice
+                    ? { spotifyId: spotifyChoice.id, artistId: a.id }
+                    : { artistId: a.id, favorite: false, hidden: false },
+                  spotifyChoice ? 'Spotify artist confirmed and followed' : 'Artist followed',
                 )
               }
             >
-              {followed.some((artist) => artist.id === a.id) ? 'Following' : 'Follow artist'}
+              {spotifyChoice
+                ? `Confirm ${a.name}`
+                : followed.some((artist) => artist.id === a.id)
+                  ? 'Following'
+                  : 'Follow artist'}
             </button>
           </div>
         ))}
@@ -794,9 +811,9 @@ export function Artists() {
               className="button secondary"
               onClick={async () => {
                 try {
-                  const result = await api<{ artists: { name: string; url: string }[] }>(
-                    'spotify/artists',
-                  );
+                  const result = await api<{
+                    artists: { id: string; name: string; url: string }[];
+                  }>('spotify/artists');
                   setImported(result.artists);
                 } catch (e) {
                   toast((e as Error).message);
@@ -810,7 +827,14 @@ export function Artists() {
                 <a href={a.url} target="_blank" rel="noreferrer">
                   {a.name} on Spotify
                 </a>
-                <button className="text-button" onClick={() => setSearch(a.name)}>
+                <button
+                  className="text-button"
+                  onClick={() => {
+                    setSearch(a.name);
+                    setSpotifyChoice(a);
+                    void searchLive(undefined, a.name);
+                  }}
+                >
                   Use name in search
                 </button>
               </div>

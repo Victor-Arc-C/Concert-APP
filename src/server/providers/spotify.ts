@@ -8,6 +8,7 @@ const tokenSchema = z.object({
   access_token: z.string(),
   refresh_token: z.string().optional(),
   expires_in: z.number().positive(),
+  scope: z.string().optional(),
 });
 const callback = () => `${new URL(env().APP_URL).origin}/api/spotify/callback`;
 function requireAvailable() {
@@ -30,6 +31,7 @@ export async function beginSpotify(userId: string) {
     response_type: 'code',
     redirect_uri: callback(),
     scope: 'user-top-read',
+    show_dialog: 'true',
     state,
     code_challenge_method: 'S256',
     code_challenge: createHash('sha256').update(verifier).digest('base64url'),
@@ -65,6 +67,8 @@ export async function finishSpotify(userId: string, state: string, code: string)
     redirect_uri: callback(),
     code_verifier: decrypt(attempt.verifier),
   });
+  if (tokens.scope !== undefined && !tokens.scope.split(' ').includes('user-top-read'))
+    throw new HttpError(403, 'Spotify did not grant top-artist access. Reconnect and approve it.');
   if (!tokens.refresh_token)
     throw new HttpError(
       502,
@@ -92,6 +96,13 @@ export async function spotifyArtists(userId: string) {
     const t = await tokenRequest({
       grant_type: 'refresh_token',
       refresh_token: decrypt(account.refresh_token),
+    }).catch((error: unknown) => {
+      if (error instanceof ProviderError && [400, 401].includes(error.status))
+        throw new ProviderError(
+          'Spotify access expired or was revoked. Reconnect Spotify in Settings.',
+          401,
+        );
+      throw error;
     });
     token = t.access_token;
     await query(
@@ -130,5 +141,37 @@ export async function spotifyArtists(userId: string) {
       ),
     })
     .parse(result)
-    .items.map((a) => ({ name: a.name, url: a.external_urls.spotify }));
+    .items.map((a) => ({ id: a.id, name: a.name, url: a.external_urls.spotify }));
+}
+
+export async function cancelSpotify(userId: string, state: string) {
+  await query('DELETE FROM oauth_attempts WHERE user_id=$1 AND state=$2', [userId, state]);
+}
+export async function disconnectSpotify(userId: string) {
+  await query(
+    `WITH tokens AS (DELETE FROM music_accounts WHERE user_id=$1),
+    attempts AS (DELETE FROM oauth_attempts WHERE user_id=$1)
+    DELETE FROM spotify_artist_preferences WHERE user_id=$1`,
+    [userId],
+  );
+}
+export async function confirmSpotifyArtist(userId: string, spotifyId: string, artistId: string) {
+  // Recheck provider membership; never trust a client-supplied name, score or URL.
+  if (!(await spotifyArtists(userId)).some((artist) => artist.id === spotifyId))
+    throw new HttpError(422, 'Reload your Spotify artists and choose again.');
+  // One statement makes the explicit follow and its source mapping atomic.
+  // 1 means an explicit confirmed choice, not a listening-derived rank or probability.
+  const saved = await query(
+    `WITH followed AS (
+    INSERT INTO affinities(user_id,artist_id)
+    SELECT $1,id FROM artists WHERE id=$3 AND data->>'providerId' IS NOT NULL
+    ON CONFLICT(user_id,artist_id) DO UPDATE SET hidden=FALSE
+    RETURNING artist_id
+  ) INSERT INTO spotify_artist_preferences(user_id,spotify_id,artist_id,affinity)
+    SELECT $1,$2,artist_id,1 FROM followed
+    ON CONFLICT(user_id,spotify_id) DO UPDATE SET artist_id=EXCLUDED.artist_id,affinity=1
+    RETURNING artist_id`,
+    [userId, spotifyId, artistId],
+  );
+  if (!saved.length) throw new HttpError(422, 'Choose an artist from the live catalogue.');
 }

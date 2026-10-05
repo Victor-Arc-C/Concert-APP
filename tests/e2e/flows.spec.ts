@@ -140,6 +140,15 @@ test('API authorisation, CSRF, account isolation and honest provider errors', as
   ).toBe(400);
   expect((await a.post('/api/outbound', { data: { eventId: 'sample-1' } })).status()).toBe(422);
   expect((await a.post('/api/spotify/connect', { data: {} })).status()).toBe(503);
+  expect((await a.get('/api/spotify/artists')).status()).toBe(503);
+  expect(
+    (
+      await a.post('/api/spotify/confirm', { data: { spotifyId: 'fixture', artistId: 'sample' } })
+    ).status(),
+  ).toBe(503);
+  expect((await anon.post('/api/spotify/disconnect', { data: {} })).status()).toBe(401);
+  expect((await a.post('/api/spotify/disconnect', { data: {} })).ok()).toBe(true);
+  expect((await (await a.get('/api/export')).json()).spotifyChoices).toEqual([]);
   expect((await a.post('/api/jobs', { data: {} })).status()).toBe(401);
   await a.post('/api/mode', { data: { mode: 'live' } });
   const live = await (await a.get('/api/state')).json();
