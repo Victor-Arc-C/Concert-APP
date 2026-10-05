@@ -1,11 +1,12 @@
 import { automaticConcertChecks } from './env';
 import { runConcertChecks } from './jobs';
+import { reportError } from './monitoring';
 const state = globalThis as typeof globalThis & { encoreTimer?: ReturnType<typeof setInterval> };
 export function startConcertScheduler() {
   if (!automaticConcertChecks() || state.encoreTimer) return;
   const tick = () => {
     void runConcertChecks().catch(() => {
-      console.warn('Concert checks could not finish; the next scheduled check will retry.');
+      reportError('scheduler_failed');
     });
   };
   state.encoreTimer = setInterval(tick, 5 * 60 * 1000);

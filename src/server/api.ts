@@ -2,7 +2,7 @@ import { randomUUID, timingSafeEqual } from 'node:crypto';
 import { z } from 'zod';
 import { NextResponse } from 'next/server';
 import { query } from './db';
-import { authSchema, intentSchema, preferencesSchema, analyticNames } from '../domain/validation';
+import { authSchema, intentSchema, preferencesSchema } from '../domain/validation';
 import { defaults } from '../domain/catalog';
 import type { Concert, User } from '../domain/types';
 import {
@@ -15,7 +15,8 @@ import {
   requireUser,
   verifyPassword,
 } from './security';
-import { getAppData, recordAnalytics, userLists } from './data';
+import { getAppData, recordAnalytics, recordConcertAnalytics, userLists } from './data';
+import { reportError } from './monitoring';
 import { env } from './env';
 import { beginSpotify, finishSpotify, spotifyArtists } from './providers/spotify';
 import { searchArtists, syncArtists } from './providers/ticketmaster';
@@ -89,6 +90,7 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
           await recordAnalytics(user, 'spotify_connected');
           return NextResponse.redirect(new URL('/app/artists?music=connected', env().APP_URL));
         } catch {
+          reportError('provider_failed');
           return NextResponse.redirect(new URL('/app/settings?music=failed', env().APP_URL));
         }
       }
@@ -230,7 +232,7 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
           source: z.enum(['feed', 'search', 'detail', 'saved']).default('detail'),
         })
         .parse(await body(request));
-      await ownEvent(input.eventId, user);
+      const event = await ownEvent(input.eventId, user);
       if (input.action === 'clear')
         await query('DELETE FROM feedback WHERE user_id=$1 AND event_id=$2', [
           user.id,
@@ -241,10 +243,11 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
           'INSERT INTO feedback(user_id,event_id,action) VALUES($1,$2,$3) ON CONFLICT(user_id,event_id) DO UPDATE SET action=EXCLUDED.action,created_at=NOW()',
           [user.id, input.eventId, input.action],
         );
-        await recordAnalytics(
+        await recordConcertAnalytics(
           user,
+          event,
           input.action === 'saved' ? 'concert_saved' : 'concert_dismissed',
-          { eventId: input.eventId, source: input.source },
+          input.source,
         );
       }
       return ok();
@@ -304,14 +307,24 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
         "INSERT INTO feedback(user_id,event_id,action) VALUES($1,$2,'clicked') ON CONFLICT(user_id,event_id) DO NOTHING",
         [user.id, event.id],
       );
-      await recordAnalytics(user, 'ticket_link_clicked', { eventId: event.id });
+      await recordConcertAnalytics(user, event, 'ticket_link_clicked', 'detail');
       return ok({ url: event.url });
     }
     if (key === 'analytics') {
       const input = z
-        .object({ name: z.enum(analyticNames), eventId: z.string().max(160).optional() })
+        .object({
+          name: z.enum(['concert_impression', 'concert_opened']),
+          eventId: z.string().min(1).max(160),
+        })
+        .strict()
         .parse(await body(request));
-      await recordAnalytics(user, input.name, { eventId: input.eventId });
+      const event = await ownEvent(input.eventId, user);
+      await recordConcertAnalytics(
+        user,
+        event,
+        input.name,
+        input.name === 'concert_impression' ? 'feed' : 'detail',
+      );
       return ok();
     }
     if (key === 'account/delete') {
@@ -329,12 +342,14 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
     throw new HttpError(404, 'This endpoint does not exist.');
   } catch (error) {
     if (error instanceof HttpError) return okError(error.message, error.status);
-    if (error instanceof ProviderError)
+    if (error instanceof ProviderError) {
+      reportError('provider_failed');
       return okError(error.message, error.status === 429 ? 429 : 502);
+    }
     if (error instanceof z.ZodError)
       return okError(error.issues[0]?.message ?? 'Check the form and try again.', 400);
     // Never log request bodies, provider URLs, tokens or personal information.
-    console.error('Request failed:', error instanceof Error ? error.name : 'UnknownError');
+    reportError('api_unexpected');
     return okError('The request could not be completed. Please try again.', 500);
   }
 }

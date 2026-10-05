@@ -174,3 +174,86 @@ test('desktop and mobile previews have working filters and no horizontal overflo
     true,
   );
 });
+
+test('consented funnel events have validated concert context and disappear on opt-out', async ({
+  page,
+}) => {
+  const headers = { Origin: origin };
+  const send = (path: string, data: unknown) =>
+    page.request.post(`/api/${path}`, { headers, data });
+  expect(
+    (
+      await send('auth/signup', {
+        name: 'Metrics fixture',
+        email: `metrics-${Date.now()}@example.test`,
+        password,
+      })
+    ).ok(),
+  ).toBe(true);
+  const preferences = {
+    home: 'Paris',
+    scope: 'europe',
+    maxHours: null,
+    radiusKm: null,
+    budget: null,
+    notifications: 'off',
+    analytics: true,
+  };
+  expect(
+    (await send('onboarding', { artistIds: ['fred-again'], mode: 'sample', preferences })).ok(),
+  ).toBe(true);
+  await page.goto('/app');
+  await expect
+    .poll(async () => {
+      const exported = await (await page.request.get('/api/export')).json();
+      return exported.analytics.some((e: { name: string }) => e.name === 'concert_impression');
+    })
+    .toBe(true);
+  await page.goto('/app/events/sample-1');
+  await expect
+    .poll(async () => {
+      const exported = await (await page.request.get('/api/export')).json();
+      return exported.analytics.some((e: { name: string }) => e.name === 'concert_opened');
+    })
+    .toBe(true);
+  expect(
+    (await send('feedback', { eventId: 'sample-1', action: 'saved', source: 'detail' })).ok(),
+  ).toBe(true);
+  const exported = await (await page.request.get('/api/export')).json();
+  expect(exported.analytics.map((e: { name: string }) => e.name)).toEqual(
+    expect.arrayContaining([
+      'onboarding_completed',
+      'concert_impression',
+      'concert_opened',
+      'concert_saved',
+    ]),
+  );
+  for (const e of exported.analytics.filter((e: { name: string }) =>
+    e.name.startsWith('concert_'),
+  )) {
+    expect(e.properties).toMatchObject({
+      mode: 'sample',
+      recommendationSource: 'followed',
+      ticketLinkAvailable: false,
+    });
+  }
+  expect(
+    (await send('analytics', { name: 'ticket_link_clicked', eventId: 'sample-1' })).status(),
+  ).toBe(400);
+  expect((await send('analytics', { name: 'concert_opened', eventId: 'not-real' })).status()).toBe(
+    404,
+  );
+  expect(
+    (
+      await send('analytics', {
+        name: 'concert_opened',
+        eventId: 'sample-1',
+        email: 'private@example.test',
+      })
+    ).status(),
+  ).toBe(400);
+  await send('preferences', { ...preferences, analytics: false });
+  await send('analytics', { name: 'concert_opened', eventId: 'sample-1' });
+  expect((await (await page.request.get('/api/export')).json()).analytics).toEqual([]);
+  expect((await send('account/delete', { password })).ok()).toBe(true);
+});

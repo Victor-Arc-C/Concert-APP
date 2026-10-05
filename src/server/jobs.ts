@@ -1,4 +1,5 @@
 import { query } from './db';
+import { reportError } from './monitoring';
 import { env } from './env';
 import { syncArtists } from './providers/ticketmaster';
 import { evaluateAlerts, userLists } from './data';
@@ -40,6 +41,7 @@ async function performChecks() {
       evaluated++;
     } catch {
       failures++;
+      reportError('job_account_failed');
       // No provider URLs or credentials in logs. Keep processing other accounts.
     }
   }

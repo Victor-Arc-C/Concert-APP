@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { AudioLines, X, MapPin, Bookmark, ArrowUpRight, Sparkles } from 'lucide-react';
 import type { Artist, RankedConcert } from '@/domain/types';
-import { useApp } from './context';
+import { api, useApp } from './context';
 export function Brand() {
   return (
     <Link href="/" className="brand" aria-label="Encore home">
@@ -90,14 +90,36 @@ export function ConcertCard({
   event,
   featured = false,
   source = 'feed',
+  trackImpression = false,
 }: {
   event: RankedConcert;
   featured?: boolean;
   source?: 'feed' | 'search' | 'saved';
+  trackImpression?: boolean;
 }) {
-  const { act, busy } = useApp();
+  const { act, busy, data } = useApp();
+  const card = useRef<HTMLElement>(null);
+  const seen = useRef('');
+  const userId = data.user?.id;
+  const consent = data.user?.preferences.analytics;
+  useEffect(() => {
+    const key = `${userId}:${event.id}`;
+    if (!trackImpression || !consent || !userId || !card.current || seen.current === key) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.intersectionRatio < 0.5 || document.visibilityState !== 'visible' || seen.current === key)
+          return;
+        seen.current = key;
+        void api('analytics', { name: 'concert_impression', eventId: event.id }).catch(() => {});
+        observer.disconnect();
+      },
+      { threshold: 0.5 },
+    );
+    observer.observe(card.current);
+    return () => observer.disconnect();
+  }, [trackImpression, consent, userId, event.id]);
   return (
-    <article className={`concert-card ${featured ? 'featured' : ''}`}>
+    <article ref={card} className={`concert-card ${featured ? 'featured' : ''}`}>
       <Link
         className="card-image-link"
         href={`/app/events/${event.id}`}

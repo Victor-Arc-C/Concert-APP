@@ -4,6 +4,8 @@ import { currentUser } from './security';
 import { env, spotifyAvailable, automaticConcertChecks } from './env';
 import { defaults } from '../domain/catalog';
 import { rankEvents } from '../domain/recommendations';
+import { safeTicketUrl } from '../domain/normalization';
+import { reportError } from './monitoring';
 import type {
   Affinity,
   Alert,
@@ -141,5 +143,40 @@ export async function recordAnalytics(
     user.id,
     name,
     JSON.stringify({ ...properties, mode: user.mode }),
-  ]);
+  ]).catch(() => reportError('analytics_failed'));
+}
+
+export async function recordConcertAnalytics(
+  user: User,
+  event: Concert,
+  name:
+    | 'concert_impression'
+    | 'concert_opened'
+    | 'concert_saved'
+    | 'concert_dismissed'
+    | 'ticket_link_clicked',
+  source: 'feed' | 'search' | 'detail' | 'saved',
+) {
+  if (!user.preferences.analytics) return;
+  try {
+    const { affinities } = await userLists(user.id);
+    const matches = affinities.filter((a) => !a.hidden && event.artistIds.includes(a.artistId));
+    await recordAnalytics(user, name, {
+      eventId: event.id,
+      source,
+      recommendationSource: matches.some((a) => a.favorite)
+        ? 'favorite'
+        : matches.length
+          ? 'followed'
+          : 'discovery',
+      provider: event.provider,
+      ticketLinkAvailable:
+        event.provider !== 'sample' &&
+        !!event.url &&
+        safeTicketUrl(event.url) &&
+        !['cancelled', 'postponed'].includes(event.status),
+    });
+  } catch {
+    reportError('analytics_failed');
+  }
 }

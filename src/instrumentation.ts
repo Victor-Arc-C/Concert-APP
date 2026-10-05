@@ -1,3 +1,9 @@
+import { reportError } from './server/monitoring';
+
+export function onRequestError() {
+  reportError('framework_failed');
+}
+
 export async function register() {
   if (
     process.env.NEXT_RUNTIME === 'nodejs' &&

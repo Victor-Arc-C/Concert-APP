@@ -35,7 +35,6 @@ export function Feed() {
     [month, setMonth] = useState(''),
     [showAll, setShowAll] = useState(false),
     [edit, setEdit] = useState(false);
-  const impressionKey = useRef('');
   const followed = data.artists.filter((a) =>
     data.affinities.some((f) => f.artistId === a.id && !f.hidden),
   );
@@ -57,15 +56,6 @@ export function Feed() {
     })
     .slice(0, 8);
   const unique = showAll ? filtered : shortlist;
-  useEffect(() => {
-    const key = unique.map((e) => e.id).join(',');
-    if (data.user?.preferences.analytics && key !== impressionKey.current) {
-      impressionKey.current = key;
-      unique.forEach((e) => {
-        void api('analytics', { name: 'concert_impression', eventId: e.id }).catch(() => {});
-      });
-    }
-  }, [unique, data.user?.preferences.analytics]);
   const months = [...new Set(data.events.map((e) => e.date.slice(0, 7)))].sort();
   return (
     <>
@@ -105,7 +95,7 @@ export function Feed() {
       </div>
       {unique.length > 0 && !showAll && !query && !month && tab === 'all' && (
         <div className="spotlight-layout">
-          <ConcertCard event={unique[0]} featured />
+          <ConcertCard event={unique[0]} featured trackImpression />
           <aside className="taste-panel">
             <div className="section-heading">
               <h2>Your kind of live.</h2>
@@ -249,7 +239,12 @@ export function Feed() {
         ) : (
           <div className="concert-grid">
             {(showAll || query || month || tab !== 'all' ? unique : unique.slice(1)).map((e) => (
-              <ConcertCard key={e.id} event={e} source={query ? 'search' : 'feed'} />
+              <ConcertCard
+                key={e.id}
+                event={e}
+                source={query ? 'search' : 'feed'}
+                trackImpression
+              />
             ))}
           </div>
         )}

@@ -51,6 +51,6 @@ Required event envelope: server timestamp, internal user ID, mode, event name an
 
 ## Instrumentation follow-through
 
-These are definitions, not measured results. Existing storage is consent-gated and records onboarding, impressions, opens, saves and outbound clicks. CON-9 must reconcile actual emission with this contract: signup/consent timing, reliable impression semantics, ticket-link availability at detail open and trustworthy server validation. Merely listing an event name in the allowlist does not prove it is emitted. Publish only supported metrics; mark the rest unavailable until instrumented and verified.
+These are definitions, not measured results. CON-9 records consented onboarding, visible-card impressions, opens, saves and outbound clicks with server-validated concert context and ticket-link availability. See [the tracking contract](ANALYTICS.md). Signup occurs before consent, so activation's signup denominator remains unavailable; do not backfill it without a consent-compatible design. Merely listing an event name in the allowlist does not prove it is emitted. Publish only supported metrics; mark the rest unavailable until instrumented and verified.
 
 The current 30-day analytics retention can support these windows if weekly reports run on time. Store only aggregate cohort results for longer comparisons, with small-cohort caution. Review pilot interviews and these five metrics before setting expansion targets; no invented benchmark or revenue claim is required to close CON-5.
