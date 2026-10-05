@@ -1,6 +1,6 @@
 # Encore
 
-A founder-testable, artist-first concert discovery pilot. Start with the product decisions in [PRODUCT_AND_TECHNICAL_PLAN.md](PRODUCT_AND_TECHNICAL_PLAN.md).
+A founder-testable, artist-first concert discovery pilot. Start with the [MVP scope, journey and launch metrics](docs/MVP_SCOPE.md); [PRODUCT_AND_TECHNICAL_PLAN.md](PRODUCT_AND_TECHNICAL_PLAN.md) provides background research.
 
 ## Run locally
 
