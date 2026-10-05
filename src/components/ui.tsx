@@ -138,7 +138,7 @@ export function ConcertCard({
       <div className="image-shade" />
       <span className={`fit-pill ${featured || favorite ? 'warm' : ''}`}>
         <Sparkles size={13} />
-        {favorite && event.tier !== 'Must see' ? 'Favourite artist' : event.tier}
+        {event.tier === 'Must see' ? event.tier : favorite ? 'Favourite artist' : event.tier === 'A favourite, live' ? 'Artist you follow' : event.tier}
       </span>
       <button
         className={`save-button ${event.saved ? 'saved' : ''}`}
