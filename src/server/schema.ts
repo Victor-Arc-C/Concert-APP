@@ -102,4 +102,16 @@ CREATE INDEX rate_limits_window ON rate_limits(window_at);
     );
     CREATE INDEX normalization_reviews_kind_time ON normalization_reviews(kind,updated_at);`,
   },
+  {
+    version: 6,
+    sql: `
+    ALTER TABLE affiliate_clicks ADD COLUMN source_external_id TEXT;
+    INSERT INTO ticket_sources(event_id,provider,external_id,url,price_min,currency,observed_at)
+    SELECT id,data->>'provider',data->>'externalId',data->>'url',
+      (data->>'price')::numeric,data->>'currency',(data->>'fetchedAt')::timestamptz
+    FROM events WHERE sample=FALSE AND data->>'provider' IS NOT NULL
+      AND data->>'externalId' IS NOT NULL AND data->>'fetchedAt' IS NOT NULL
+    ON CONFLICT DO NOTHING;
+  `,
+  },
 ];

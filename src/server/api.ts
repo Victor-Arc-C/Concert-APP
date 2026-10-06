@@ -27,9 +27,9 @@ import {
   confirmSpotifyArtist,
 } from './providers/spotify';
 import { searchArtists, syncArtists } from './providers/ticketmaster';
-import { safeTicketUrl } from '../domain/normalization';
 import { ProviderError } from './providers/http';
 import { runConcertChecks } from './jobs';
+import { ticketSources, selectTicketSource } from './tickets';
 async function body(request: Request): Promise<unknown> {
   const reader = request.body?.getReader();
   if (!reader) throw new HttpError(400, 'The request is empty.');
@@ -104,6 +104,10 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
         }
       }
       const user = await requireUser();
+      if (key === 'tickets')
+        return ok({
+          sources: await ticketSources(await ownEvent(url.searchParams.get('eventId') ?? '', user)),
+        });
       if (key === 'artists/search') {
         await rateLimit(`search:${user.id}`, 10, 60);
         const term = z.string().min(2).max(100).parse(url.searchParams.get('q'));
@@ -123,7 +127,7 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
           [user.id],
         );
         const clicks = await query(
-          'SELECT event_id,provider,created_at FROM affiliate_clicks WHERE user_id=$1',
+          'SELECT event_id,provider,source_external_id,created_at FROM affiliate_clicks WHERE user_id=$1',
           [user.id],
         );
         return NextResponse.json(
@@ -323,22 +327,27 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
       return ok(await syncArtists(user.id));
     }
     if (key === 'outbound') {
-      const { eventId } = z.object({ eventId: z.string() }).parse(await body(request));
+      const { eventId, source } = z
+        .object({
+          eventId: z.string(),
+          source: z.object({ provider: z.string(), externalId: z.string() }).optional(),
+        })
+        .strict()
+        .parse(await body(request));
       const event = await ownEvent(eventId, user);
-      if (event.provider === 'sample' || !event.url || !safeTicketUrl(event.url))
-        throw new HttpError(422, 'No verified ticket link is available for this concert.');
+      const selected = await selectTicketSource(event, source);
       if (['cancelled', 'postponed'].includes(event.status))
         throw new HttpError(422, 'Check the seller for changes before buying.');
       await query(
-        'INSERT INTO affiliate_clicks(id,user_id,event_id,provider) VALUES($1,$2,$3,$4)',
-        [randomUUID(), user.id, event.id, event.provider],
+        'INSERT INTO affiliate_clicks(id,user_id,event_id,provider,source_external_id) VALUES($1,$2,$3,$4,$5)',
+        [randomUUID(), user.id, event.id, selected.provider, selected.externalId],
       );
       await query(
         "INSERT INTO feedback(user_id,event_id,action) VALUES($1,$2,'clicked') ON CONFLICT(user_id,event_id) DO NOTHING",
         [user.id, event.id],
       );
       await recordConcertAnalytics(user, event, 'ticket_link_clicked', 'detail');
-      return ok({ url: event.url });
+      return ok({ url: selected.url });
     }
     if (key === 'analytics') {
       const input = z

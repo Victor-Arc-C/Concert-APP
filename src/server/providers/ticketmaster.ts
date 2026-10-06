@@ -4,7 +4,11 @@ import { query } from '../db';
 import { env } from '../env';
 import { HttpError, rateLimit } from '../security';
 import { ProviderError, providerJson } from './http';
-import { compareEventIdentity, fingerprint, normalizeTicketmaster } from '../../domain/normalization';
+import {
+  compareEventIdentity,
+  fingerprint,
+  normalizeTicketmaster,
+} from '../../domain/normalization';
 import type { Artist, Concert } from '../../domain/types';
 import { recordNormalizationReview, resolveArtistIdentity } from '../identity';
 export interface EventProvider {
@@ -122,7 +126,9 @@ export async function storeEvent(event: Concert, raw: unknown) {
       "SELECT id,data FROM events WHERE sample=FALSE AND data->>'date'=$1",
       [event.date],
     );
-    const ambiguous = candidates.filter(({ data }) => compareEventIdentity(event, data) === 'ambiguous');
+    const ambiguous = candidates.filter(
+      ({ data }) => compareEventIdentity(event, data) === 'ambiguous',
+    );
     if (ambiguous.length)
       await recordNormalizationReview(
         'event',
@@ -143,6 +149,13 @@ export async function storeEvent(event: Concert, raw: unknown) {
   await query(
     'INSERT INTO events(id,fingerprint,data,sample) VALUES($1,$2,$3,FALSE) ON CONFLICT(id) DO UPDATE SET data=EXCLUDED.data,fingerprint=EXCLUDED.fingerprint',
     [id, fingerprint(event), JSON.stringify({ ...event, id })],
+  );
+  await query(
+    `INSERT INTO ticket_sources(event_id,provider,external_id,url,price_min,currency,observed_at)
+     VALUES($1,$2,$3,$4,$5,$6,$7)
+     ON CONFLICT(provider,external_id) DO UPDATE SET event_id=EXCLUDED.event_id,url=EXCLUDED.url,
+       price_min=EXCLUDED.price_min,currency=EXCLUDED.currency,observed_at=EXCLUDED.observed_at`,
+    [id, event.provider, event.externalId, event.url, event.price, event.currency, event.fetchedAt],
   );
   await query(
     'INSERT INTO event_provider_records(provider,external_id,event_id,raw) VALUES($1,$2,$3,$4) ON CONFLICT(provider,external_id) DO UPDATE SET raw=EXCLUDED.raw,fetched_at=NOW()',
