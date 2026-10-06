@@ -7,11 +7,7 @@ import {
   calculateOverallScore,
   assignTripLabels,
 } from '../src/domain/trip-scoring';
-import type {
-  TripOption,
-  TransportOption,
-  AccommodationOption,
-} from '../src/domain/trip-types';
+import type { TripOption, TransportOption, AccommodationOption } from '../src/domain/trip-types';
 
 describe('Trip Intelligence scoring domain', () => {
   describe('calculateMusicFit', () => {
@@ -74,6 +70,9 @@ describe('Trip Intelligence scoring domain', () => {
     const dummyTransport: TransportOption = {
       id: 't1',
       provider: 'test',
+      kind: 'live',
+      availability: 'available',
+      priceComplete: true,
       mode: 'train',
       origin: 'Paris',
       destination: 'Lyon',
@@ -90,6 +89,9 @@ describe('Trip Intelligence scoring domain', () => {
     const dummyStay: AccommodationOption = {
       id: 's1',
       provider: 'test',
+      kind: 'live',
+      availability: 'available',
+      priceComplete: true,
       name: 'Grand Hotel',
       city: 'Lyon',
       checkIn: '2027-01-01T14:00:00Z',
@@ -151,7 +153,6 @@ describe('Trip Intelligence scoring domain', () => {
     });
   });
 
-
   describe('assignTripLabels', () => {
     const makeTrip = (
       id: string,
@@ -163,6 +164,11 @@ describe('Trip Intelligence scoring domain', () => {
       convenienceScore: number,
     ): TripOption => ({
       id,
+      mode: 'live',
+      planStatus: 'active',
+      ticketPriceState: 'ready',
+      transportState: 'ready',
+      accommodationState: 'ready',
       eventId: 'ev-1',
       originCity: 'Paris',
       destinationCity: 'Brussels',
@@ -175,6 +181,9 @@ describe('Trip Intelligence scoring domain', () => {
       transport: {
         id: `t-${id}`,
         provider: 'test',
+        kind: 'live',
+        availability: 'available',
+        priceComplete: true,
         mode,
         origin: 'Paris',
         destination: 'Brussels',
@@ -190,12 +199,15 @@ describe('Trip Intelligence scoring domain', () => {
       accommodation: {
         id: `s-${id}`,
         provider: 'test',
+        kind: 'live',
+        availability: 'available',
+        priceComplete: true,
         name: 'Hotel',
         city: 'Brussels',
         checkIn: '2027-03-01T15:00:00Z',
         checkOut: '2027-03-02T11:00:00Z',
         guests: 1,
-        price: total ? 80 : null,
+        price: total ? total - 80 : null,
         currency,
         distanceKmToVenue: 1.2,
         observedAt: '2026-10-06T12:00:00Z',
@@ -219,7 +231,7 @@ describe('Trip Intelligence scoring domain', () => {
       const opt2 = makeTrip('opt-bus', 'bus', 240, 110, 'EUR', 75, 60); // Lowest total -> Cheapest
       const opt3 = makeTrip('opt-flight', 'flight', 65, 250, 'EUR', 72, 85); // Lowest duration -> Fastest
 
-      const labeled = assignTripLabels([opt1, opt2, opt3]);
+      const labeled = assignTripLabels([opt1, opt2, opt3], new Date('2026-10-06T12:01:00Z'));
       expect(labeled.find((o) => o.id === 'opt-train')?.label).toBe('Best value');
       expect(labeled.find((o) => o.id === 'opt-bus')?.label).toBe('Cheapest');
       expect(labeled.find((o) => o.id === 'opt-flight')?.label).toBe('Fastest');
@@ -229,14 +241,14 @@ describe('Trip Intelligence scoring domain', () => {
       const opt1 = makeTrip('opt-train', 'train', 90, null, null, 85, 90);
       const opt2 = makeTrip('opt-bus', 'bus', 240, null, null, 65, 60);
 
-      const labeled = assignTripLabels([opt1, opt2]);
+      const labeled = assignTripLabels([opt1, opt2], new Date('2026-10-06T12:01:00Z'));
       expect(labeled.some((o) => o.label === 'Cheapest')).toBe(false);
     });
 
     it('handles single option without inventing superlatives', () => {
       const single = makeTrip('single', 'train', 90, 150, 'EUR', 80, 90);
-      const labeled = assignTripLabels([single]);
-      expect(labeled[0].label).toBe('Best value'); // Single option with high score can be best value, but not cheapest/fastest
+      const labeled = assignTripLabels([single], new Date('2026-10-06T12:01:00Z'));
+      expect(labeled[0].label).toBeNull();
     });
   });
 });

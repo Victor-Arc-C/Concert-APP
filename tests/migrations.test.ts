@@ -94,3 +94,24 @@ describe('versioned schema', () => {
     }
   });
 });
+
+it('upgrades saved snapshots to legacy intent and preserves plans after event deletion, with account isolation intact', async () => {
+  const pg = new PGlite();
+  try {
+    for (const migration of migrations.filter(m => m.version <= 7)) await pg.exec(migration.sql);
+    await pg.exec('CREATE TABLE schema_migrations(version INT PRIMARY KEY)');
+    for (const migration of migrations.filter(m => m.version <= 7)) await pg.query('INSERT INTO schema_migrations VALUES($1)', [migration.version]);
+    await pg.exec(`
+      INSERT INTO users(id,email,name,password_hash,preferences) VALUES('trip-user','trip@example.test','Test','test-only','{}');
+      INSERT INTO events VALUES('trip-event','trip-fingerprint','{}',false);
+      INSERT INTO saved_trips(id,user_id,event_id,trip_option_id,origin_city,destination_city,event_date,trip_data)
+      VALUES('plan','trip-user','trip-event','old-choice','Paris','Lyon','2027-01-01','{"transport":{"bookingUrl":"javascript:bad","price":999}}');
+    `);
+    await migrate(adapter(pg));
+    expect((await pg.query('SELECT trip_data FROM saved_trips')).rows).toEqual([{ trip_data: { version: 0 } }]);
+    await pg.exec("DELETE FROM events WHERE id='trip-event'");
+    expect((await pg.query('SELECT event_id,origin_city FROM saved_trips')).rows).toEqual([{ event_id: 'trip-event', origin_city: 'Paris' }]);
+    await pg.exec("DELETE FROM users WHERE id='trip-user'");
+    expect((await pg.query('SELECT id FROM saved_trips')).rows).toEqual([]);
+  } finally { await pg.close(); }
+});

@@ -1,8 +1,29 @@
 export type TripRecommendationLabel = 'Best value' | 'Cheapest' | 'Fastest' | 'Easiest';
 
 export type TransportMode = 'train' | 'flight' | 'bus';
+export type TripProviderMode = 'sample' | 'live';
+export type TripComponentState = 'ready' | 'unavailable' | 'stale' | 'invalid';
+export type TripPlanStatus =
+  | 'active'
+  | 'cancelled'
+  | 'postponed'
+  | 'event_missing'
+  | 'mode_changed'
+  | 'event_changed'
+  | 'past';
+export type QuoteObservation = {
+  kind: TripProviderMode;
+  availability: 'sample' | 'available' | 'unavailable' | 'unknown';
+  priceComplete: boolean;
+  expiresAt?: string | null;
+};
+export type TripProviderDefinition = {
+  kind: TripProviderMode;
+  sourceIds: readonly string[];
+  bookingHosts: readonly string[];
+};
 
-export type TransportOption = {
+export type TransportOption = QuoteObservation & {
   id: string;
   provider: string;
   mode: TransportMode;
@@ -19,7 +40,7 @@ export type TransportOption = {
   operator?: string;
 };
 
-export type AccommodationOption = {
+export type AccommodationOption = QuoteObservation & {
   id: string;
   provider: string;
   name: string;
@@ -35,10 +56,10 @@ export type AccommodationOption = {
 };
 
 export type TripScores = {
-  musicFit: number;       // 0-100
-  costScore: number;      // 0-100 (higher = better value/lower cost)
-  convenienceScore: number; // 0-100 (higher = easier/faster)
-  overallScore: number;   // 0-100
+  musicFit: number; // 0-100
+  costScore: number; // 0-100 (higher = better value/lower cost)
+  convenienceScore: number | null; // unknown when a component is missing
+  overallScore: number | null; // 0-100
 };
 
 export type TripOption = {
@@ -52,8 +73,13 @@ export type TripOption = {
   ticketCurrency: string | null;
   ticketObservedAt: string | null;
   ticketProvider: string | null;
-  transport: TransportOption;
-  accommodation: AccommodationOption;
+  mode: TripProviderMode;
+  planStatus: TripPlanStatus;
+  ticketPriceState: TripComponentState;
+  transportState: TripComponentState;
+  accommodationState: TripComponentState;
+  transport: TransportOption | null;
+  accommodation: AccommodationOption | null;
   estimatedTotal: number | null;
   totalCurrency: string | null;
   scores: TripScores;
@@ -73,9 +99,10 @@ export type SavedTrip = {
   tripData: TripOption;
   createdAt: string;
   updatedAt: string;
+  revalidationStatus: 'current' | 'unavailable' | 'legacy';
 };
 
-export interface TransportProvider {
+export interface TransportProvider extends TripProviderDefinition {
   name: string;
   getOptions(
     origin: string,
@@ -86,7 +113,7 @@ export interface TransportProvider {
   ): Promise<TransportOption[]>;
 }
 
-export interface AccommodationProvider {
+export interface AccommodationProvider extends TripProviderDefinition {
   name: string;
   getOptions(
     destinationCity: string,

@@ -135,6 +135,17 @@ CREATE INDEX rate_limits_window ON rate_limits(window_at);
   `,
   },
   {
+    version: 8,
+    sql: `
+    -- Keep saved intent if its concert disappears; reads explicitly mark event_missing.
+    -- User ownership and account deletion still use the existing cascading user FK.
+    ALTER TABLE saved_trips DROP CONSTRAINT saved_trips_event_id_fkey;
+    -- Pre-gate snapshots were client-controlled. Retain plan columns, discard untrusted quotes.
+    UPDATE saved_trips SET trip_data='{"version":0}'::jsonb
+    WHERE trip_data->>'version' IS DISTINCT FROM '1';
+  `,
+  },
+  {
     version: 9,
     sql: `
     -- CON-36: private-beta feedback. Removed with the account through the cascading user FK.
