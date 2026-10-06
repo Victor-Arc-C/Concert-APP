@@ -48,6 +48,41 @@ describe('credentials and request boundaries', () => {
       ),
     ).not.toThrow();
   });
+  it('accepts the production app origin but only allows the Vercel preview origin in preview', () => {
+    vi.stubEnv('APP_URL', 'https://concerts.example.com');
+    vi.stubEnv('VERCEL_URL', 'encore-git-feature-123.vercel.app');
+
+    expect(() =>
+      checkOrigin(
+        new Request('https://concerts.example.com/api/auth/login', {
+          headers: { origin: 'https://concerts.example.com' },
+        }),
+      ),
+    ).not.toThrow();
+    expect(() =>
+      checkOrigin(
+        new Request('https://concerts.example.com/api/auth/login', {
+          headers: { origin: 'https://encore-git-feature-123.vercel.app' },
+        }),
+      ),
+    ).toThrow();
+
+    vi.stubEnv('VERCEL_ENV', 'preview');
+    expect(() =>
+      checkOrigin(
+        new Request('https://encore-git-feature-123.vercel.app/api/auth/login', {
+          headers: { origin: 'https://encore-git-feature-123.vercel.app' },
+        }),
+      ),
+    ).not.toThrow();
+    expect(() =>
+      checkOrigin(
+        new Request('https://encore-git-feature-123.vercel.app/api/auth/login', {
+          headers: { origin: 'https://attacker.test' },
+        }),
+      ),
+    ).toThrow();
+  });
 });
 describe('provider failures', () => {
   it('parses delta and HTTP-date retry delays without accepting malformed values', () => {
