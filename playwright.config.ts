@@ -10,5 +10,6 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
-  reporter: 'list',
+  // In CI, also emit GitHub annotations so failures are readable from the PR checks.
+  reporter: process.env.CI ? [['list'], ['github']] : 'list',
 });

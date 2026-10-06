@@ -158,6 +158,29 @@ test('API authorisation, CSRF, account isolation and honest provider errors', as
         })
       ).ok(),
     ).toBe(true);
+  // CON-33: live onboarding never completes with fictional artists or without a live provider.
+  const onboardingPreferences = {
+    home: 'Paris',
+    scope: 'europe',
+    maxHours: null,
+    radiusKm: null,
+    budget: null,
+    notifications: 'off',
+    analytics: false,
+  };
+  expect(
+    (
+      await a.post('/api/onboarding', {
+        data: {
+          artistIds: ['fred-again'],
+          mode: 'live',
+          source: 'manual',
+          preferences: onboardingPreferences,
+        },
+      })
+    ).status(),
+  ).toBe(503);
+  expect((await (await a.get('/api/state')).json()).user.onboarded).toBe(false);
   expect(
     (await a.post('/api/feedback', { data: { eventId: 'sample-1', action: 'saved' } })).ok(),
   ).toBe(true);
@@ -513,3 +536,88 @@ test('trip intelligence flow: concert -> plan trip -> compare itineraries -> sav
   await expect(page.getByRole('link', { name: 'View itinerary' })).toBeVisible();
 });
 
+test('manual live onboarding without Spotify: search, retry, demo opt-in, live submit', async ({
+  page,
+}) => {
+  const email = `live-onboarding-${Date.now()}@example.test`;
+  expect(
+    (
+      await page.request.post('/api/auth/signup', {
+        headers: { Origin: origin },
+        data: { name: 'Live Picker', email, password },
+      })
+    ).ok(),
+  ).toBe(true);
+  await page.route('**/api/state', async (route) => {
+    const response = await route.fetch();
+    const state = await response.json();
+    state.liveAvailable = true;
+    state.spotifyAvailable = false;
+    state.user.onboarded = false;
+    await route.fulfill({ response, json: state });
+  });
+  let searchFails = true;
+  await page.route('**/api/artists/search**', async (route) => {
+    if (searchFails) {
+      await route.fulfill({
+        status: 503,
+        json: { error: 'The concert provider is unavailable. Try again shortly.' },
+      });
+      return;
+    }
+    expect(new URL(route.request().url()).searchParams.get('q')).toBe('Angele');
+    await route.fulfill({
+      json: {
+        artists: [
+          {
+            id: 'tm-artist-angele',
+            name: 'Angèle',
+            genre: 'Live music',
+            initials: 'an',
+            color: '#867496',
+            providerId: 'K8vZ-angele',
+          },
+        ],
+      },
+    });
+  });
+  let submitted: Record<string, unknown> | null = null;
+  await page.route('**/api/onboarding', async (route) => {
+    submitted = route.request().postDataJSON();
+    await route.fulfill({ json: { ok: true } });
+  });
+  await page.goto('/onboarding');
+  await page.getByRole('button', { name: 'Choose artists', exact: true }).click();
+  await expect(page.getByLabel('Search real artists')).toBeVisible();
+  // Fictional catalogue is not offered until the user opts into the demo.
+  await expect(page.getByRole('button', { name: /Fred again\.\./ })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Find my concerts' })).toBeDisabled();
+
+  await page.getByLabel('Search real artists').fill('Angele');
+  await page.getByRole('button', { name: 'Search', exact: true }).click();
+  await expect(page.getByText('The concert provider is unavailable. Try again shortly.')).toBeVisible();
+  searchFails = false;
+  await page.getByRole('button', { name: 'Try again', exact: true }).click();
+  const angele = page.getByRole('button', { name: /Angèle/ });
+  await expect(angele).toHaveAttribute('aria-pressed', 'false');
+  await angele.click();
+  await expect(angele).toHaveAttribute('aria-pressed', 'true');
+
+  // Demo is an explicit, reversible choice and does not mix with live picks.
+  await page.getByRole('button', { name: /Try the demo with fictional concerts/ }).click();
+  await expect(page.getByText('Demo mode: concerts, dates and prices are fictional.')).toBeVisible();
+  await expect(page.getByRole('button', { name: /Fred again\.\./ })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Find my concerts' })).toBeDisabled();
+  await page.getByRole('button', { name: 'Search real artists instead' }).click();
+
+  await page.getByLabel('Search real artists').fill('Angele');
+  await page.getByRole('button', { name: 'Search', exact: true }).click();
+  await page.getByRole('button', { name: /Angèle/ }).click();
+  await page.getByRole('button', { name: 'Find my concerts' }).click();
+  await expect.poll(() => submitted).not.toBeNull();
+  expect(submitted).toMatchObject({
+    artistIds: ['tm-artist-angele'],
+    mode: 'live',
+    source: 'manual',
+  });
+});

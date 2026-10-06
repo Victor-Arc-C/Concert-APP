@@ -76,6 +76,10 @@ Set a random `CRON_SECRET` (`openssl rand -hex 32`) and invoke `POST /api/jobs` 
 
 Database credentials, OAuth tokens and provider keys stay on the server. Do not prefix them with `NEXT_PUBLIC_`. No real secrets are included. A `.env.example` documents settings.
 
+## Private beta invite codes (CON-35)
+
+Set `BETA_INVITE_CODES` (comma-separated, case-sensitive) to require one of those codes at signup. Leave it empty for open signup. Codes are compared server-side in constant time, checked before any account lookup, rate-limited, and never logged or returned. Sign-in for existing accounts is not affected. To rotate a code, change the variable and redeploy.
+
 ## Public-launch gates
 
 - Email verification, recovery flow, abuse protections, operational monitoring and external security review.
