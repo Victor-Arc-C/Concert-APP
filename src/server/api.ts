@@ -29,6 +29,7 @@ import {
 import { resolveSpotifyArtists, searchArtists, syncArtists } from './providers/ticketmaster';
 import { ProviderError } from './providers/http';
 import { runConcertChecks } from './jobs';
+import { inviteCodes, inviteValid } from './invite';
 import { ticketSources, selectTicketSource } from './tickets';
 import { generateTripOptions } from './trips';
 import type { SavedTrip } from '../domain/trip-types';
@@ -197,6 +198,16 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
       await rateLimit(`auth:${input.email}`, 8, 900);
       if (key === 'auth/signup') {
         if (!input.name) throw new HttpError(400, 'Add your name.');
+        const codes = inviteCodes();
+        if (codes.length) {
+          // Checked before the account lookup so a missing code never reveals registered emails.
+          await rateLimit('invite-global', 60, 900);
+          if (!inviteValid(input.inviteCode, codes))
+            throw new HttpError(
+              403,
+              'This invite code is not valid. Ask the person who invited you.',
+            );
+        }
         if ((await query('SELECT id FROM users WHERE email=$1', [input.email])).length)
           throw new HttpError(409, 'This account could not be created. Try signing in.');
         const id = randomUUID();
