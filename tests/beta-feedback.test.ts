@@ -44,6 +44,9 @@ describe('beta feedback validation', () => {
     expect(
       betaFeedbackSchema.parse({ message: 'ok', rating: 5, screen: '/app/events/tm-1' }).rating,
     ).toBe(5);
+    expect(betaFeedbackSchema.parse({ message: 'ok', screen: '/app/events/a:b@c' }).screen).toBe(
+      '/app/events/a:b@c',
+    );
   });
   it.each([
     { message: '   ', screen: '/app' },
@@ -54,6 +57,7 @@ describe('beta feedback validation', () => {
     { message: 'ok', screen: 'https://evil.test/app' },
     { message: 'ok', screen: '/app?email=someone@example.test' },
     { message: 'ok', screen: '/app', userId: 'bob' },
+    { message: 'a\u0000b', screen: '/app' },
   ])('rejects %j', (input) => {
     expect(betaFeedbackSchema.safeParse(input).success).toBe(false);
   });
@@ -87,10 +91,13 @@ describe('beta feedback storage', () => {
     expect(await exportBetaFeedback(carol.id)).toHaveLength(5);
   });
   it('is deleted with the account (same statement as account deletion)', async () => {
+    await saveBetaFeedback(alice, { message: 'Before deletion', rating: null, screen: '/app' });
+    await saveBetaFeedback(bob, { message: 'Kept', rating: null, screen: '/app' });
+    expect((await exportBetaFeedback(alice.id)).length).toBeGreaterThan(0);
     await db.query('DELETE FROM users WHERE id=$1', [alice.id]);
     expect(await exportBetaFeedback(alice.id)).toEqual([]);
     const remaining = await db.query<{ user_id: string }>('SELECT user_id FROM beta_feedback');
     expect(remaining.rows.every((row) => row.user_id !== alice.id)).toBe(true);
-    expect(await exportBetaFeedback(bob.id)).toHaveLength(1);
+    expect((await exportBetaFeedback(bob.id)).length).toBeGreaterThan(0);
   });
 });

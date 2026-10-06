@@ -69,11 +69,12 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
             required
             rows={5}
             maxLength={MAX_LENGTH}
+            aria-describedby="feedback-count"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
           />
         </label>
-        <small className="fineprint">
+        <small id="feedback-count" className="fineprint">
           {message.length}/{MAX_LENGTH}
         </small>
         <fieldset className="feedback-rating">

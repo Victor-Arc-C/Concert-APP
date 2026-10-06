@@ -58,13 +58,15 @@ export const betaFeedbackSchema = z
       .string()
       .trim()
       .min(1, 'Write a few words before sending.')
-      .max(2000, 'Keep feedback under 2,000 characters.'),
+      .max(2000, 'Keep feedback under 2,000 characters.')
+      // PostgreSQL text cannot store NUL characters.
+      .refine((value) => !value.includes('\0'), 'Remove unsupported characters.'),
     rating: z.number().int().min(1).max(5).nullable().default(null),
     // The in-app path only (no query string), so feedback can be tied to a screen.
     screen: z
       .string()
       .max(200)
-      .regex(/^\/[A-Za-z0-9/_.~%-]*$/, 'Unknown screen.'),
+      .regex(/^\/[A-Za-z0-9/_.~%:@+!(),;=-]*$/, 'Unknown screen.'),
   })
   .strict();
 export type BetaFeedbackInput = z.infer<typeof betaFeedbackSchema>;
