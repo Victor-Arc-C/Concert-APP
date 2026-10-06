@@ -20,7 +20,6 @@ test('founder flow: register, choose artists, save, persist, must-see, alert, di
     await page
       .getByRole('button', { name: new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) })
       .click();
-  await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await page.getByRole('button', { name: 'Find my concerts' }).click();
   await expect(page.getByRole('heading', { name: 'Your next great night.' })).toBeVisible();
   const initial = await (await page.request.get('/api/state')).json();
