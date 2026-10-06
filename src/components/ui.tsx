@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import Link from 'next/link';
 import { AudioLines, X, MapPin, Bookmark, ArrowUpRight, Sparkles } from 'lucide-react';
 import type { Artist, RankedConcert } from '@/domain/types';
@@ -62,16 +62,17 @@ export function Modal({
   children: React.ReactNode;
   onClose: () => void;
 }) {
-  const ref = useRef<HTMLDialogElement>(null);
+  const ref = useRef<HTMLDialogElement>(null),
+    titleId = useId();
   useEffect(() => {
     const dialog = ref.current;
     dialog?.showModal();
     return () => dialog?.close();
   }, []);
   return (
-    <dialog ref={ref} className="modal" onCancel={onClose}>
+    <dialog ref={ref} className="modal" onCancel={onClose} aria-labelledby={titleId}>
       <div className="modal-heading">
-        <h2>{title}</h2>
+        <h2 id={titleId}>{title}</h2>
         <button className="icon-button" onClick={onClose} aria-label="Close dialog">
           <X />
         </button>

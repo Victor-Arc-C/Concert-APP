@@ -3044,3 +3044,61 @@ svg {
   margin-top: 4px;
 }
 
+
+/* CON-36 beta feedback */
+.sidebar-bottom button.nav-item {
+  width: 100%;
+  background: none;
+  border: 0;
+  text-align: left;
+}
+.feedback-form {
+  display: grid;
+  gap: 12px;
+}
+.feedback-form label {
+  display: grid;
+  gap: 8px;
+  font-weight: 600;
+}
+.feedback-form textarea {
+  font: inherit;
+  background: #111a2b;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 11px 13px;
+  color: var(--text);
+  width: 100%;
+  resize: vertical;
+}
+.feedback-form textarea:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 4px;
+}
+.feedback-rating {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.feedback-rating legend {
+  width: 100%;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.feedback-rating button {
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-weight: 700;
+}
+.feedback-rating button[aria-pressed='true'] {
+  border-color: var(--amber);
+  color: var(--amber);
+  background: var(--raised);
+}
