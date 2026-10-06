@@ -19,9 +19,9 @@ export function Avatar({ artist, small = false }: { artist: Artist; small?: bool
     <span
       className={`artist-avatar ${small ? 'small' : ''}`}
       style={{ background: artist.color }}
-      aria-hidden="true"
+      aria-hidden={artist.image ? undefined : true}
     >
-      {artist.initials}
+      {artist.image ? <img src={artist.image} alt="" loading="lazy" /> : artist.initials}
     </span>
   );
 }
@@ -62,11 +62,7 @@ export function Modal({
     return () => dialog?.close();
   }, []);
   return (
-    <dialog
-      ref={ref}
-      className="modal"
-      onCancel={onClose}
-    >
+    <dialog ref={ref} className="modal" onCancel={onClose}>
       <div className="modal-heading">
         <h2>{title}</h2>
         <button className="icon-button" onClick={onClose} aria-label="Close dialog">
@@ -110,7 +106,11 @@ export function ConcertCard({
     if (!trackImpression || !consent || !userId || !card.current || seen.current === key) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.intersectionRatio < 0.5 || document.visibilityState !== 'visible' || seen.current === key)
+        if (
+          entry.intersectionRatio < 0.5 ||
+          document.visibilityState !== 'visible' ||
+          seen.current === key
+        )
           return;
         seen.current = key;
         void api('analytics', { name: 'concert_impression', eventId: event.id }).catch(() => {});
@@ -138,7 +138,13 @@ export function ConcertCard({
       <div className="image-shade" />
       <span className={`fit-pill ${featured || favorite ? 'warm' : ''}`}>
         <Sparkles size={13} />
-        {event.tier === 'Must see' ? event.tier : favorite ? 'Favourite artist' : event.tier === 'A favourite, live' ? 'Artist you follow' : event.tier}
+        {event.tier === 'Must see'
+          ? event.tier
+          : favorite
+            ? 'Favourite artist'
+            : event.tier === 'A favourite, live'
+              ? 'Artist you follow'
+              : event.tier}
       </span>
       <button
         className={`save-button ${event.saved ? 'saved' : ''}`}

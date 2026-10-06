@@ -10,6 +10,11 @@ test('founder flow: register, choose artists, save, persist, must-see, alert, di
   await page.getByLabel('Email', { exact: true }).fill(email);
   await page.getByLabel('Password', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Create account', exact: true }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Where should the music take you?' }),
+  ).toBeVisible();
+  await page.getByLabel('Home city').selectOption('London');
+  await page.getByRole('button', { name: 'Choose artists', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Who would you love to see?' })).toBeVisible();
   for (const name of ['Fred again..', 'Billie Eilish', 'Kendrick Lamar', 'RAYE', 'Tame Impala'])
     await page

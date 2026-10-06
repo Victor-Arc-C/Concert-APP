@@ -4,6 +4,7 @@ export type Artist = {
   genre: string;
   color: string;
   initials: string;
+  image?: string;
   providerId?: string;
 };
 export type Preferences = {

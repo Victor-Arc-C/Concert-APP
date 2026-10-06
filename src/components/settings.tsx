@@ -188,7 +188,9 @@ function SettingsForm({ initial }: { initial: Preferences }) {
               disabled={!data.spotifyAvailable}
               onClick={async () => {
                 try {
-                  const r = await api<{ url: string }>('spotify/connect', {});
+                  const r = await api<{ url: string }>('spotify/connect', {
+                    returnTo: 'artists',
+                  });
                   window.location.assign(r.url);
                 } catch (e) {
                   toast((e as Error).message);

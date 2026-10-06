@@ -1,7 +1,8 @@
 'use client';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import {
   ArrowUpRight,
   Check,
@@ -313,10 +314,32 @@ export function PreferenceFields({
 }
 export function Onboarding() {
   const { data, act, busy, toast } = useApp(),
-    router = useRouter();
-  const [step, setStep] = useState(1),
+    router = useRouter(),
+    searchParams = useSearchParams();
+  const musicStatus = searchParams.get('music');
+  const [step, setStep] = useState(musicStatus ? 2 : 1),
     [selected, setSelected] = useState<string[]>([]),
-    [prefs, setPrefs] = useState<Preferences>(data.user?.preferences ?? defaults);
+    [prefs, setPrefs] = useState<Preferences>(data.user?.preferences ?? defaults),
+    [manualSearch, setManualSearch] = useState(''),
+    [spotifyArtists, setSpotifyArtists] = useState<
+      { id: string; name: string; url: string; image?: string }[]
+    >([]),
+    [spotifyLoaded, setSpotifyLoaded] = useState(false),
+    [spotifyMessage, setSpotifyMessage] = useState('');
+  useEffect(() => {
+    if (musicStatus === 'connected') {
+      void api<{ artists: { id: string; name: string; url: string; image?: string }[] }>(
+        'spotify/artists',
+      )
+        .then((result) => setSpotifyArtists(result.artists))
+        .catch((error) =>
+          setSpotifyMessage(
+            error instanceof Error ? error.message : 'Spotify artists could not be loaded.',
+          ),
+        )
+        .finally(() => setSpotifyLoaded(true));
+    }
+  }, [musicStatus]);
   if (!data.user)
     return (
       <main className="failure">
@@ -339,35 +362,59 @@ export function Onboarding() {
           <i className={step === 2 ? 'complete' : ''} />
         </div>
         <span className="subtle">
-          {step === 1 ? 'Start with your kind of music' : 'A great show can be a reason to go'}
+          {step === 1 ? 'Make the experience yours' : 'Start with your kind of music'}
         </span>
-        <h1>{step === 1 ? 'Who would you love to see?' : 'How far would you follow the music?'}</h1>
+        <h1>{step === 1 ? 'Where should the music take you?' : 'Who would you love to see?'}</h1>
         <p className="intro">
           {step === 1
-            ? 'Pick a few favourites. You can change these any time.'
-            : 'Start close to home, or leave room for a weekend away.'}
+            ? 'Start close to home, or leave room for a weekend away.'
+            : 'Connect Spotify or choose a few favourites manually. You can change these any time.'}
         </p>
         {step === 1 ? (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              setStep(2);
+            }}
+          >
+            <PreferenceFields value={prefs} onChange={setPrefs} />
+            <div className="inline-note">
+              Spotify is optional. You can change these preferences any time.
+            </div>
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={prefs.analytics}
+                onChange={(e) => setPrefs({ ...prefs, analytics: e.target.checked })}
+              />
+              <span>Help improve Encore with optional in-app usage events.</span>
+            </label>
+            <div className="onboarding-bottom">
+              <span>Location and preferences</span>
+              <button className="button primary">
+                Choose artists <ArrowUpRight size={17} />
+              </button>
+            </div>
+          </form>
+        ) : (
           <>
             <div className="connect-box">
               <Music2 />
               <div>
                 <strong>Bring your music with you</strong>
-                <p>
-                  {data.spotifyAvailable
-                    ? 'Connect an approved Spotify account, then choose which artists to follow.'
-                    : 'Spotify connection is awaiting provider approval. You can choose your artists below.'}
-                </p>
+                <p>Connect Spotify to import artists, or choose manually below.</p>
               </div>
               {data.spotifyAvailable && (
                 <button
                   className="button secondary"
                   onClick={async () => {
                     try {
-                      const r = await api<{ url: string }>('spotify/connect', {});
+                      const r = await api<{ url: string }>('spotify/connect', {
+                        returnTo: 'onboarding',
+                      });
                       window.location.assign(r.url);
                     } catch (e) {
-                      toast((e as Error).message);
+                      toast(e instanceof Error ? e.message : 'Spotify could not be connected.');
                     }
                   }}
                 >
@@ -375,9 +422,88 @@ export function Onboarding() {
                 </button>
               )}
             </div>
+            {(spotifyMessage || musicStatus === 'denied' || musicStatus === 'failed') && (
+              <p className="inline-note" role="status">
+                {spotifyMessage ||
+                  (musicStatus === 'denied'
+                    ? 'Spotify connection was cancelled. You can choose artists manually.'
+                    : 'Spotify could not be connected. You can choose artists manually.')}
+              </p>
+            )}
+            {musicStatus === 'connected' && !spotifyLoaded && !spotifyMessage && (
+              <p className="inline-note" role="status">
+                Loading your Spotify artists…
+              </p>
+            )}
+            {musicStatus === 'connected' &&
+              spotifyLoaded &&
+              !spotifyArtists.length &&
+              !spotifyMessage && (
+                <p className="inline-note" role="status">
+                  No Spotify artists were imported. Choose manually below.
+                </p>
+              )}
+            {spotifyArtists.length > 0 && (
+              <section className="spotify-import" aria-label="Imported Spotify artists">
+                <h2>From Spotify</h2>
+                <p>Select an imported artist when it matches one of the available artists.</p>
+                <div className="artist-picker">
+                  {spotifyArtists.map((imported) => {
+                    const match = data.artists.find(
+                      (artist) => artist.name.toLowerCase() === imported.name.toLowerCase(),
+                    );
+                    const isSelected = match ? selected.includes(match.id) : false;
+                    return (
+                      <button
+                        key={imported.id}
+                        className={`artist-choice ${isSelected ? 'selected' : ''}`}
+                        onClick={() => {
+                          if (!match) {
+                            setManualSearch(imported.name);
+                            return;
+                          }
+                          setSelected((current) =>
+                            isSelected
+                              ? current.filter((id) => id !== match.id)
+                              : [...current, match.id],
+                          );
+                        }}
+                        aria-pressed={isSelected}
+                        title={match ? undefined : 'Search manually to choose this artist'}
+                      >
+                        <Avatar
+                          artist={{
+                            id: imported.id,
+                            name: imported.name,
+                            genre: 'Spotify artist',
+                            color: '#3f6b56',
+                            initials: imported.name.slice(0, 2),
+                            image: imported.image,
+                          }}
+                        />
+                        <strong>{imported.name}</strong>
+                        <span>{match ? 'Available to choose' : 'Choose manually'}</span>
+                        <i>{isSelected ? <Check size={14} /> : null}</i>
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+            <label className="search-field onboarding-search">
+              <span>Choose manually</span>
+              <input
+                aria-label="Search artists to choose manually"
+                value={manualSearch}
+                onChange={(e) => setManualSearch(e.target.value)}
+                placeholder="Search artists"
+              />
+            </label>
             <div className="artist-picker">
               {data.artists
-                .filter((a) => !a.providerId)
+                .filter(
+                  (a) => !a.providerId && a.name.toLowerCase().includes(manualSearch.toLowerCase()),
+                )
                 .map((a) => (
                   <button
                     key={a.id}
@@ -396,53 +522,30 @@ export function Onboarding() {
                   </button>
                 ))}
             </div>
-            <div className="onboarding-bottom">
-              <span>{selected.length} artists selected</span>
-              <button
-                className="button primary"
-                disabled={!selected.length}
-                onClick={() => setStep(2)}
-              >
-                Continue <ArrowUpRight size={17} />
-              </button>
-            </div>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (
+                  await act('onboarding', {
+                    artistIds: selected,
+                    preferences: prefs,
+                    mode: 'sample',
+                  })
+                )
+                  router.push('/app');
+              }}
+            >
+              <div className="onboarding-bottom">
+                <button className="text-button" type="button" onClick={() => setStep(1)}>
+                  <ChevronLeft size={17} />
+                  Back to preferences
+                </button>
+                <button className="button primary" disabled={busy || !selected.length}>
+                  Find my concerts <ArrowUpRight size={17} />
+                </button>
+              </div>
+            </form>
           </>
-        ) : (
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              if (
-                await act('onboarding', { artistIds: selected, preferences: prefs, mode: 'sample' })
-              )
-                router.push('/app');
-            }}
-          >
-            <PreferenceFields value={prefs} onChange={setPrefs} />
-            <div className="inline-note">
-              You’ll start with fictional sample concerts. Live listings can be enabled in settings
-              once a Ticketmaster key is configured.
-            </div>
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                checked={prefs.analytics}
-                onChange={(e) => setPrefs({ ...prefs, analytics: e.target.checked })}
-              />
-              <span>
-                Help improve Encore by sharing in-app usage events. Optional; you can turn this off
-                and erase them in settings.
-              </span>
-            </label>
-            <div className="onboarding-bottom">
-              <button className="text-button" type="button" onClick={() => setStep(1)}>
-                <ChevronLeft size={17} />
-                Back to artists
-              </button>
-              <button className="button primary" disabled={busy}>
-                Find my concerts <ArrowUpRight size={17} />
-              </button>
-            </div>
-          </form>
         )}
       </main>
     </div>

@@ -561,8 +561,8 @@ export function EventDetail({ id }: { id: string }) {
           <div className="ticket-price">{money(event.price, event.currency)}</div>
           {event.provider !== 'sample' && event.price === null && (
             <p className="fineprint">
-              A current verified price is unavailable for this show. Check official tickets for current
-              prices and availability.
+              A current verified price is unavailable for this show. Check official tickets for
+              current prices and availability.
             </p>
           )}
           <p className="ticket-status">
@@ -656,13 +656,15 @@ export function EventDetail({ id }: { id: string }) {
   );
 }
 export function Artists() {
-  const { data, act, busy, toast, reload } = useApp();
+  const { data, act, busy, reload } = useApp();
   const [intent, setIntent] = useState<Artist | null>(null),
     [search, setSearch] = useState(''),
     [results, setResults] = useState<Artist[]>([]),
     [searching, setSearching] = useState(false),
     [message, setMessage] = useState(''),
-    [imported, setImported] = useState<{ id: string; name: string; url: string }[]>([]),
+    [imported, setImported] = useState<{ id: string; name: string; url: string; image?: string }[]>(
+      [],
+    ),
     [spotifyChoice, setSpotifyChoice] = useState<{ id: string; name: string } | null>(null);
   const followed = data.artists.filter((a) =>
     data.affinities.some((f) => f.artistId === a.id && !f.hidden),
@@ -756,6 +758,49 @@ export function Artists() {
           </Empty>
         )}
       </section>
+      {data.spotifyConnected && (
+        <section className="settings-section spotify-import" aria-label="Spotify artists">
+          <div className="section-heading">
+            <div>
+              <h2>Spotify artists</h2>
+              <p>Connected. Choose imported artists without leaving your Artists experience.</p>
+            </div>
+            <button
+              className="button secondary"
+              onClick={async () => {
+                try {
+                  const result = await api<{
+                    artists: { id: string; name: string; url: string; image?: string }[];
+                  }>('spotify/artists');
+                  setImported(result.artists);
+                  setMessage('');
+                } catch (e) {
+                  setMessage(
+                    e instanceof Error ? e.message : 'Spotify artists could not be loaded.',
+                  );
+                }
+              }}
+            >
+              {imported.length ? 'Refresh imported artists' : 'Load imported artists'}
+            </button>
+          </div>
+          {imported.length > 0 && (
+            <div className="artist-directory">
+              {imported.map((a) => (
+                <article className="artist-tile" key={a.id}>
+                  <a href={a.url} target="_blank" rel="noreferrer">
+                    <span className="artist-avatar" style={{ background: '#3f6b56' }}>
+                      {a.image ? <img src={a.image} alt="" loading="lazy" /> : a.name.slice(0, 2)}
+                    </span>
+                    <h3>{a.name}</h3>
+                    <p>Imported from Spotify</p>
+                  </a>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
       <section className="settings-section" id="live-search">
         <h2>Find an artist in the live catalogue</h2>
         <p>
@@ -826,47 +871,6 @@ export function Artists() {
             </button>
           </div>
         ))}
-        {data.spotifyConnected && (
-          <div className="spotify-import">
-            <h3>Choose from Spotify</h3>
-            <p>
-              Imported names are suggestions. Search the live catalogue to confirm the artist you
-              want to follow.
-            </p>
-            <button
-              className="button secondary"
-              onClick={async () => {
-                try {
-                  const result = await api<{
-                    artists: { id: string; name: string; url: string }[];
-                  }>('spotify/artists');
-                  setImported(result.artists);
-                } catch (e) {
-                  toast((e as Error).message);
-                }
-              }}
-            >
-              Load my Spotify artists
-            </button>
-            {imported.map((a) => (
-              <div className="search-result" key={a.url}>
-                <a href={a.url} target="_blank" rel="noreferrer">
-                  {a.name} on Spotify
-                </a>
-                <button
-                  className="text-button"
-                  onClick={() => {
-                    setSearch(a.name);
-                    setSpotifyChoice(a);
-                    void searchLive(undefined, a.name);
-                  }}
-                >
-                  Use name in search
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
       </section>
       {intent && <IntentForm artist={intent} onClose={() => setIntent(null)} />}
     </>
