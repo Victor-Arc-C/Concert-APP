@@ -31,7 +31,7 @@ import { ProviderError } from './providers/http';
 import { runConcertChecks } from './jobs';
 import { ticketSources, selectTicketSource } from './tickets';
 import { generateTripOptions } from './trips';
-import type { SavedTrip } from '../domain/trip-types';
+import { savedTripsForUser, saveTrip, tripEvent } from './saved-trips';
 
 
 function onboardingSpotifyState(state: string) {
@@ -130,20 +130,13 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
         });
       if (key === 'trips') {
         const eventId = url.searchParams.get('eventId') ?? '';
-        const event = await ownEvent(eventId, user);
+        await ownEvent(eventId, user);
+        const event = await tripEvent(eventId);
+        if (!event) throw new HttpError(404, 'Concert not found.');
         const options = await generateTripOptions(event, user);
         return ok({ options });
       }
-      if (key === 'trips/saved') {
-        const rows = await query<SavedTrip>(
-          `SELECT id, user_id AS "userId", event_id AS "eventId", trip_option_id AS "tripOptionId",
-           origin_city AS "originCity", destination_city AS "destinationCity", event_date AS "eventDate",
-           trip_data AS "tripData", created_at AS "createdAt", updated_at AS "updatedAt"
-           FROM saved_trips WHERE user_id=$1 ORDER BY created_at DESC`,
-          [user.id],
-        );
-        return ok({ savedTrips: rows });
-      }
+      if (key === 'trips/saved') return ok({ savedTrips: await savedTripsForUser(user) });
 
       if (key === 'artists/search') {
         await rateLimit(`search:${user.id}`, 10, 60);
@@ -407,52 +400,7 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
       return ok({ url: selected.url });
     }
     if (key === 'trips/save') {
-      const input = z
-        .object({
-          eventId: z.string().min(1),
-          trip: z.object({
-            id: z.string(),
-            eventId: z.string(),
-            originCity: z.string(),
-            destinationCity: z.string(),
-            destinationVenue: z.string(),
-            eventDate: z.string(),
-            ticketPrice: z.number().nullable(),
-            ticketCurrency: z.string().nullable(),
-            ticketObservedAt: z.string().nullable(),
-            ticketProvider: z.string().nullable(),
-            transport: z.any(),
-            accommodation: z.any(),
-            estimatedTotal: z.number().nullable(),
-            totalCurrency: z.string().nullable(),
-            scores: z.any(),
-            label: z.string().nullable(),
-            reasons: z.array(z.string()),
-            generatedAt: z.string(),
-          }),
-        })
-        .parse(await body(request));
-      const event = await ownEvent(input.eventId, user);
-      if (['cancelled', 'postponed'].includes(event.status)) {
-        throw new HttpError(422, 'Cannot save a trip for a cancelled or postponed concert.');
-      }
-      const tripId = randomUUID();
-      await query(
-        `INSERT INTO saved_trips(id, user_id, event_id, trip_option_id, origin_city, destination_city, event_date, trip_data)
-         VALUES($1, $2, $3, $4, $5, $6, $7, $8)
-         ON CONFLICT(user_id, event_id, trip_option_id)
-         DO UPDATE SET trip_data=EXCLUDED.trip_data, updated_at=NOW()`,
-        [
-          tripId,
-          user.id,
-          event.id,
-          input.trip.id,
-          input.trip.originCity,
-          input.trip.destinationCity,
-          input.trip.eventDate,
-          JSON.stringify(input.trip),
-        ],
-      );
+      const event = await saveTrip(user, await body(request));
       await recordConcertAnalytics(user, event, 'concert_opened', 'detail');
       return ok();
     }

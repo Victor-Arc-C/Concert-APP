@@ -1,10 +1,11 @@
+import { currentQuote } from './trip-safety';
+import { displayPrice } from './pricing';
 import type {
   TripOption,
   TripRecommendationLabel,
   TransportOption,
   AccommodationOption,
 } from './trip-types';
-
 
 /**
  * Calculates music fit (0 to 100).
@@ -61,21 +62,25 @@ export function calculateTotalCost(
   }
 
   // Verify all currencies are present, 3 uppercase letters, and match
-  if (!ticketCurrency || !transportCurrency || !accommodationCurrency) {
+  if (
+    !ticketCurrency ||
+    !transportCurrency ||
+    !accommodationCurrency ||
+    !/^[A-Z]{3}$/.test(ticketCurrency) ||
+    !/^[A-Z]{3}$/.test(transportCurrency) ||
+    !/^[A-Z]{3}$/.test(accommodationCurrency)
+  ) {
     return { total: null, currency: null };
   }
-  if (
-    ticketCurrency !== transportCurrency ||
-    transportCurrency !== accommodationCurrency
-  ) {
+  if (ticketCurrency !== transportCurrency || transportCurrency !== accommodationCurrency) {
     // Cross-currency sum is unsupported without verified fx
     return { total: null, currency: null };
   }
 
-  return {
-    total: Math.round((ticketPrice + transportPrice + accommodationPrice) * 100) / 100,
-    currency: ticketCurrency,
-  };
+  const total = Math.round((ticketPrice + transportPrice + accommodationPrice) * 100) / 100;
+  return Number.isFinite(total)
+    ? { total, currency: ticketCurrency }
+    : { total: null, currency: null };
 }
 
 /**
@@ -163,92 +168,107 @@ export function calculateOverallScore(
  *
  * Rules: Labels must ONLY be produced when comparisons are supported by sufficient data.
  */
-export function assignTripLabels(options: TripOption[]): TripOption[] {
-  if (options.length === 0) return [];
-  if (options.length === 1) {
-    // With only 1 option, comparison labels (Cheapest, Fastest, Easiest) are not supported.
-    // 'Best value' can be assigned only if the overall score is high (>= 75).
-    const single = options[0];
-    return [
-      {
-        ...single,
-        label: single.scores.overallScore >= 75 ? 'Best value' : null,
-      },
-    ];
-  }
-
-  // 1. Identify Cheapest (requires at least 2 comparable totals in the same currency)
-  const validCostOptions = options.filter(
-    (o) => o.estimatedTotal !== null && o.totalCurrency !== null,
-  );
-  let cheapestId: string | null = null;
-  if (validCostOptions.length >= 2) {
-    const firstCurrency = validCostOptions[0].totalCurrency;
-    const sameCurrency = validCostOptions.filter((o) => o.totalCurrency === firstCurrency);
-    if (sameCurrency.length >= 2) {
-      sameCurrency.sort((a, b) => (a.estimatedTotal ?? 0) - (b.estimatedTotal ?? 0));
-      if (sameCurrency[0].estimatedTotal! < sameCurrency[1].estimatedTotal!) {
-        cheapestId = sameCurrency[0].id;
-      }
-    }
-  }
-
-  // 2. Identify Fastest (requires at least 2 options differing in duration)
-  const sortedByDuration = [...options].sort(
-    (a, b) => a.transport.durationMinutes - b.transport.durationMinutes,
-  );
-  let fastestId: string | null = null;
+export function assignTripLabels(options: TripOption[], now = new Date()): TripOption[] {
+  const cleared = options.map((option) => ({ ...option, label: null }));
+  if (options.length < 2 || new Set(options.map((option) => option.id)).size !== options.length)
+    return cleared;
+  const first = options[0];
+  // A badge compares the entire displayed candidate set, never a convenient subset.
+  // Missing/incomplete prices, stale availability and mixed sample/live or FX suppress all labels.
   if (
-    sortedByDuration.length >= 2 &&
-    sortedByDuration[0].transport.durationMinutes <
-      sortedByDuration[1].transport.durationMinutes
-  ) {
-    fastestId = sortedByDuration[0].id;
-  }
+    !options.every((option) => {
+      const travel = option.transport,
+        stay = option.accommodation;
+      const total = calculateTotalCost(
+        option.ticketPrice,
+        option.ticketCurrency,
+        travel?.price ?? null,
+        travel?.currency ?? null,
+        stay?.price ?? null,
+        stay?.currency ?? null,
+      );
+      return (
+        option.planStatus === 'active' &&
+        travel &&
+        stay &&
+        option.transportState === 'ready' &&
+        option.accommodationState === 'ready' &&
+        currentQuote(travel, now) &&
+        currentQuote(stay, now) &&
+        travel.kind === option.mode &&
+        stay.kind === option.mode &&
+        option.mode === first.mode &&
+        travel.priceComplete &&
+        stay.priceComplete &&
+        stay.distanceKmToVenue !== null &&
+        Number.isFinite(stay.distanceKmToVenue) &&
+        stay.distanceKmToVenue >= 0 &&
+        Number.isFinite(travel.durationMinutes) &&
+        travel.durationMinutes > 0 &&
+        Number.isInteger(travel.changes) &&
+        travel.changes >= 0 &&
+        option.ticketObservedAt !== null &&
+        option.ticketPrice !== null &&
+        displayPrice(
+          option.ticketPrice,
+          option.ticketCurrency,
+          option.ticketProvider ?? '',
+          option.ticketObservedAt,
+          now,
+        ) !== null &&
+        total.total !== null &&
+        total.total === option.estimatedTotal &&
+        total.currency === option.totalCurrency &&
+        option.totalCurrency === first.totalCurrency &&
+        option.eventId === first.eventId &&
+        option.eventDate === first.eventDate &&
+        option.originCity === first.originCity &&
+        option.destinationCity === first.destinationCity &&
+        stay.guests === first.accommodation?.guests &&
+        stay.checkIn.slice(0, 10) === first.accommodation?.checkIn.slice(0, 10) &&
+        stay.checkOut.slice(0, 10) === first.accommodation?.checkOut.slice(0, 10) &&
+        option.scores.convenienceScore !== null &&
+        Number.isFinite(option.scores.convenienceScore) &&
+        option.scores.overallScore !== null &&
+        Number.isFinite(option.scores.overallScore)
+      );
+    })
+  )
+    return cleared;
 
-  // 3. Identify Easiest (highest convenience score, differing by at least 5 points)
-  const sortedByConvenience = [...options].sort(
-    (a, b) => b.scores.convenienceScore - a.scores.convenienceScore,
+  const cost = [...options].sort(
+    (a, b) => a.estimatedTotal! - b.estimatedTotal! || a.id.localeCompare(b.id),
   );
-  let easiestId: string | null = null;
-  if (
-    sortedByConvenience.length >= 2 &&
-    sortedByConvenience[0].scores.convenienceScore >=
-      sortedByConvenience[1].scores.convenienceScore + 5
-  ) {
-    easiestId = sortedByConvenience[0].id;
-  }
-
-  // 4. Identify Best value (highest overall score)
-  const sortedByOverall = [...options].sort(
-    (a, b) => b.scores.overallScore - a.scores.overallScore,
+  const duration = [...options].sort(
+    (a, b) =>
+      a.transport!.durationMinutes - b.transport!.durationMinutes || a.id.localeCompare(b.id),
   );
-  let bestValueId: string | null = null;
-  if (sortedByOverall[0].scores.overallScore >= 70) {
-    bestValueId = sortedByOverall[0].id;
-  }
-
-  // Assign labels deterministically without colliding where possible.
-  // Priority: Best value > Cheapest > Fastest > Easiest
-  const assigned = new Set<string>();
-
+  const convenience = [...options].sort(
+    (a, b) => b.scores.convenienceScore! - a.scores.convenienceScore! || a.id.localeCompare(b.id),
+  );
+  const overall = [...options].sort(
+    (a, b) => b.scores.overallScore! - a.scores.overallScore! || a.id.localeCompare(b.id),
+  );
+  const cheapestId = cost[0].estimatedTotal! < cost[1].estimatedTotal! ? cost[0].id : null;
+  const fastestId =
+    duration[0].transport!.durationMinutes < duration[1].transport!.durationMinutes
+      ? duration[0].id
+      : null;
+  const easiestId =
+    convenience[0].scores.convenienceScore! >= convenience[1].scores.convenienceScore! + 5
+      ? convenience[0].id
+      : null;
+  const bestValueId =
+    overall[0].scores.overallScore! >= 70 &&
+    overall[0].scores.overallScore! > overall[1].scores.overallScore!
+      ? overall[0].id
+      : null;
   return options.map((option) => {
     let label: TripRecommendationLabel | null = null;
-
-    if (option.id === bestValueId && !assigned.has('Best value')) {
-      label = 'Best value';
-      assigned.add('Best value');
-    } else if (option.id === cheapestId && !assigned.has('Cheapest')) {
-      label = 'Cheapest';
-      assigned.add('Cheapest');
-    } else if (option.id === fastestId && !assigned.has('Fastest')) {
-      label = 'Fastest';
-      assigned.add('Fastest');
-    } else if (option.id === easiestId && !assigned.has('Easiest')) {
-      label = 'Easiest';
-      assigned.add('Easiest');
-    }
-
+    if (option.id === bestValueId) label = 'Best value';
+    else if (option.id === cheapestId) label = 'Cheapest';
+    else if (option.id === fastestId) label = 'Fastest';
+    else if (option.id === easiestId) label = 'Easiest';
     return { ...option, label };
   });
 }

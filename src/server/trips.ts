@@ -1,10 +1,24 @@
+import { createHash } from 'node:crypto';
 import type { Concert, User } from '../domain/types';
-
 import type {
+  AccommodationOption,
   AccommodationProvider,
+  TransportOption,
   TransportProvider,
+  TripComponentState,
   TripOption,
+  TripPlanStatus,
+  TripProviderMode,
 } from '../domain/trip-types';
+import {
+  accommodationOptionSchema,
+  currentQuote,
+  recognizedQuote,
+  samplesAllowed,
+  safeTravelUrl,
+  transportOptionSchema,
+} from '../domain/trip-safety';
+import { displayPrice } from '../domain/pricing';
 import {
   assignTripLabels,
   calculateConvenienceScore,
@@ -15,130 +29,253 @@ import {
 } from '../domain/trip-scoring';
 import { SampleAccommodationProvider, SampleTransportProvider } from './providers/travel-sample';
 import { query } from './db';
+import { env } from './env';
 
-const defaultTransportProvider: TransportProvider = new SampleTransportProvider();
-const defaultAccommodationProvider: AccommodationProvider = new SampleAccommodationProvider();
+export type TripProviders = {
+  transport?: TransportProvider;
+  accommodation?: AccommodationProvider;
+};
 
-/**
- * Generates trip options for a specific concert.
- * Respects CON-20/CON-27:
- * - Cancelled/postponed concerts return no trip options.
- * - Missing ticket prices do not block trip generation, but estimatedTotal remains null if ticket price is absent.
- * - Source freshness and exact provider attribution are preserved.
- */
+export function tripProviderMode(
+  event: Concert,
+  user: User | null,
+  appEnv = env().APP_ENV,
+): TripProviderMode {
+  return samplesAllowed(appEnv, user?.mode ?? 'sample', event.provider) ? 'sample' : 'live';
+}
+
+export function selectTripProviders(mode: TripProviderMode): TripProviders {
+  // There is no approved live adapter. A live registry entry must be added explicitly.
+  return mode === 'sample'
+    ? { transport: new SampleTransportProvider(), accommodation: new SampleAccommodationProvider() }
+    : {};
+}
+
+export function eventPlanStatus(event: Concert, now: Date): TripPlanStatus {
+  if (event.status === 'cancelled' || event.status === 'postponed') return event.status;
+  if (!Number.isFinite(Date.parse(event.date)) || event.date < now.toISOString().slice(0, 10))
+    return 'past';
+  return 'active';
+}
+
+async function transportOptions(
+  provider: TransportProvider | undefined,
+  mode: TripProviderMode,
+  origin: string,
+  event: Concert,
+  now: Date,
+): Promise<{ options: TransportOption[]; state: TripComponentState }> {
+  if (!provider || provider.kind !== mode) return { options: [], state: 'unavailable' };
+  try {
+    const values = await provider.getOptions(origin, event.city, event.date, event.localTime, now);
+    if (new Set(values.map((value) => value.id)).size !== values.length)
+      return { options: [], state: 'invalid' };
+    const options: TransportOption[] = [];
+    let state: TripComponentState = 'unavailable';
+    for (const value of values) {
+      const parsed = transportOptionSchema.safeParse(value);
+      if (!parsed.success || !recognizedQuote(parsed.data, provider, mode)) {
+        state = 'invalid';
+        continue;
+      }
+      const option = parsed.data;
+      if (
+        option.origin !== origin ||
+        option.destination !== event.city ||
+        option.departureAt.slice(0, 10) !== event.date ||
+        Date.parse(option.returnAt) <= Date.parse(option.departureAt) ||
+        (option.price !== null && !option.currency)
+      ) {
+        state = 'invalid';
+        continue;
+      }
+      if (!currentQuote(option, now)) {
+        state =
+          option.availability === 'unknown' || option.availability === 'unavailable'
+            ? 'unavailable'
+            : 'stale';
+        continue;
+      }
+      options.push({
+        ...option,
+        bookingUrl:
+          mode === 'live' &&
+          option.bookingUrl &&
+          safeTravelUrl(option.bookingUrl, provider.bookingHosts)
+            ? option.bookingUrl
+            : null,
+      });
+    }
+    return { options, state: options.length ? 'ready' : state };
+  } catch {
+    return { options: [], state: 'unavailable' };
+  }
+}
+
+async function stayOptions(
+  provider: AccommodationProvider | undefined,
+  mode: TripProviderMode,
+  event: Concert,
+  now: Date,
+): Promise<{ options: AccommodationOption[]; state: TripComponentState }> {
+  if (!provider || provider.kind !== mode) return { options: [], state: 'unavailable' };
+  try {
+    const values = await provider.getOptions(event.city, event.venue, event.date, 1, now);
+    if (new Set(values.map((value) => value.id)).size !== values.length)
+      return { options: [], state: 'invalid' };
+    const options: AccommodationOption[] = [];
+    let state: TripComponentState = 'unavailable';
+    for (const value of values) {
+      const parsed = accommodationOptionSchema.safeParse(value);
+      if (!parsed.success || !recognizedQuote(parsed.data, provider, mode)) {
+        state = 'invalid';
+        continue;
+      }
+      const option = parsed.data;
+      if (
+        option.city !== event.city ||
+        option.checkIn.slice(0, 10) !== event.date ||
+        option.guests !== 1 ||
+        Date.parse(option.checkOut) <= Date.parse(option.checkIn) ||
+        (option.price !== null && !option.currency)
+      ) {
+        state = 'invalid';
+        continue;
+      }
+      if (!currentQuote(option, now)) {
+        state =
+          option.availability === 'unknown' || option.availability === 'unavailable'
+            ? 'unavailable'
+            : 'stale';
+        continue;
+      }
+      options.push({
+        ...option,
+        bookingUrl:
+          mode === 'live' &&
+          option.bookingUrl &&
+          safeTravelUrl(option.bookingUrl, provider.bookingHosts)
+            ? option.bookingUrl
+            : null,
+      });
+    }
+    return { options, state: options.length ? 'ready' : state };
+  } catch {
+    return { options: [], state: 'unavailable' };
+  }
+}
+
+export function emptyTrip(
+  event: Concert,
+  origin: string,
+  mode: TripProviderMode,
+  now: Date,
+): TripOption {
+  const status = eventPlanStatus(event, now);
+  const observedAt = event.priceObservedAt ?? event.fetchedAt;
+  const price =
+    status === 'active' && (event.provider !== 'sample' || mode === 'sample')
+      ? displayPrice(event.price, event.currency, event.provider, observedAt, now)
+      : null;
+  return {
+    id: `plan-${event.id}`,
+    eventId: event.id,
+    originCity: origin,
+    destinationCity: event.city,
+    destinationVenue: event.venue,
+    eventDate: event.date,
+    mode,
+    planStatus: status,
+    ticketPrice: price,
+    ticketCurrency: price === null ? null : event.currency,
+    ticketObservedAt: Number.isFinite(Date.parse(observedAt)) ? observedAt : null,
+    ticketProvider: event.provider,
+    ticketPriceState: price !== null ? 'ready' : event.price !== null ? 'stale' : 'unavailable',
+    transport: null,
+    accommodation: null,
+    transportState: 'unavailable',
+    accommodationState: 'unavailable',
+    estimatedTotal: null,
+    totalCurrency: null,
+    scores: { musicFit: 30, costScore: 50, convenienceScore: null, overallScore: null },
+    label: null,
+    reasons: [],
+    generatedAt: now.toISOString(),
+  };
+}
+
 export async function generateTripOptions(
   event: Concert,
   user: User | null,
-  transportProvider: TransportProvider = defaultTransportProvider,
-  accommodationProvider: AccommodationProvider = defaultAccommodationProvider,
+  providers?: TripProviders,
   now = new Date(),
+  originCity = user?.preferences.home || 'Paris',
 ): Promise<TripOption[]> {
-  // Cancelled/postponed events suppress trip recommendations
-  if (['cancelled', 'postponed'].includes(event.status)) {
-    return [];
-  }
-
-  const originCity = user?.preferences.home || 'Paris';
-  const destinationCity = event.city;
-  const destinationVenue = event.venue;
-  const eventDate = event.date;
-
-  // Retrieve user affinities/intents if logged in
-  let affinities: { artistId: string; favorite: boolean; hidden: boolean }[] = [];
-  let intents: { artistId: string; cities: string[] }[] = [];
-
-  if (user) {
-    const affRows = await query<{ artist_id: string; favorite: boolean; hidden: boolean }>(
-      'SELECT artist_id, favorite, hidden FROM affinities WHERE user_id=$1',
-      [user.id],
-    );
-    affinities = affRows.map((r) => ({
-      artistId: r.artist_id,
-      favorite: r.favorite,
-      hidden: r.hidden,
-    }));
-
-    const intRows = await query<{ artist_id: string; data: { cities: string[] } }>(
-      'SELECT artist_id, data FROM intents WHERE user_id=$1',
-      [user.id],
-    );
-    intents = intRows.map((r) => ({
-      artistId: r.artist_id,
-      cities: r.data?.cities || [],
-    }));
-  }
-
-  const musicFit = calculateMusicFit(event.artistIds, affinities, intents);
-
-  // Fetch transport and accommodation options
-  const [transports, stays] = await Promise.all([
-    transportProvider.getOptions(originCity, destinationCity, eventDate, event.localTime, now),
-    accommodationProvider.getOptions(destinationCity, destinationVenue, eventDate, 1, now),
+  if (eventPlanStatus(event, now) !== 'active') return [];
+  const mode = tripProviderMode(event, user);
+  const selected = providers ?? selectTripProviders(mode);
+  const [affinities, intents] = user
+    ? await Promise.all([
+        query<{ artist_id: string; favorite: boolean; hidden: boolean }>(
+          'SELECT artist_id, favorite, hidden FROM affinities WHERE user_id=$1',
+          [user.id],
+        ),
+        query<{ artist_id: string; data: { cities: string[] } }>(
+          'SELECT artist_id, data FROM intents WHERE user_id=$1',
+          [user.id],
+        ),
+      ])
+    : [[], []];
+  const musicFit = calculateMusicFit(
+    event.artistIds,
+    affinities.map((r) => ({ artistId: r.artist_id, favorite: r.favorite, hidden: r.hidden })),
+    intents.map((r) => ({ artistId: r.artist_id, cities: r.data?.cities || [] })),
+  );
+  const [travel, stays] = await Promise.all([
+    transportOptions(selected.transport, mode, originCity, event, now),
+    stayOptions(selected.accommodation, mode, event, now),
   ]);
-
-  if (transports.length === 0 || stays.length === 0) {
-    return [];
-  }
-
-  // Generate pairing combinations (e.g. direct train + close hotel, or alternative transport + budget hotel)
-  const candidateTrips: TripOption[] = [];
-
-  // Pair 1: primary transport + stay 1
-  // Pair 2: secondary transport (if available) + stay 2 (or stay 1)
-  // We keep it to 2-3 focused, high quality options
-  for (let i = 0; i < transports.length; i++) {
-    const transport = transports[i];
-    const stay = stays[Math.min(i, stays.length - 1)];
-
+  const base = emptyTrip(event, originCity, mode, now);
+  const candidates: TripOption[] = [];
+  for (let i = 0; i < Math.max(1, travel.options.length, stays.options.length); i++) {
+    const transport = travel.options[Math.min(i, travel.options.length - 1)] ?? null;
+    const accommodation = stays.options[Math.min(i, stays.options.length - 1)] ?? null;
     const { total, currency } = calculateTotalCost(
-      event.price,
-      event.currency,
-      transport.price,
-      transport.currency,
-      stay.price,
-      stay.currency,
+      base.ticketPrice,
+      base.ticketCurrency,
+      transport?.priceComplete ? transport.price : null,
+      transport?.currency ?? null,
+      accommodation?.priceComplete ? accommodation.price : null,
+      accommodation?.currency ?? null,
     );
-
     const costScore = calculateCostScore(total, user?.preferences.budget);
-    const convenienceScore = calculateConvenienceScore(transport, stay);
-    const overallScore = calculateOverallScore(musicFit, convenienceScore, costScore);
-
-    const reasons: string[] = [];
-    if (musicFit >= 90) reasons.push('High music match for your taste');
-    if (convenienceScore >= 80) reasons.push('Fast, high-convenience itinerary');
-    if (total !== null && user?.preferences.budget && total <= user.preferences.budget) {
-      reasons.push('Fits within your travel budget');
-    }
-    if (event.price === null) {
-      reasons.push('Ticket price pending official confirmation');
-    }
-
-    candidateTrips.push({
-      id: `trip-${event.id}-${transport.mode}-${stay.id}`,
-      eventId: event.id,
+    const convenienceScore =
+      transport && accommodation ? calculateConvenienceScore(transport, accommodation) : null;
+    const overallScore =
+      convenienceScore === null
+        ? null
+        : calculateOverallScore(musicFit, convenienceScore, costScore);
+    const reference = JSON.stringify([
+      event.id,
       originCity,
-      destinationCity,
-      destinationVenue,
-      eventDate,
-      ticketPrice: event.price,
-      ticketCurrency: event.currency,
-      ticketObservedAt: event.priceObservedAt || event.fetchedAt,
-      ticketProvider: event.provider,
+      event.date,
+      transport?.provider,
+      transport?.id,
+      accommodation?.provider,
+      accommodation?.id,
+    ]);
+    candidates.push({
+      ...base,
+      id: `trip-${createHash('sha256').update(reference).digest('hex')}`,
       transport,
-      accommodation: stay,
+      accommodation,
+      transportState: transport ? 'ready' : travel.state,
+      accommodationState: accommodation ? 'ready' : stays.state,
       estimatedTotal: total,
       totalCurrency: currency,
-      scores: {
-        musicFit,
-        costScore,
-        convenienceScore,
-        overallScore,
-      },
-      label: null,
-      reasons,
-      generatedAt: now.toISOString(),
+      scores: { musicFit, costScore, convenienceScore, overallScore },
+      reasons: musicFit >= 90 ? ['High music match for your taste'] : [],
     });
   }
-
-  return assignTripLabels(candidateTrips);
+  return assignTripLabels(candidates, now);
 }

@@ -494,6 +494,9 @@ test('trip intelligence flow: concert -> plan trip -> compare itineraries -> sav
   // Check that options are generated and loaded
   await expect(page.locator('.option-pill-group button').first()).toBeVisible();
 
+  await expect(page.getByText('Sample trip — all travel, stays, prices and distances are fictional.')).toBeVisible();
+  await expect(page.getByRole('link', { name: /Check transport booking|Check accommodation booking/ })).toHaveCount(0);
+
   // Check 3 steps: Ticket, Transport, Stay
   await expect(page.getByText('Concert Ticket')).toBeVisible();
   await expect(page.getByText(/Euro High-Speed Rail|Regional Express Airline|Intercity Coach/)).toBeVisible();
@@ -511,3 +514,42 @@ test('trip intelligence flow: concert -> plan trip -> compare itineraries -> sav
   await expect(page.getByRole('link', { name: 'View itinerary' })).toBeVisible();
 });
 
+
+
+test('trip API rejects snapshots, isolates saves and revalidates saved intent across modes', async ({ playwright }) => {
+  const a = await playwright.request.newContext({ baseURL: origin, extraHTTPHeaders: { Origin: origin } });
+  const b = await playwright.request.newContext({ baseURL: origin, extraHTTPHeaders: { Origin: origin } });
+  const anon = await playwright.request.newContext({ baseURL: origin, extraHTTPHeaders: { Origin: origin } });
+  try {
+    expect((await anon.get('/api/trips?eventId=sample-3')).status()).toBe(401);
+    expect((await anon.post('/api/trips/save', { data: { eventId: 'sample-3', tripOptionId: 'fake' } })).status()).toBe(401);
+    for (const [i, context] of [a, b].entries()) {
+      expect((await context.post('/api/auth/signup', { data: { email: `trip-safety-${i}-${Date.now()}@example.test`, password, name: 'Test' } })).ok()).toBe(true);
+    }
+    const { options } = await (await a.get('/api/trips?eventId=sample-3')).json();
+    const selection = { eventId: 'sample-3', tripOptionId: options[0].id };
+    for (const extra of [{ trip: options[0] }, { provider: 'arbitrary' }, { currency: 'bad' }, { price: -1 }, { bookingUrl: 'javascript:alert(1)' }, { userId: 'other' }]) {
+      expect((await a.post('/api/trips/save', { data: { ...selection, ...extra } })).status()).toBe(400);
+    }
+    expect((await a.post('/api/trips/save', { data: { ...selection, eventId: 'sample-1' } })).status()).toBe(422);
+    expect((await a.post('/api/trips/save', { headers: { Origin: 'https://evil.test' }, data: selection })).status()).toBe(403);
+    expect((await a.post('/api/trips/save', { data: selection })).ok()).toBe(true);
+    expect((await (await b.get('/api/trips/saved')).json()).savedTrips).toEqual([]);
+    expect((await b.post('/api/trips/delete', { data: selection })).ok()).toBe(true);
+    const fresh = (await (await a.get('/api/trips/saved')).json()).savedTrips;
+    expect(fresh).toHaveLength(1);
+    expect(fresh[0].revalidationStatus).toBe('current');
+    expect(fresh[0].tripData.transport.kind).toBe('sample');
+    expect(fresh[0].tripData.transport.bookingUrl).toBeNull();
+    expect(fresh[0].tripData.label).toBeNull();
+    expect((await a.post('/api/mode', { data: { mode: 'live' } })).ok()).toBe(true);
+    const saved = (await (await a.get('/api/trips/saved')).json()).savedTrips;
+    expect(saved).toHaveLength(1);
+    expect(saved[0].tripData).toMatchObject({ planStatus: 'mode_changed', transport: null, accommodation: null, estimatedTotal: null, label: null });
+    const state = await (await a.get('/api/state')).json();
+    expect(state.savedTrips[0].tripData.transport).toBeNull();
+  } finally {
+    for (const context of [a, b]) await context.post('/api/account/delete', { data: { password } });
+    await a.dispose(); await b.dispose(); await anon.dispose();
+  }
+});
