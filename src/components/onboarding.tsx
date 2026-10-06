@@ -322,15 +322,20 @@ export function Onboarding() {
     [prefs, setPrefs] = useState<Preferences>(data.user?.preferences ?? defaults),
     [manualSearch, setManualSearch] = useState(''),
     [spotifyArtists, setSpotifyArtists] = useState<
-      { id: string; name: string; url: string; image?: string }[]
+      {
+        id: string;
+        name: string;
+        url: string;
+        image?: string;
+        artistId?: string;
+        mapping?: 'provider' | 'name' | 'ambiguous' | 'none';
+      }[]
     >([]),
     [spotifyLoaded, setSpotifyLoaded] = useState(false),
     [spotifyMessage, setSpotifyMessage] = useState('');
   useEffect(() => {
     if (musicStatus === 'connected') {
-      void api<{ artists: { id: string; name: string; url: string; image?: string }[] }>(
-        'spotify/artists',
-      )
+      void api<{ artists: typeof spotifyArtists }>('spotify/artists')
         .then((result) => setSpotifyArtists(result.artists))
         .catch((error) =>
           setSpotifyMessage(
@@ -449,17 +454,18 @@ export function Onboarding() {
                 <p>Select an imported artist when it matches one of the available artists.</p>
                 <div className="artist-picker">
                   {spotifyArtists.map((imported) => {
-                    const match = data.artists.find(
-                      (artist) => artist.name.toLowerCase() === imported.name.toLowerCase(),
-                    );
-                    const isSelected = match ? selected.includes(match.id) : false;
+                    const match = imported.artistId
+                      ? data.artists.find((artist) => artist.id === imported.artistId)
+                      : undefined;
+                    const isSelected = Boolean(match && selected.includes(match.id));
+                    const selectable = Boolean(match);
                     return (
                       <button
                         key={imported.id}
                         className={`artist-choice ${isSelected ? 'selected' : ''}`}
+                        disabled={!selectable}
                         onClick={() => {
                           if (!match) {
-                            setManualSearch(imported.name);
                             return;
                           }
                           setSelected((current) =>
@@ -469,6 +475,7 @@ export function Onboarding() {
                           );
                         }}
                         aria-pressed={isSelected}
+                        aria-disabled={!selectable}
                         title={match ? undefined : 'Search manually to choose this artist'}
                       >
                         <Avatar
@@ -482,7 +489,9 @@ export function Onboarding() {
                           }}
                         />
                         <strong>{imported.name}</strong>
-                        <span>{match ? 'Available to choose' : 'Choose manually'}</span>
+                        <span>
+                          {match ? 'Available to choose' : 'Not available yet · Search manually'}
+                        </span>
                         <i>{isSelected ? <Check size={14} /> : null}</i>
                       </button>
                     );

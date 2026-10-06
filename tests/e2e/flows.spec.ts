@@ -318,6 +318,72 @@ test('feed pages retain unique detail links and reset on search', async ({ page 
   await expect(page).toHaveURL(/\/app\/events\//);
 });
 
+test('Spotify onboarding selection uses canonical mappings, images, and explicit fallback state', async ({
+  page,
+}) => {
+  const email = `spotify-picker-${Date.now()}@example.test`;
+  expect(
+    (
+      await page.request.post('/api/auth/signup', {
+        headers: { Origin: origin },
+        data: { name: 'Spotify Picker', email, password },
+      })
+    ).ok(),
+  ).toBe(true);
+  await page.route('**/api/state', async (route) => {
+    const response = await route.fetch();
+    const state = await response.json();
+    state.spotifyAvailable = true;
+    state.user.onboarded = false;
+    state.artists.push({
+      id: 'canonical-beyonce',
+      name: 'Beyonce',
+      genre: 'Pop',
+      color: '#738691',
+      initials: 'be',
+      providerId: 'tm-beyonce',
+    });
+    await route.fulfill({ response, json: state });
+  });
+  await page.route('**/api/spotify/artists', async (route) => {
+    await route.fulfill({
+      json: {
+        artists: [
+          {
+            id: 'spotify-beyonce',
+            name: 'Beyoncé',
+            url: 'https://open.spotify.com/artist/spotify-beyonce',
+            artistId: 'canonical-beyonce',
+            mapping: 'provider',
+            image: 'https://i.scdn.co/image/beyonce',
+          },
+          {
+            id: 'spotify-unknown',
+            name: 'Unknown Artist',
+            url: 'https://open.spotify.com/artist/spotify-unknown',
+            mapping: 'none',
+          },
+        ],
+      },
+    });
+  });
+  await page.goto('/onboarding?music=connected');
+  const mapped = page.getByRole('button', { name: /Beyoncé/ });
+  await expect(mapped.locator('img')).toHaveAttribute('src', 'https://i.scdn.co/image/beyonce');
+  await expect(mapped).toHaveAttribute('aria-pressed', 'false');
+  await mapped.click();
+  await expect(mapped).toHaveAttribute('aria-pressed', 'true');
+  await expect(mapped).toHaveClass(/selected/);
+  await mapped.click();
+  await expect(mapped).toHaveAttribute('aria-pressed', 'false');
+  const unmapped = page.getByRole('button', { name: /Unknown Artist/ });
+  await expect(unmapped).toContainText('Not available yet');
+  await expect(unmapped.locator('img')).toHaveCount(0);
+  await expect(unmapped).toContainText('Un');
+  await expect(unmapped).toBeDisabled();
+  await expect(unmapped).toHaveAttribute('aria-pressed', 'false');
+});
+
 test('detail tolerates missing data and identifies the external ticket destination', async ({
   page,
 }) => {

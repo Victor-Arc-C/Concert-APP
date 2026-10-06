@@ -4,6 +4,7 @@ import { query } from '../db';
 import { env, spotifyAvailable } from '../env';
 import { decrypt, encrypt, HttpError } from '../security';
 import { providerJson, ProviderError } from './http';
+import { resolveArtistIdentity } from '../identity';
 const tokenSchema = z.object({
   access_token: z.string(),
   refresh_token: z.string().optional(),
@@ -132,7 +133,7 @@ export async function spotifyArtists(userId: string) {
     } else throw error;
   }
   // Returned transiently for explicit user selection. No listening metrics, ranks or raw profile persisted.
-  return z
+  const imported = z
     .object({
       items: z.array(
         z.object({
@@ -143,13 +144,20 @@ export async function spotifyArtists(userId: string) {
         }),
       ),
     })
-    .parse(result)
-    .items.map((a) => ({
-      id: a.id,
-      name: a.name,
-      url: a.external_urls.spotify,
-      image: a.images[0]?.url,
-    }));
+    .parse(result).items;
+  return Promise.all(
+    imported.map(async (artist) => {
+      const identity = await resolveArtistIdentity('spotify', artist.id, artist.name);
+      return {
+        id: artist.id,
+        name: artist.name,
+        url: artist.external_urls.spotify,
+        ...(artist.images[0]?.url ? { image: artist.images[0].url } : {}),
+        ...(identity.artistId ? { artistId: identity.artistId } : {}),
+        mapping: identity.source,
+      };
+    }),
+  );
 }
 
 export async function cancelSpotify(userId: string, state: string) {
