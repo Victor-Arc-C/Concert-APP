@@ -88,6 +88,7 @@ export type AppData = {
   liveAvailable: boolean;
   /** True when signup needs a private-beta invite code (BETA_INVITE_CODES is set). */
   inviteRequired?: boolean;
+  privacyContact?: { controller: string | null; email: string | null };
   automaticChecks: boolean;
   artistChecks: { artistId: string; checkedAt: string | null; message: string | null }[];
   providerMessage: string | null;

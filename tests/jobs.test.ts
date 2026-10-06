@@ -30,6 +30,13 @@ it('coalesces concurrent runs and imports before evaluating alerts', async () =>
   expect(evaluateAlerts).toHaveBeenCalledTimes(2);
   expect(vi.mocked(syncArtists).mock.invocationCallOrder[0]).toBeLessThan(
     vi.mocked(evaluateAlerts).mock.invocationCallOrder[0],
+  ); // Retention cleanup runs before any slow provider sync, so a timeout cannot skip it.
+  const cleanup = vi
+    .mocked(query)
+    .mock.calls.findIndex(([sql]) => String(sql).includes('DELETE FROM analytics'));
+  expect(cleanup).toBeGreaterThan(-1);
+  expect(vi.mocked(query).mock.invocationCallOrder[cleanup]).toBeLessThan(
+    vi.mocked(syncArtists).mock.invocationCallOrder[0],
   );
 });
 it('continues other accounts after an account fails', async () => {
