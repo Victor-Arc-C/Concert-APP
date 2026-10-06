@@ -602,7 +602,7 @@ export function Onboarding() {
                 </div>
               </>
             ) : (
-              <section className="live-onboarding" aria-label="Search real artists">
+              <section className="live-onboarding" aria-label="Live artist search">
                 <form className="onboarding-live-search" onSubmit={(e) => void searchLiveArtists(e)}>
                   <label className="search-field onboarding-search">
                     <span>Search real artists</span>
