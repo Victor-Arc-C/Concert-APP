@@ -35,8 +35,10 @@ export async function verifyPassword(password: string, stored: string) {
 export function checkOrigin(request: Request) {
   const settings = env();
   const allowedOrigins = new Set([new URL(settings.APP_URL).origin]);
-  if (settings.VERCEL_ENV === 'preview' && settings.VERCEL_URL)
-    allowedOrigins.add(`https://${settings.VERCEL_URL}`);
+  if (settings.VERCEL_ENV === 'preview') {
+    for (const vercelUrl of [settings.VERCEL_URL, settings.VERCEL_BRANCH_URL])
+      if (vercelUrl) allowedOrigins.add(`https://${vercelUrl}`);
+  }
   if (!allowedOrigins.has(request.headers.get('origin') ?? ''))
     throw new HttpError(403, 'This request did not come from this app. Reload and try again.');
 }

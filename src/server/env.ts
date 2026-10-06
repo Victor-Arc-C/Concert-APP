@@ -16,6 +16,7 @@ const schema = z
     APP_URL: z.url().default('http://127.0.0.1:3000'),
     VERCEL_ENV: z.enum(['development', 'preview', 'production']).optional(),
     VERCEL_URL: vercelUrl,
+    VERCEL_BRANCH_URL: vercelUrl,
     DATABASE_URL: optionalString,
     LOCAL_DATABASE_PATH: optionalString,
     TICKETMASTER_API_KEY: optionalString,
