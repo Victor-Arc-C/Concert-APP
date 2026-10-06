@@ -18,12 +18,35 @@ test('founder flow: register, choose artists, save, persist, must-see, alert, di
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await page.getByRole('button', { name: 'Find my concerts' }).click();
   await expect(page.getByRole('heading', { name: 'Your next great night.' })).toBeVisible();
+  const initial = await (await page.request.get('/api/state')).json();
+  expect(initial.user.preferences.notifications).toBe('off');
+  expect(initial.alerts).toEqual([]);
+  await page.goto('/app/settings');
+  await page
+    .getByRole('radio', {
+      name: 'Important Home-city shows, favourites, must-see artists and sale reminders.',
+      exact: true,
+    })
+    .check();
+  await page.getByRole('button', { name: 'Save preferences', exact: true }).click();
+  await expect(page.getByText('Your preferences are saved', { exact: true })).toBeVisible();
+  await page.goto('/app');
+
   await page.getByRole('button', { name: 'Save Fred again.. in Paris', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Unsave Fred again.. in Paris' })).toBeVisible();
   await page.reload();
   await expect(page.getByRole('button', { name: 'Unsave Fred again.. in Paris' })).toBeVisible();
   await page.goto('/app/saved');
   await expect(page.getByRole('heading', { name: 'Fred again..', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Unsave Fred again.. in Paris', exact: true }).click();
+  await page.reload();
+  expect((await (await page.request.get('/api/state')).json()).saved).toEqual([]);
+  await page.goto('/app/events/sample-1');
+  await page.getByRole('button', { name: 'Save this show', exact: true }).click();
+  await expect(
+    page.getByRole('button', { name: 'Saved to your shows', exact: true }),
+  ).toBeVisible();
+
   await page.goto('/app/events/sample-1');
   await expect(page.getByRole('button', { name: 'No real tickets in sample mode' })).toBeDisabled();
   await page.getByRole('button', { name: 'I need to see this artist' }).click();

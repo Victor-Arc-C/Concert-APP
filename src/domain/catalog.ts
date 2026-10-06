@@ -60,6 +60,6 @@ export const defaults: Preferences = {
   maxHours: null,
   radiusKm: null,
   budget: null,
-  notifications: 'important',
+  notifications: 'off',
   analytics: false,
 };

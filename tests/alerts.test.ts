@@ -82,3 +82,7 @@ it('respects off, hidden, dismissed and critical-only preferences', async () => 
   );
   expect((await db.query('SELECT id FROM alerts')).rows).toHaveLength(0);
 });
+
+it('new-account defaults do not opt users into alerts', () => {
+  expect(defaults.notifications).toBe('off');
+});
