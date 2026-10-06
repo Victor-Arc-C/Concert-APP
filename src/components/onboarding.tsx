@@ -104,7 +104,7 @@ export function Landing() {
   );
 }
 export function Auth({ signup }: { signup: boolean }) {
-  const { reload } = useApp(),
+  const { reload, data } = useApp(),
     router = useRouter();
   const [error, setError] = useState(''),
     [pending, setPending] = useState(false);
@@ -118,6 +118,7 @@ export function Auth({ signup }: { signup: boolean }) {
         name: signup ? form.get('name') : undefined,
         email: form.get('email'),
         password: form.get('password'),
+        inviteCode: signup && data.inviteRequired ? form.get('inviteCode') : undefined,
       });
       await reload();
       router.push(signup ? '/onboarding' : '/app');
@@ -189,6 +190,18 @@ export function Auth({ signup }: { signup: boolean }) {
                 placeholder={signup ? 'At least 12 characters' : 'Your password'}
               />
             </label>
+            {signup && data.inviteRequired && (
+              <label>
+                Invite code
+                <input
+                  name="inviteCode"
+                  autoComplete="off"
+                  maxLength={64}
+                  required
+                  placeholder="From your beta invitation"
+                />
+              </label>
+            )}
             {error && (
               <p className="form-error" role="alert">
                 {error}
