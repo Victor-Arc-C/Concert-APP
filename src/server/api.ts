@@ -26,7 +26,7 @@ import {
   disconnectSpotify,
   confirmSpotifyArtist,
 } from './providers/spotify';
-import { searchArtists, syncArtists } from './providers/ticketmaster';
+import { resolveSpotifyArtists, searchArtists, syncArtists } from './providers/ticketmaster';
 import { ProviderError } from './providers/http';
 import { runConcertChecks } from './jobs';
 import { ticketSources, selectTicketSource } from './tickets';
@@ -220,6 +220,21 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
       await query('DELETE FROM affinities WHERE user_id=$1', [user.id]);
       for (const id of new Set(input.artistIds))
         await query('INSERT INTO affinities(user_id,artist_id) VALUES($1,$2)', [user.id, id]);
+      await query(
+        `INSERT INTO spotify_artist_preferences(user_id,spotify_id,artist_id,affinity)
+         SELECT $1,p.external_id,p.artist_id,1
+         FROM artist_provider_records p
+         WHERE p.provider='spotify' AND p.artist_id=ANY($2)
+         ON CONFLICT(user_id,spotify_id) DO UPDATE SET artist_id=EXCLUDED.artist_id,affinity=1`,
+        [user.id, [...new Set(input.artistIds)]],
+      );
+      try {
+        await resolveSpotifyArtists([...new Set(input.artistIds)]);
+        await syncArtists(user.id);
+      } catch (error) {
+        if (!(error instanceof ProviderError) && !(error instanceof HttpError)) throw error;
+        // Onboarding remains complete when provider resolution is unavailable.
+      }
       await query('UPDATE users SET preferences=$1,mode=$2,onboarded=TRUE WHERE id=$3', [
         JSON.stringify(input.preferences),
         input.mode,

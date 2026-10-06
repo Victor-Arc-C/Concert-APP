@@ -551,7 +551,8 @@ export function Onboarding() {
                   Back to preferences
                 </button>
                 <button className="button primary" disabled={busy || !selected.length}>
-                  Find my concerts <ArrowUpRight size={17} />
+                  {busy ? 'Connecting live concerts…' : 'Find my concerts'}{' '}
+                  <ArrowUpRight size={17} />
                 </button>
               </div>
             </form>

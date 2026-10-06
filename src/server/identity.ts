@@ -68,9 +68,17 @@ export async function resolveArtistIdentity(provider: string, externalId: string
   return { artistId: null, source: 'none' as const, candidates: [] };
 }
 
-export async function materializeSpotifyArtist(externalId: string, name: string) {
+export async function materializeSpotifyArtist(externalId: string, name: string, image?: string) {
   const identity = await resolveArtistIdentity('spotify', externalId, name);
-  if (identity.artistId) return { artistId: identity.artistId, source: identity.source };
+  if (identity.artistId) {
+    if (image)
+      await query(
+        `UPDATE artists SET data=jsonb_set(data,'{image}',$2::jsonb,TRUE)
+         WHERE id=$1 AND data->>'image' IS DISTINCT FROM $2`,
+        [identity.artistId, JSON.stringify(image)],
+      );
+    return { artistId: identity.artistId, source: identity.source };
+  }
 
   const artistId = `spotify-${externalId}`;
   const artist: Artist = {
@@ -79,6 +87,7 @@ export async function materializeSpotifyArtist(externalId: string, name: string)
     genre: 'Spotify artist',
     color: '#3f6b56',
     initials: name.slice(0, 2).toLowerCase(),
+    ...(image ? { image } : {}),
   };
   await query('INSERT INTO artists(id,data) VALUES($1,$2) ON CONFLICT(id) DO NOTHING', [
     artistId,

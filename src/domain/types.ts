@@ -6,6 +6,7 @@ export type Artist = {
   initials: string;
   image?: string;
   providerId?: string;
+  spotifyBacked?: boolean;
 };
 export type Preferences = {
   home: string;

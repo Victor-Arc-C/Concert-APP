@@ -147,7 +147,11 @@ export async function spotifyArtists(userId: string) {
     .parse(result).items;
   return Promise.all(
     imported.map(async (artist) => {
-      const identity = await materializeSpotifyArtist(artist.id, artist.name);
+      const identity = await materializeSpotifyArtist(
+        artist.id,
+        artist.name,
+        artist.images[0]?.url,
+      );
       return {
         id: artist.id,
         name: artist.name,

@@ -94,7 +94,7 @@ it('refreshes expired tokens, preserves the existing refresh token when not rota
   expect(db.mock.calls.some(([sql]) => /INSERT INTO artists/.test(sql))).toBe(true);
   expect(db.mock.calls.some(([sql]) => /INSERT INTO artist_provider_records/.test(sql))).toBe(true);
 });
-it('returns canonical identity mappings and keeps image data transient', async () => {
+it('returns canonical identity mappings and enriches the canonical artist image', async () => {
   db.mockResolvedValueOnce([
     {
       access_token: encrypt('access'),
@@ -109,7 +109,7 @@ it('returns canonical identity mappings and keeps image data transient', async (
           id: 'spotify-beyonce',
           name: 'Beyoncé',
           external_urls: { spotify: 'https://open.spotify.com/artist/spotify-beyonce' },
-          images: [],
+          images: [{ url: 'https://i.scdn.co/image/beyonce' }],
         },
       ],
     }),
@@ -119,11 +119,12 @@ it('returns canonical identity mappings and keeps image data transient', async (
       id: 'spotify-beyonce',
       name: 'Beyoncé',
       url: 'https://open.spotify.com/artist/spotify-beyonce',
+      image: 'https://i.scdn.co/image/beyonce',
       artistId: 'canonical-beyonce',
       mapping: 'provider',
     },
   ]);
-  expect(db.mock.calls.some(([sql]) => /INSERT INTO/.test(sql))).toBe(false);
+  expect(db.mock.calls.some(([sql]) => /UPDATE artists SET data=jsonb_set/.test(sql))).toBe(true);
 });
 it('retries one expired access token and encrypts a rotated refresh token', async () => {
   db.mockResolvedValueOnce([

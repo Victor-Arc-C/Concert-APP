@@ -7,6 +7,7 @@ import { ProviderError, providerJson } from './http';
 import {
   compareEventIdentity,
   fingerprint,
+  normalizeArtistName,
   normalizeTicketmaster,
 } from '../../domain/normalization';
 import type { Artist, Concert } from '../../domain/types';
@@ -55,6 +56,105 @@ async function request(path: string, params: Record<string, string>) {
     throw error;
   }
 }
+
+function searchTerms(name: string) {
+  const normalized = name
+    .normalize('NFKD')
+    .replace(/\p{M}/gu, '')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim()
+    .replace(/\s+/g, ' ');
+  return [...new Set([name, normalized].filter(Boolean))];
+}
+
+async function discoverAttractions(name: string) {
+  const attractions = new Map<string, { id: string; name: string }>();
+  for (const keyword of searchTerms(name)) {
+    const data = await request('attractions', {
+      keyword,
+      classificationName: 'music',
+      size: '20',
+    });
+    for (const attraction of data._embedded?.attractions ?? [])
+      attractions.set(attraction.id, attraction);
+  }
+  return [...attractions.values()];
+}
+
+export async function resolveSpotifyArtists(artistIds: string[]) {
+  if (!env().TICKETMASTER_API_KEY) return { resolved: [], unresolved: artistIds };
+  const rows = await query<{ id: string; name: string; data: Artist }>(
+    `SELECT a.id,a.data->>'name' AS name,a.data
+     FROM artists a
+     JOIN artist_provider_records p ON p.artist_id=a.id AND p.provider='spotify'
+     WHERE a.id=ANY($1)`,
+    [artistIds],
+  );
+  const resolved: string[] = [];
+  const unresolved: string[] = [];
+  for (const [index, artist] of rows.entries()) {
+    if (index) await new Promise((resolve) => setTimeout(resolve, 550));
+    try {
+      if (artist.data.providerId) {
+        resolved.push(artist.id);
+        continue;
+      }
+      const [mapped] = await query<{ external_id: string }>(
+        'SELECT external_id FROM artist_provider_records WHERE provider=$1 AND artist_id=$2',
+        ['ticketmaster', artist.id],
+      );
+      if (mapped) {
+        await query(
+          `UPDATE artists SET data=jsonb_set(data,'{providerId}',$2::jsonb,TRUE)
+           WHERE id=$1`,
+          [artist.id, JSON.stringify(mapped.external_id)],
+        );
+        resolved.push(artist.id);
+        continue;
+      }
+      const attractions = await discoverAttractions(artist.name);
+      const exact = attractions.filter(
+        (attraction) => normalizeArtistName(attraction.name) === normalizeArtistName(artist.name),
+      );
+      if (exact.length !== 1) {
+        unresolved.push(artist.id);
+        if (exact.length > 1)
+          await recordNormalizationReview(
+            'artist',
+            'ticketmaster',
+            artist.id,
+            'automatic_name_collision',
+            exact.map((attraction) => attraction.id),
+            { name: artist.name },
+          );
+        continue;
+      }
+      const [existing] = await query<{ artist_id: string }>(
+        'SELECT artist_id FROM artist_provider_records WHERE provider=$1 AND external_id=$2',
+        ['ticketmaster', exact[0].id],
+      );
+      if (existing && existing.artist_id !== artist.id) {
+        unresolved.push(artist.id);
+        continue;
+      }
+      await query(
+        `UPDATE artists SET data=jsonb_set(data,'{providerId}',$2::jsonb,TRUE)
+         WHERE id=$1`,
+        [artist.id, JSON.stringify(exact[0].id)],
+      );
+      await query(
+        `INSERT INTO artist_provider_records(provider,external_id,artist_id)
+         VALUES($1,$2,$3) ON CONFLICT(provider,external_id) DO NOTHING`,
+        ['ticketmaster', exact[0].id, artist.id],
+      );
+      resolved.push(artist.id);
+    } catch (error) {
+      if (!(error instanceof ProviderError)) throw error;
+      unresolved.push(artist.id);
+    }
+  }
+  return { resolved, unresolved };
+}
 export async function searchArtists(term: string): Promise<Artist[]> {
   if (!env().TICKETMASTER_API_KEY)
     throw new HttpError(503, 'Add a Ticketmaster API key to search the live artist catalogue.');
@@ -76,7 +176,7 @@ export async function searchArtists(term: string): Promise<Artist[]> {
       providerId: attraction.id,
     };
     await query(
-      'INSERT INTO artists(id,data) VALUES($1,$2) ON CONFLICT(id) DO UPDATE SET data=EXCLUDED.data',
+      'INSERT INTO artists(id,data) VALUES($1,$2) ON CONFLICT(id) DO UPDATE SET data=artists.data || EXCLUDED.data',
       [id, JSON.stringify(artist)],
     );
     await query(
