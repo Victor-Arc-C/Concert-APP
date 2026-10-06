@@ -46,7 +46,7 @@ Tests create and delete accounts using `example.test` addresses. Provider integr
 
 **All sample concerts, dates and prices are fictional.** They are not real inventory. Photography provides generic atmosphere and does not depict the artist/event named. Sample mode cannot open ticket checkout.
 
-No transport or hotel provider is connected; those prices and trip totals remain unknown. No tickets are held, purchased or guaranteed. In-app alerts are evaluated after scheduled refreshes and on app reads; email/push delivery is not connected. Live listings are cached per artist for one hour. Optional local automatic checks run while the server is awake; they are not real-time inventory monitoring.
+No live transport or hotel provider is connected. Trip Intelligence currently generates fictional sample transport and stays; its provider selection does not yet enforce sample/live separation. See the [CON-30 provider research, access prerequisites and proposed integration](docs/CON-30-TRAVEL-PROVIDERS.md) before enabling real travel recommendations. No tickets are held, purchased or guaranteed. In-app alerts are evaluated after scheduled refreshes and on app reads; email/push delivery is not connected. Live listings are cached per artist for one hour. Optional local automatic checks run while the server is awake; they are not real-time inventory monitoring.
 
 No affiliate commissions, premium subscription, sponsored placement, payment or package checkout is active. Stored ticket clicks are not purchases. Analytics events are collected only after the user opts in; not-yet-implemented actions do not produce fake events.
 
