@@ -1799,6 +1799,24 @@ svg {
   border-color: var(--amber);
   color: var(--bg);
 }
+.artist-avatar {
+  overflow: hidden;
+}
+.artist-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.onboarding-search {
+  margin: 24px 0 15px;
+  display: grid;
+  gap: 8px;
+}
+.onboarding-search span {
+  font-size: 11px;
+  color: var(--muted);
+}
 .onboarding-bottom {
   display: flex;
   align-items: center;

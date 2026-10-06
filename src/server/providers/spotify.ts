@@ -18,9 +18,11 @@ function requireAvailable() {
       'Spotify is not enabled for this pilot. Choose your artists manually.',
     );
 }
-export async function beginSpotify(userId: string) {
+export async function beginSpotify(userId: string, returnTo: 'onboarding' | 'artists' = 'artists') {
   requireAvailable();
-  const state = randomBytes(32).toString('base64url'),
+  const stateBytes = randomBytes(32);
+  stateBytes[0] = returnTo === 'onboarding' ? 255 : 0;
+  const state = stateBytes.toString('base64url'),
     verifier = randomBytes(48).toString('base64url');
   await query(
     "INSERT INTO oauth_attempts(state,user_id,verifier,expires_at) VALUES($1,$2,$3,NOW()+INTERVAL '10 minutes')",
@@ -137,11 +139,17 @@ export async function spotifyArtists(userId: string) {
           id: z.string(),
           name: z.string(),
           external_urls: z.object({ spotify: z.url() }),
+          images: z.array(z.object({ url: z.url() })).default([]),
         }),
       ),
     })
     .parse(result)
-    .items.map((a) => ({ id: a.id, name: a.name, url: a.external_urls.spotify }));
+    .items.map((a) => ({
+      id: a.id,
+      name: a.name,
+      url: a.external_urls.spotify,
+      image: a.images[0]?.url,
+    }));
 }
 
 export async function cancelSpotify(userId: string, state: string) {

@@ -30,6 +30,13 @@ import { searchArtists, syncArtists } from './providers/ticketmaster';
 import { ProviderError } from './providers/http';
 import { runConcertChecks } from './jobs';
 import { ticketSources, selectTicketSource } from './tickets';
+function onboardingSpotifyState(state: string) {
+  try {
+    return Buffer.from(state, 'base64url')[0] === 255;
+  } catch {
+    return false;
+  }
+}
 async function body(request: Request): Promise<unknown> {
   const reader = request.body?.getReader();
   if (!reader) throw new HttpError(400, 'The request is empty.');
@@ -88,19 +95,28 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
         const user = await requireUser();
         if (url.searchParams.get('error')) {
           await cancelSpotify(user.id, url.searchParams.get('state') ?? '');
-          return NextResponse.redirect(new URL('/app/settings?music=denied', env().APP_URL));
+          const destination = onboardingSpotifyState(url.searchParams.get('state') ?? '')
+            ? '/onboarding'
+            : '/app/artists';
+          return NextResponse.redirect(new URL(`${destination}?music=denied`, env().APP_URL));
         }
         try {
+          const destination = onboardingSpotifyState(url.searchParams.get('state') ?? '')
+            ? '/onboarding'
+            : '/app/artists';
           await finishSpotify(
             user.id,
             url.searchParams.get('state') ?? '',
             url.searchParams.get('code') ?? '',
           );
           await recordAnalytics(user, 'spotify_connected');
-          return NextResponse.redirect(new URL('/app/artists?music=connected', env().APP_URL));
+          return NextResponse.redirect(new URL(`${destination}?music=connected`, env().APP_URL));
         } catch {
           reportError('provider_failed');
-          return NextResponse.redirect(new URL('/app/settings?music=failed', env().APP_URL));
+          const destination = onboardingSpotifyState(url.searchParams.get('state') ?? '')
+            ? '/onboarding'
+            : '/app/artists';
+          return NextResponse.redirect(new URL(`${destination}?music=failed`, env().APP_URL));
         }
       }
       const user = await requireUser();
@@ -317,7 +333,12 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
       await confirmSpotifyArtist(user.id, input.spotifyId, input.artistId);
       return ok();
     }
-    if (key === 'spotify/connect') return ok({ url: await beginSpotify(user.id) });
+    if (key === 'spotify/connect') {
+      const input = z
+        .object({ returnTo: z.enum(['onboarding', 'artists']).default('artists') })
+        .parse(await body(request));
+      return ok({ url: await beginSpotify(user.id, input.returnTo) });
+    }
     if (key === 'spotify/disconnect') {
       await disconnectSpotify(user.id);
       return ok();
