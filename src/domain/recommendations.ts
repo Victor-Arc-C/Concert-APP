@@ -8,7 +8,7 @@ import type {
   Preferences,
   RankedConcert,
 } from './types';
-const europe = new Set([
+export const europe = new Set([
   'FR',
   'GB',
   'NL',
