@@ -70,15 +70,32 @@ export async function getAppData(): Promise<AppData> {
      FROM artists a ORDER BY a.id`,
   );
   const sample = user?.mode !== 'live';
-  const eventRows = await query<{ data: Concert }>('SELECT data FROM events WHERE sample=$1', [
-    sample,
-  ]);
-  const events = eventRows.map(({ data: event }) =>
+  const eventRows = await query<{
+    data: Concert;
+    price: number | null;
+    currency: string | null;
+    observedAt: Date | null;
+    disabledAt: Date | null;
+  }>(
+    `SELECT e.data,t.price_min::float AS price,t.currency,
+      t.observed_at AS "observedAt",t.disabled_at AS "disabledAt"
+     FROM events e LEFT JOIN ticket_sources t ON t.event_id=e.id
+      AND t.provider=e.data->>'provider' AND t.external_id=e.data->>'externalId'
+     WHERE e.sample=$1`,
+    [sample],
+  );
+  const events = eventRows.map(({ data: event, price, currency, observedAt, disabledAt }) =>
     event.provider === 'sample'
       ? event
       : {
           ...event,
-          price: displayPrice(event.price, event.currency, event.provider, event.fetchedAt),
+          // Keep the exact listing's attribution; never borrow another source's price.
+          price:
+            observedAt && !disabledAt && !['cancelled', 'postponed'].includes(event.status)
+              ? displayPrice(price, currency, event.provider, observedAt)
+              : null,
+          currency,
+          priceObservedAt: observedAt ? new Date(observedAt).toISOString() : null,
         },
   );
   const lists = user

@@ -34,7 +34,14 @@ export function dateLabel(date: string, long = false) {
   }).format(new Date(`${date}T12:00:00Z`));
 }
 export function money(amount: number | null, currency: string | null) {
-  if (amount === null || !currency) return 'Price not listed';
+  if (
+    amount === null ||
+    !Number.isFinite(amount) ||
+    amount < 0 ||
+    !currency ||
+    !/^[A-Z]{3}$/.test(currency)
+  )
+    return 'Price not listed';
   try {
     return new Intl.NumberFormat('en-GB', {
       style: 'currency',

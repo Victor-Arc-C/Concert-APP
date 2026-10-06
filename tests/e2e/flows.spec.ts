@@ -419,3 +419,47 @@ test('detail tolerates missing data and identifies the external ticket destinati
   await page.reload();
   await expect(page.getByRole('button', { name: 'Ticket link unavailable' })).toBeDisabled();
 });
+
+test('live price display keeps unavailable state, provider currency and attribution', async ({
+  page,
+}) => {
+  let price: number | null = null;
+  let currency: string | null = null;
+  await page.route('**/api/state', async (route) => {
+    const response = await route.fetch();
+    const data = await response.json();
+    for (const events of [data.events, data.allEvents]) {
+      const event = events.find((e: { id: string }) => e.id === 'sample-1');
+      if (event)
+        Object.assign(event, {
+          price,
+          currency,
+          priceObservedAt: new Date().toISOString(),
+          provider: 'ticketmaster',
+          url: 'https://www.ticketmaster.fr/event/listing',
+        });
+    }
+    await route.fulfill({ response, json: data });
+  });
+  await page.goto('/app/events/sample-1');
+  await expect(page.locator('.ticket-price')).toHaveText('Price not listed');
+  await expect(
+    page.getByText('A current verified price is unavailable', { exact: false }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Check tickets on www.ticketmaster.fr' }),
+  ).toBeEnabled();
+  price = 79.5;
+  currency = 'EUR';
+  await page.reload();
+  await expect(page.locator('.ticket-price')).toHaveText('€79.50');
+  await expect(page.getByText(/Price observed/)).toBeVisible();
+  await expect(page.getByText(/Source: Ticketmaster/)).toBeVisible();
+  price = 90;
+  currency = 'GBP';
+  await page.reload();
+  await expect(page.locator('.ticket-price')).toHaveText('£90');
+  price = null;
+  await page.reload();
+  await expect(page.locator('.ticket-price')).toHaveText('Price not listed');
+});

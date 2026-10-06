@@ -4,6 +4,13 @@ import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import type { Concert } from './types';
 const text = z.string().optional();
+const priceRangeSchema = z
+  .object({
+    min: z.number().finite().nonnegative(),
+    max: z.number().finite().nonnegative().optional(),
+    currency: z.string().regex(/^[A-Z]{3}$/),
+  })
+  .refine((range) => range.max === undefined || range.max >= range.min);
 
 function identityText(value: string): string {
   return value
@@ -60,9 +67,8 @@ export const tmEventSchema = z.object({
         .optional(),
     })
     .optional(),
-  priceRanges: z
-    .array(z.object({ min: z.number().nonnegative(), currency: z.string() }))
-    .optional(),
+  // Bad price metadata must not discard an otherwise usable concert.
+  priceRanges: z.array(z.unknown()).catch([]).optional(),
   _embedded: z
     .object({
       venues: z
@@ -98,7 +104,9 @@ export function normalizeTicketmaster(
     !venue.country?.countryCode
   )
     return null;
-  const price = e.priceRanges?.[0];
+  const price = e.priceRanges
+    ?.map((range) => priceRangeSchema.safeParse(range))
+    .find((range) => range.success)?.data;
   const code = e.dates.status?.code;
   return {
     id: `tm-${e.id}`,

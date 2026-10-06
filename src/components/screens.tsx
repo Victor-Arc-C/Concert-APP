@@ -559,6 +559,11 @@ export function EventDetail({ id }: { id: string }) {
             {event.provider === 'sample' ? 'Fictional sample price' : 'Provider price range'}
           </span>
           <div className="ticket-price">{money(event.price, event.currency)}</div>
+          {event.provider !== 'sample' && event.price !== null && event.priceObservedAt && (
+            <p className="fineprint">
+              Price observed {new Date(event.priceObservedAt).toLocaleString('en-GB')}
+            </p>
+          )}
           {event.provider !== 'sample' && event.price === null && (
             <p className="fineprint">
               A current verified price is unavailable for this show. Check official tickets for
