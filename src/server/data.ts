@@ -62,7 +62,13 @@ export async function evaluateAlerts(
 }
 export async function getAppData(): Promise<AppData> {
   const user = await currentUser();
-  const artistRows = await query<{ data: Artist }>('SELECT data FROM artists ORDER BY id');
+  const artistRows = await query<{ data: Artist }>(
+    `SELECT a.data || CASE WHEN EXISTS (
+      SELECT 1 FROM artist_provider_records p
+      WHERE p.artist_id=a.id AND p.provider='spotify'
+    ) THEN '{"spotifyBacked":true}'::jsonb ELSE '{}'::jsonb END AS data
+     FROM artists a ORDER BY a.id`,
+  );
   const sample = user?.mode !== 'live';
   const eventRows = await query<{ data: Concert }>('SELECT data FROM events WHERE sample=$1', [
     sample,

@@ -1,7 +1,13 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import { PGlite } from '@electric-sql/pglite';
 vi.mock('../src/server/db', () => ({ query: vi.fn() }));
 import { query } from '../src/server/db';
-import { syncArtists, TicketmasterProvider } from '../src/server/providers/ticketmaster';
+import { migrate } from '../src/server/migrations';
+import {
+  resolveSpotifyArtists,
+  syncArtists,
+  TicketmasterProvider,
+} from '../src/server/providers/ticketmaster';
 const db = vi.mocked(query);
 beforeEach(() => {
   vi.stubEnv('APP_ENV', 'local');
@@ -82,4 +88,62 @@ it('backs off recent failures and reports them instead of claiming success', asy
   expect(result.failed).toBe(1);
   expect(result.message).toContain('retry pending');
   expect(provider).not.toHaveBeenCalled();
+});
+
+it('maps exact normalized matches and leaves ambiguous or absent artists unresolved', async () => {
+  vi.stubEnv('TICKETMASTER_API_KEY', 'test-key');
+  const pg = new PGlite();
+  const adapter = {
+    query: async <T>(sql: string, params: unknown[] = []) => (await pg.query<T>(sql, params)).rows,
+    execute: async (sql: string) => {
+      await pg.exec(sql);
+    },
+  };
+  db.mockImplementation(adapter.query);
+  const fetcher = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+    const keyword = new URL(String(input)).searchParams.get('keyword');
+    const attractions =
+      keyword === 'Drake'
+        ? [{ id: 'tm-drake', name: 'DRAKE' }]
+        : keyword === 'Nono La Grinta'
+          ? [
+              { id: 'tm-nono-a', name: 'Nono La Grinta' },
+              { id: 'tm-nono-b', name: 'Nono La Grinta' },
+            ]
+          : [];
+    return new Response(JSON.stringify({ _embedded: { attractions } }));
+  });
+  try {
+    await migrate(adapter);
+    await pg.exec(`
+      INSERT INTO artists(id,data) VALUES
+        ('spotify-drake','{"name":"Drake"}'),
+        ('spotify-nono','{"name":"Nono La Grinta"}'),
+        ('spotify-triangle','{"name":"Triangle des Bermudes"}');
+      INSERT INTO artist_provider_records(provider,external_id,artist_id) VALUES
+        ('spotify','sp-drake','spotify-drake'),
+        ('spotify','sp-nono','spotify-nono'),
+        ('spotify','sp-triangle','spotify-triangle');
+    `);
+    await expect(
+      resolveSpotifyArtists(['spotify-drake', 'spotify-nono', 'spotify-triangle']),
+    ).resolves.toEqual({
+      resolved: ['spotify-drake'],
+      unresolved: ['spotify-nono', 'spotify-triangle'],
+    });
+    expect(
+      (await pg.query('SELECT * FROM artist_provider_records WHERE provider=$1', ['ticketmaster']))
+        .rows,
+    ).toEqual([{ provider: 'ticketmaster', external_id: 'tm-drake', artist_id: 'spotify-drake' }]);
+    expect(
+      (
+        await pg.query(
+          "SELECT data->>'providerId' AS provider_id FROM artists WHERE id='spotify-drake'",
+        )
+      ).rows,
+    ).toEqual([{ provider_id: 'tm-drake' }]);
+    expect(fetcher).toHaveBeenCalled();
+  } finally {
+    await pg.close();
+  }
 });

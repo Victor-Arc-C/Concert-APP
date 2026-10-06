@@ -714,7 +714,13 @@ export function Artists() {
                 <Link href={`/app/artists/${a.id}`}>
                   <Avatar artist={a} />
                   <h3>{a.name}</h3>
-                  <p>{a.providerId ? 'Live artist' : 'Sample artist'}</p>
+                  <p>
+                    {a.providerId
+                      ? 'Live artist'
+                      : a.spotifyBacked
+                        ? 'No live concerts found yet'
+                        : 'Sample artist'}
+                  </p>
                 </Link>
                 {data.user?.mode === 'live' && !a.providerId && (
                   <button
@@ -729,7 +735,7 @@ export function Artists() {
                       void searchLive(undefined, a.name);
                     }}
                   >
-                    Find live artist
+                    {a.spotifyBacked ? 'Confirm live artist' : 'Find live artist'}
                   </button>
                 )}
                 <button
