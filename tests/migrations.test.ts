@@ -30,8 +30,11 @@ describe('versioned schema', () => {
         'ticket_sources_event',
         'artist_provider_artist',
         'analytics_time',
+        'saved_trips_user_time',
+        'saved_trips_event',
       ])
         expect(indexes).toContain(name);
+
     } finally {
       await pg.close();
     }

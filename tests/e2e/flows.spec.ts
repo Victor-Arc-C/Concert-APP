@@ -463,3 +463,51 @@ test('live price display keeps unavailable state, provider currency and attribut
   await page.reload();
   await expect(page.locator('.ticket-price')).toHaveText('Price not listed');
 });
+
+test('trip intelligence flow: concert -> plan trip -> compare itineraries -> save -> trips page', async ({
+  page,
+}) => {
+  const email = `tripper-${Date.now()}@example.test`;
+  await page.goto('/signup');
+  await page.getByLabel('Your name').fill('Sam');
+  await page.getByLabel('Email', { exact: true }).fill(email);
+  await page.getByLabel('Password', { exact: true }).fill(password);
+  await page.getByRole('button', { name: 'Create account', exact: true }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Where should the music take you?' }),
+  ).toBeVisible();
+  await page.getByLabel('Home city').selectOption('Paris');
+  await page.getByRole('button', { name: 'Choose artists', exact: true }).click();
+  await page.getByRole('button', { name: 'Fred again..' }).click();
+  await page.getByRole('button', { name: 'Find my concerts' }).click();
+  await expect(page.getByRole('heading', { name: 'Your next great night.' })).toBeVisible();
+
+  // Navigate to an out-of-town concert (Amsterdam)
+  await page.goto('/app/events/sample-3');
+  await expect(page.getByRole('link', { name: 'Plan this trip' })).toBeVisible();
+  await page.getByRole('link', { name: 'Plan this trip' }).click();
+
+  // On the Trip Planner screen
+  await expect(page.getByRole('heading', { name: /in Amsterdam/ })).toBeVisible();
+  await expect(page.getByText('Trip Intelligence')).toBeVisible();
+
+  // Check that options are generated and loaded
+  await expect(page.locator('.option-pill-group button').first()).toBeVisible();
+
+  // Check 3 steps: Ticket, Transport, Stay
+  await expect(page.getByText('Concert Ticket')).toBeVisible();
+  await expect(page.getByText(/Euro High-Speed Rail|Regional Express Airline|Intercity Coach/)).toBeVisible();
+  await expect(page.getByText('1 night ·', { exact: false })).toBeVisible();
+
+
+  // Save the trip
+  await page.getByRole('button', { name: 'Save this trip' }).click();
+  await expect(page.getByRole('button', { name: 'Trip saved' })).toBeVisible();
+
+  // Navigate to Trips page
+  await page.goto('/app/trips');
+  await expect(page.getByRole('heading', { name: 'Trips' })).toBeVisible();
+  await expect(page.getByText('Amsterdam')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'View itinerary' })).toBeVisible();
+});
+

@@ -18,7 +18,9 @@ import {
   TrainFront,
   BedDouble,
   Bookmark,
+  Compass,
   X,
+
   Bell,
   Music2,
   Plus,
@@ -540,14 +542,29 @@ export function EventDetail({ id }: { id: string }) {
               <div>
                 <TrainFront />
                 <strong>Getting there</strong>
-                <span>No live transport quotes connected.</span>
+                <span>
+                  Check route options and timings.{' '}
+                  {!['cancelled', 'postponed'].includes(event.status) && (
+                    <Link href={`/app/trips/${event.id}`} style={{ color: 'var(--amber)', textDecoration: 'underline' }}>
+                      Plan trip
+                    </Link>
+                  )}
+                </span>
               </div>
               <div>
                 <BedDouble />
                 <strong>A place to stay</strong>
-                <span>No live accommodation quotes connected.</span>
+                <span>
+                  Compare stays close to {event.venue}.{' '}
+                  {!['cancelled', 'postponed'].includes(event.status) && (
+                    <Link href={`/app/trips/${event.id}`} style={{ color: 'var(--amber)', textDecoration: 'underline' }}>
+                      View stays
+                    </Link>
+                  )}
+                </span>
               </div>
             </div>
+
             <p className="fineprint">
               No journey time, hotel availability or total price is confirmed. Check these before
               buying a ticket.
@@ -623,7 +640,18 @@ export function EventDetail({ id }: { id: string }) {
             <Bookmark size={17} fill={event.saved ? 'currentColor' : 'none'} />
             {event.saved ? 'Saved to your shows' : 'Save this show'}
           </button>
+          {!['cancelled', 'postponed'].includes(event.status) && (
+            <Link
+              href={`/app/trips/${event.id}`}
+              className="button secondary full"
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+            >
+              <Compass size={17} />
+              Plan this trip
+            </Link>
+          )}
           {artist && (
+
             <button className="text-button full" onClick={() => setIntent(true)}>
               <Heart size={17} />I need to see this artist
             </button>
