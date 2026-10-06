@@ -46,7 +46,9 @@ Tests create and delete accounts using `example.test` addresses. Provider integr
 
 **All sample concerts, dates and prices are fictional.** They are not real inventory. Photography provides generic atmosphere and does not depict the artist/event named. Sample mode cannot open ticket checkout.
 
-No transport or hotel provider is connected; those prices and trip totals remain unknown. No tickets are held, purchased or guaranteed. In-app alerts are evaluated after scheduled refreshes and on app reads; email/push delivery is not connected. Live listings are cached per artist for one hour. Optional local automatic checks run while the server is awake; they are not real-time inventory monitoring.
+No live transport or hotel provider is connected. Trip Intelligence currently generates fictional sample transport and stays; its provider selection does not yet enforce sample/live separation. No tickets are held, purchased or guaranteed. In-app alerts are evaluated after scheduled refreshes and on app reads; email/push delivery is not connected. Live listings are cached per artist for one hour. Optional local automatic checks run while the server is awake; they are not real-time inventory monitoring.
+
+The [CON-31 accommodation research](docs/CON-31-ACCOMMODATION-PROVIDERS.md) recommends validating Nuitée LiteAPI access first, with Booking.com Demand redirect and Agoda MSE as managed alternatives. No accommodation access is currently available, so this research adds no runtime integration. Production sample gating, licensed content, current complete stay prices and saved-trip revalidation remain prerequisites for that follow-up.
 
 No affiliate commissions, premium subscription, sponsored placement, payment or package checkout is active. Stored ticket clicks are not purchases. Analytics events are collected only after the user opts in; not-yet-implemented actions do not produce fake events.
 
