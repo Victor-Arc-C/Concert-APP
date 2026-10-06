@@ -34,6 +34,7 @@ export const authSchema = z.object({
     .transform((v) => v.trim().toLowerCase()),
   password: z.string().min(12, 'Use at least 12 characters').max(128),
   name: z.string().trim().min(1).max(60).optional(),
+  inviteCode: z.string().trim().max(64).optional(),
 });
 export const analyticNames = [
   'signup_started',

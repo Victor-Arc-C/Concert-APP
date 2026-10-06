@@ -25,6 +25,7 @@ const schema = z
     SPOTIFY_CLIENT_SECRET: optionalString,
     TOKEN_ENCRYPTION_KEY: optionalString,
     CRON_SECRET: optionalString,
+    BETA_INVITE_CODES: optionalString,
     AUTO_CONCERT_CHECKS: z.enum(['true', 'false']).default('false'),
   })
   .superRefine((settings, context) => {
