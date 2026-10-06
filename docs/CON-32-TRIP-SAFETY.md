@@ -13,7 +13,7 @@ Base: current main `d473824` (including CON-31 research), checked 6 October 2026
 
 ## Explicit mode and missing components
 
-`tripProviderMode` uses `APP_ENV`, the existing user mode and concert source. Samples require a sample-mode user (or sample guest), a sample concert and a test/local/development profile. **Production always denies sample travel/stays**, including an explicit sample user and accidentally injected sample adapters. Live users/concerts also deny samples outside production. No hostname inference is used.
+`tripProviderMode` uses `APP_ENV`, the existing user mode and concert source. Samples require a sample-mode user (or sample guest), a sample concert and a test/local/development profile. **Production always denies sample travel/stays**, including an explicit sample user and accidentally injected sample adapters. The explicit `VERCEL_ENV=production` deployment signal also denies samples when `APP_ENV` is mistakenly local or omitted. A standalone production build with no explicit `APP_ENV` also denies samples; an explicit local/test build still supports development checks. Live users/concerts also deny samples outside production. No hostname inference is used.
 
 Server-owned provider definitions declare source kind, recognized source IDs and exact checkout hosts. The default live registry is empty. Sample checkout hosts are empty and sample booking URLs are null; sample options explicitly say `kind: sample` and `availability: sample`, never real availability.
 
@@ -58,8 +58,8 @@ Planner and saved cards also expire already-open views, removing stale component
 ## Verification and limits
 
 - `npm run lint`, `npm run typecheck`, `npm test` and `npm run build` passed.
-- 147 unit tests across 21 files, including environment separation, injected sample denial in production, missing components/ticket prices, malformed quotes, expiry, exact-host links, source recognition, duplicate offer identifiers, total overflow, outages, strict save payloads, ownership, unrelated/cancelled/postponed events, legacy/current/expired saved plans, partial saved revalidation, atomic write rejection and unsupported rankings.
+- 151 unit tests across 21 files, including environment separation, injected sample denial in production, production deployment profile mismatches, missing components/ticket prices, malformed quotes, expiry, exact-host links, source recognition, duplicate offer identifiers, total overflow, outages, strict save payloads, ownership, unrelated/cancelled/postponed events, legacy/current/expired saved plans, partial saved revalidation, atomic write rejection and unsupported rankings.
 - Two targeted Playwright flows passed against an isolated test-profile production build/database: compare/save/reopen the sample planner; and API snapshot rejection, CSRF/auth, account isolation and saved-plan suppression after switching modes.
-- One concurrent full-suite run timed out in an existing PGlite alerts setup hook. The full suite passed when rerun alone; no timeout setting or production behavior was weakened.
+- Local parallel full-suite runs intermittently timed out in an existing PGlite alerts setup hook. The suite passed with `npm test -- --maxWorkers=1`; no timeout setting or production behavior was weakened.
 
 No genuine live travel/provider smoke test is claimed: none is configured or approved. A future live integration must extend the current single-guest/overnight request model, verify itinerary timing/returns and complete quote semantics, obtain licensed coordinates/content, enforce provider-specific retention/quotas and add real approved account tests. Revalidation currently queries each saved plan on reads; future integrations must account for those requests in their quota policy. Background refresh and booking are outside this issue.

@@ -41,6 +41,12 @@ export function tripProviderMode(
   user: User | null,
   appEnv = env().APP_ENV,
 ): TripProviderMode {
+  // A production deployment must not inherit the local profile's default sample access.
+  if (
+    process.env.VERCEL_ENV === 'production' ||
+    (process.env.NODE_ENV === 'production' && !process.env.APP_ENV)
+  )
+    return 'live';
   return samplesAllowed(appEnv, user?.mode ?? 'sample', event.provider) ? 'sample' : 'live';
 }
 

@@ -94,6 +94,7 @@ const row = (
   updatedAt: now.toISOString(),
 });
 beforeEach(() => {
+  vi.stubEnv('VERCEL_ENV', undefined);
   vi.stubEnv('APP_ENV', 'test');
   vi.stubEnv('DATABASE_URL', '');
   vi.stubEnv('TICKETMASTER_API_KEY', '');
@@ -104,6 +105,26 @@ beforeEach(() => {
 afterEach(() => {
   vi.unstubAllEnvs();
   vi.mocked(query).mockReset();
+});
+
+it.each(['local', undefined])('Vercel production denies samples with APP_ENV=%s', async (appEnv) => {
+  vi.stubEnv('APP_ENV', appEnv);
+  vi.stubEnv('VERCEL_ENV', 'production');
+  const transport = new SampleTransportProvider();
+  const getTravel = vi.spyOn(transport, 'getOptions');
+  const [plan] = await generateTripOptions(event, user, { transport }, now);
+  expect(tripProviderMode(event, user)).toBe('live');
+  expect(getTravel).not.toHaveBeenCalled();
+  expect(plan).toMatchObject({ transport: null, accommodation: null, ticketPrice: null, estimatedTotal: null });
+});
+
+it.each([
+  [undefined, 'live'],
+  ['local', 'sample'],
+] as const)('production build requires an explicit local profile: APP_ENV=%s', (appEnv, mode) => {
+  vi.stubEnv('APP_ENV', appEnv);
+  vi.stubEnv('NODE_ENV', 'production');
+  expect(tripProviderMode(event, user)).toBe(mode);
 });
 
 it.each(['test', 'local', 'development'] as const)(
