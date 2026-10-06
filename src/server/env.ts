@@ -26,6 +26,12 @@ const schema = z
     TOKEN_ENCRYPTION_KEY: optionalString,
     CRON_SECRET: optionalString,
     BETA_INVITE_CODES: optionalString,
+    // Shown on the privacy page: who is responsible for the data and how to reach them.
+    PRIVACY_CONTROLLER: optionalString,
+    PRIVACY_CONTACT_EMAIL: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      z.email().optional(),
+    ),
     AUTO_CONCERT_CHECKS: z.enum(['true', 'false']).default('false'),
   })
   .superRefine((settings, context) => {

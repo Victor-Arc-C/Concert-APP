@@ -710,38 +710,97 @@ export function Onboarding() {
   );
 }
 export function Privacy() {
+  const { data } = useApp();
+  const contact = data.privacyContact;
   return (
     <div className="document-page">
       <Brand />
-      <h1>Your music. Your choices.</h1>
+      <h1>Privacy and beta terms</h1>
       <p>
-        This early-access pilot stores your account, explicitly chosen artists, saved shows,
-        must-see preferences, settings, in-app alerts and any beta feedback you send in the app’s
-        database. Sample concerts and prices are fictional.
+        Encore is a free, invite-only pilot. This page explains what we store, why, where and for
+        how long, and the rules of the beta. Sample concerts and prices are fictional.
       </p>
-      <h2>What we use</h2>
+      <h2>Who is responsible</h2>
+      {contact?.controller && contact.email ? (
+        <p>
+          The data controller is {contact.controller}. For any privacy question or request, write to{' '}
+          <a href={`mailto:${contact.email}`}>{contact.email}</a>.
+        </p>
+      ) : (
+        <p className="form-error" role="note">
+          The controller identity and privacy contact are not configured on this deployment yet.
+        </p>
+      )}
+      <h2>What we store</h2>
+      <ul>
+        <li>Your account: email, name and a hashed password.</li>
+        <li>
+          Your settings: home city, distance, dates, ticket budget, notification and consent
+          choices.
+        </li>
+        <li>
+          Artists you follow or mark as must-see, concerts you save or dismiss, ticket links you
+          open, your in-app alerts and the trip plans you save.
+        </li>
+        <li>Feedback you choose to send, with the screen you sent it from.</li>
+        <li>Optional usage analytics, only if you turn them on.</li>
+        <li>If you connect Spotify: encrypted access tokens and the artists you confirm.</li>
+        <li>
+          For security: rate-limit counters keyed by a hash of your email, and anonymous error logs
+          that contain no personal data.
+        </li>
+      </ul>
+      <h2>Why (legal basis)</h2>
       <p>
-        Recommendations use the artists you choose, your first-party actions and your travel
-        settings. We do not sell personal listening profiles. Optional usage analytics are stored
-        for up to 30 days, with scheduled cleanup required. Disabling analytics erases them
-        immediately. Essential ticket-click records support the outbound service and are deleted
-        with your account.
+        Your account, settings, artists, saves, alerts, trips and ticket-link records are needed to
+        provide the service you signed up for (contract). Usage analytics and the Spotify connection
+        rely on your consent, which you can withdraw in settings at any time. Beta feedback,
+        security counters and error logs rely on our legitimate interest in running and improving a
+        safe pilot. We do not sell personal data or listening profiles.
+      </p>
+      <h2>Where</h2>
+      <p>
+        The app is hosted by Vercel, whose servers for Encore run in the United States (Washington,
+        D.C. area). The database is a managed PostgreSQL service from Neon. Your data may therefore
+        be processed outside the European Union by these providers.
+      </p>
+      <h2>How long</h2>
+      <ul>
+        <li>Account data, saves, alerts, trips and feedback: until you delete your account.</li>
+        <li>Usage analytics: 30 days, or immediately when you turn them off.</li>
+        <li>Security rate-limit counters: about 2 days.</li>
+      </ul>
+      <h2>Your rights</h2>
+      <p>
+        You can see and download your data (Settings → Export my data), correct it (Settings),
+        withdraw consent (Settings), and delete your account and its data (Settings → Delete
+        account). Deletion removes account-linked records from the active database immediately. You
+        can also contact us for access, correction, deletion, restriction or objection, and you have
+        the right to complain to the CNIL (
+        <a href="https://www.cnil.fr" target="_blank" rel="noreferrer">
+          cnil.fr
+        </a>
+        ).
       </p>
       <h2>Spotify</h2>
       <p>
-        The connector is disabled until provider approval and credentials are configured. An
-        approved connection requests top-artist access, shows artist names for you to choose, and
-        stores encrypted access tokens. We do not persist Spotify listening metrics. Disconnecting
-        removes tokens and pending connection attempts. You may also revoke Encore in your Spotify
-        account.
+        The connector is only active for approved pilot accounts. It requests top-artist access,
+        shows artist names for you to choose, and stores encrypted access tokens. We do not keep
+        Spotify listening metrics. Disconnecting removes tokens and pending connection attempts. You
+        may also revoke Encore in your Spotify account.
       </p>
-      <h2>Your controls</h2>
-      <p>
-        Export your data, disconnect music services or delete your account in settings. Deletion
-        immediately removes account-linked records from the active database. A production operator
-        must define backup expiry and supply their legal identity, privacy contact, hosting region
-        and lawful bases before opening registration to the public.
-      </p>
+      <h2>Beta terms</h2>
+      <ul>
+        <li>The pilot is free, may change or stop at any time, and comes without any guarantee.</li>
+        <li>
+          Listings, dates and prices come from third parties and may be incomplete or out of date.
+          Always check the seller before buying or travelling.
+        </li>
+        <li>
+          Encore sells no tickets and books no travel. Any purchase is between you and the seller.
+        </li>
+        <li>Your invite code is personal to your group. Please do not share it publicly.</li>
+      </ul>
       <h2>Listings and sources</h2>
       <p>
         Live event data comes from Ticketmaster when configured. Listed price ranges are indicative

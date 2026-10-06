@@ -37,3 +37,14 @@ it('prevents test profiles from reaching live databases, providers or scheduler'
   ])
     expect(() => parseEnvironment({ APP_ENV: 'test', ...settings })).toThrow('Tests require');
 });
+
+it('accepts an optional privacy contact and rejects a malformed one', () => {
+  expect(
+    parseEnvironment({
+      PRIVACY_CONTROLLER: 'Encore pilot',
+      PRIVACY_CONTACT_EMAIL: 'privacy@encore.test',
+    }).PRIVACY_CONTACT_EMAIL,
+  ).toBe('privacy@encore.test');
+  expect(parseEnvironment({ PRIVACY_CONTACT_EMAIL: '' }).PRIVACY_CONTACT_EMAIL).toBeUndefined();
+  expect(() => parseEnvironment({ PRIVACY_CONTACT_EMAIL: 'not-an-email' })).toThrow();
+});

@@ -1866,6 +1866,13 @@ svg {
   color: var(--amber);
   text-decoration: underline;
 }
+.document-page ul {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.95;
+}
 .document-page .button {
   margin-top: 35px;
 }

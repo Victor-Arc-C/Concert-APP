@@ -162,6 +162,10 @@ export async function getAppData(): Promise<AppData> {
     spotifyAvailable: spotifyAvailable(),
     liveAvailable: !!env().TICKETMASTER_API_KEY,
     inviteRequired: inviteRequired(),
+    privacyContact: {
+      controller: env().PRIVACY_CONTROLLER ?? null,
+      email: env().PRIVACY_CONTACT_EMAIL ?? null,
+    },
     automaticChecks: automaticConcertChecks(),
     artistChecks: user
       ? await query(
