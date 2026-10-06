@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { normalizeArtistName } from '../domain/normalization';
 import { query } from './db';
+import type { Artist } from '../domain/types';
 
 export async function recordNormalizationReview(
   kind: 'artist' | 'event',
@@ -33,7 +34,11 @@ export async function resolveArtistIdentity(provider: string, externalId: string
     [provider, externalId],
   );
   if (mapped)
-    return { artistId: mapped.artist_id, source: 'provider' as const, candidates: [mapped.artist_id] };
+    return {
+      artistId: mapped.artist_id,
+      source: 'provider' as const,
+      candidates: [mapped.artist_id],
+    };
 
   const rows = await query<{ id: string; name: string | null }>(
     `SELECT DISTINCT a.id,a.data->>'name' AS name
@@ -42,7 +47,9 @@ export async function resolveArtistIdentity(provider: string, externalId: string
   );
   const key = normalizeArtistName(name);
   const candidates = [
-    ...new Set(rows.filter((row) => row.name && normalizeArtistName(row.name) === key).map((row) => row.id)),
+    ...new Set(
+      rows.filter((row) => row.name && normalizeArtistName(row.name) === key).map((row) => row.id),
+    ),
   ].sort();
 
   if (candidates.length === 1)
@@ -59,4 +66,32 @@ export async function resolveArtistIdentity(provider: string, externalId: string
     return { artistId: null, source: 'ambiguous' as const, candidates };
   }
   return { artistId: null, source: 'none' as const, candidates: [] };
+}
+
+export async function materializeSpotifyArtist(externalId: string, name: string) {
+  const identity = await resolveArtistIdentity('spotify', externalId, name);
+  if (identity.artistId) return { artistId: identity.artistId, source: identity.source };
+
+  const artistId = `spotify-${externalId}`;
+  const artist: Artist = {
+    id: artistId,
+    name,
+    genre: 'Spotify artist',
+    color: '#3f6b56',
+    initials: name.slice(0, 2).toLowerCase(),
+  };
+  await query('INSERT INTO artists(id,data) VALUES($1,$2) ON CONFLICT(id) DO NOTHING', [
+    artistId,
+    JSON.stringify(artist),
+  ]);
+  await query(
+    'INSERT INTO artist_provider_records(provider,external_id,artist_id) VALUES($1,$2,$3) ON CONFLICT(provider,external_id) DO NOTHING',
+    ['spotify', externalId, artistId],
+  );
+  const [mapped] = await query<{ artist_id: string }>(
+    'SELECT artist_id FROM artist_provider_records WHERE provider=$1 AND external_id=$2',
+    ['spotify', externalId],
+  );
+  if (!mapped) throw new Error('Spotify artist identity could not be materialized.');
+  return { artistId: mapped.artist_id, source: 'spotify' as const };
 }

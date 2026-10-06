@@ -361,7 +361,8 @@ test('Spotify onboarding selection uses canonical mappings, images, and explicit
             id: 'spotify-unknown',
             name: 'Unknown Artist',
             url: 'https://open.spotify.com/artist/spotify-unknown',
-            mapping: 'none',
+            artistId: 'spotify-unknown',
+            mapping: 'spotify',
           },
         ],
       },
@@ -377,10 +378,14 @@ test('Spotify onboarding selection uses canonical mappings, images, and explicit
   await mapped.click();
   await expect(mapped).toHaveAttribute('aria-pressed', 'false');
   const unmapped = page.getByRole('button', { name: /Unknown Artist/ });
-  await expect(unmapped).toContainText('Not available yet');
+  await expect(unmapped).toContainText('No live concerts found yet');
   await expect(unmapped.locator('img')).toHaveCount(0);
   await expect(unmapped).toContainText('Un');
-  await expect(unmapped).toBeDisabled();
+  await expect(unmapped).toBeEnabled();
+  await expect(unmapped).toHaveAttribute('aria-pressed', 'false');
+  await unmapped.click();
+  await expect(unmapped).toHaveAttribute('aria-pressed', 'true');
+  await unmapped.click();
   await expect(unmapped).toHaveAttribute('aria-pressed', 'false');
 });
 

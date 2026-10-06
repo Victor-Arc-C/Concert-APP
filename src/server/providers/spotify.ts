@@ -4,7 +4,7 @@ import { query } from '../db';
 import { env, spotifyAvailable } from '../env';
 import { decrypt, encrypt, HttpError } from '../security';
 import { providerJson, ProviderError } from './http';
-import { resolveArtistIdentity } from '../identity';
+import { materializeSpotifyArtist } from '../identity';
 const tokenSchema = z.object({
   access_token: z.string(),
   refresh_token: z.string().optional(),
@@ -147,7 +147,7 @@ export async function spotifyArtists(userId: string) {
     .parse(result).items;
   return Promise.all(
     imported.map(async (artist) => {
-      const identity = await resolveArtistIdentity('spotify', artist.id, artist.name);
+      const identity = await materializeSpotifyArtist(artist.id, artist.name);
       return {
         id: artist.id,
         name: artist.name,
@@ -180,7 +180,8 @@ export async function confirmSpotifyArtist(userId: string, spotifyId: string, ar
   const saved = await query(
     `WITH followed AS (
     INSERT INTO affinities(user_id,artist_id)
-    SELECT $1,id FROM artists WHERE id=$3 AND data->>'providerId' IS NOT NULL
+    SELECT $1,artist_id FROM artist_provider_records
+    WHERE provider='spotify' AND external_id=$2 AND artist_id=$3
     ON CONFLICT(user_id,artist_id) DO UPDATE SET hidden=FALSE
     RETURNING artist_id
   ) INSERT INTO spotify_artist_preferences(user_id,spotify_id,artist_id,affinity)
@@ -189,5 +190,5 @@ export async function confirmSpotifyArtist(userId: string, spotifyId: string, ar
     RETURNING artist_id`,
     [userId, spotifyId, artistId],
   );
-  if (!saved.length) throw new HttpError(422, 'Choose an artist from the live catalogue.');
+  if (!saved.length) throw new HttpError(422, 'Reload your Spotify artists and choose again.');
 }
