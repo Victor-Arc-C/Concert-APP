@@ -95,6 +95,7 @@ export async function getAppData(): Promise<AppData> {
     user?.preferences ?? defaults,
     new Date(),
     true,
+    artistRows.map((a) => a.data),
   );
   return {
     user,
@@ -106,6 +107,9 @@ export async function getAppData(): Promise<AppData> {
       lists.intents,
       lists.feedback,
       user?.preferences ?? defaults,
+      new Date(),
+      false,
+      artistRows.map((a) => a.data),
     ),
     allEvents: all,
     saved: all.filter((e) => e.saved),
