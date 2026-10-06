@@ -727,7 +727,7 @@ export function Privacy() {
           <a href={`mailto:${contact.email}`}>{contact.email}</a>.
         </p>
       ) : (
-        <p className="form-error" role="note">
+        <p className="inline-note" role="note">
           The controller identity and privacy contact are not configured on this deployment yet.
         </p>
       )}
@@ -745,9 +745,11 @@ export function Privacy() {
         <li>Feedback you choose to send, with the screen you sent it from.</li>
         <li>Optional usage analytics, only if you turn them on.</li>
         <li>If you connect Spotify: encrypted access tokens and the artists you confirm.</li>
+        <li>Sign-in sessions (7 days) and pending music-connection attempts.</li>
         <li>
-          For security: rate-limit counters keyed by a hash of your email, and anonymous error logs
-          that contain no personal data.
+          For security: rate-limit counters keyed by a hash of your email or account ID, and error
+          logs that contain no personal data. Our hosting provider also keeps standard request logs
+          (such as IP address and browser) under its own retention policy.
         </li>
       </ul>
       <h2>Why (legal basis)</h2>
@@ -760,15 +762,24 @@ export function Privacy() {
       </p>
       <h2>Where</h2>
       <p>
-        The app is hosted by Vercel, whose servers for Encore run in the United States (Washington,
-        D.C. area). The database is a managed PostgreSQL service from Neon. Your data may therefore
-        be processed outside the European Union by these providers.
+        The app is hosted by Vercel and the database by Neon (managed PostgreSQL). At the time of
+        writing, Encore&apos;s application servers run in the United States, so your data may be
+        processed outside the European Union, under these providers&apos; data processing terms. Ask
+        us if you want the current regions or the transfer safeguards.
       </p>
       <h2>How long</h2>
       <ul>
-        <li>Account data, saves, alerts, trips and feedback: until you delete your account.</li>
+        <li>
+          Account data, settings, artists, must-see choices, saves, ticket-link records, alerts,
+          trips and feedback: until you delete your account.
+        </li>
+        <li>Sign-in sessions: 7 days.</li>
         <li>Usage analytics: 30 days, or immediately when you turn them off.</li>
-        <li>Security rate-limit counters: about 2 days.</li>
+        <li>Security rate-limit counters: 2 to 3 days.</li>
+        <li>
+          Deleted data can remain in the database provider&apos;s backups until they expire under
+          its restore window.
+        </li>
       </ul>
       <h2>Your rights</h2>
       <p>
@@ -777,7 +788,7 @@ export function Privacy() {
         account). Deletion removes account-linked records from the active database immediately. You
         can also contact us for access, correction, deletion, restriction or objection, and you have
         the right to complain to the CNIL (
-        <a href="https://www.cnil.fr" target="_blank" rel="noreferrer">
+        <a href="https://www.cnil.fr" rel="noreferrer">
           cnil.fr
         </a>
         ).

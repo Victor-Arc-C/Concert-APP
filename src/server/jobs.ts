@@ -19,6 +19,12 @@ async function performChecks() {
   const users = await query<User>(
     'SELECT id,name,email,mode,onboarded,preferences FROM users WHERE onboarded=TRUE',
   );
+  // Retention cleanup first, so a slow provider sync or a timeout cannot skip it
+  // (the privacy notice promises these limits).
+  await query('DELETE FROM sessions WHERE expires_at<NOW()');
+  await query('DELETE FROM oauth_attempts WHERE expires_at<NOW()');
+  await query("DELETE FROM analytics WHERE created_at<NOW()-INTERVAL '30 days'");
+  await query("DELETE FROM rate_limits WHERE window_at<NOW()-INTERVAL '2 days'");
   let evaluated = 0,
     failures = 0;
   for (const user of users) {
@@ -45,9 +51,5 @@ async function performChecks() {
       // No provider URLs or credentials in logs. Keep processing other accounts.
     }
   }
-  await query('DELETE FROM sessions WHERE expires_at<NOW()');
-  await query('DELETE FROM oauth_attempts WHERE expires_at<NOW()');
-  await query("DELETE FROM analytics WHERE created_at<NOW()-INTERVAL '30 days'");
-  await query("DELETE FROM rate_limits WHERE window_at<NOW()-INTERVAL '2 days'");
   return { evaluated, failures };
 }

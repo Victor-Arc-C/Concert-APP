@@ -179,7 +179,7 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
             clicks,
             betaFeedback: await exportBetaFeedback(user.id),
             savedTrips: await query(
-              'SELECT event_id,trip_option_id,origin_city,destination_city,event_date,created_at FROM saved_trips WHERE user_id=$1',
+              'SELECT id,event_id,trip_option_id,origin_city,destination_city,event_date,trip_data,created_at,updated_at FROM saved_trips WHERE user_id=$1',
               [user.id],
             ),
             spotifyChoices: await query(
