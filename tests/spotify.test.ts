@@ -68,12 +68,19 @@ it('refreshes expired tokens, preserves the existing refresh token when not rota
             id: 'artist-id',
             name: 'Artist',
             external_urls: { spotify: 'https://open.spotify.com/artist/artist-id' },
+            images: [{ url: 'https://i.scdn.co/image/artist-image' }],
           },
         ],
       }),
     );
   expect(await spotifyArtists('user')).toEqual([
-    { id: 'artist-id', name: 'Artist', url: 'https://open.spotify.com/artist/artist-id' },
+    {
+      id: 'artist-id',
+      name: 'Artist',
+      url: 'https://open.spotify.com/artist/artist-id',
+      image: 'https://i.scdn.co/image/artist-image',
+      mapping: 'none',
+    },
   ]);
   expect(db.mock.calls[1][1]?.[1]).toBe(refresh);
   expect(fetcher.mock.calls[1][1]?.headers).toEqual({ Authorization: 'Bearer fresh' });
@@ -82,6 +89,37 @@ it('refreshes expired tokens, preserves the existing refresh token when not rota
       /INSERT INTO (artists|affinities|artist_provider_records)/.test(sql),
     ),
   ).toBe(false);
+});
+it('returns canonical identity mappings and keeps image data transient', async () => {
+  db.mockResolvedValueOnce([
+    {
+      access_token: encrypt('access'),
+      refresh_token: encrypt('refresh'),
+      expires_at: new Date(Date.now() + 3600000),
+    },
+  ]).mockResolvedValueOnce([{ artist_id: 'canonical-beyonce' }]);
+  vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+    json({
+      items: [
+        {
+          id: 'spotify-beyonce',
+          name: 'Beyoncé',
+          external_urls: { spotify: 'https://open.spotify.com/artist/spotify-beyonce' },
+          images: [],
+        },
+      ],
+    }),
+  );
+  await expect(spotifyArtists('user')).resolves.toEqual([
+    {
+      id: 'spotify-beyonce',
+      name: 'Beyoncé',
+      url: 'https://open.spotify.com/artist/spotify-beyonce',
+      artistId: 'canonical-beyonce',
+      mapping: 'provider',
+    },
+  ]);
+  expect(db.mock.calls.some(([sql]) => /INSERT INTO/.test(sql))).toBe(false);
 });
 it('retries one expired access token and encrypts a rotated refresh token', async () => {
   db.mockResolvedValueOnce([
