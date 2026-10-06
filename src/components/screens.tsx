@@ -1,4 +1,5 @@
 'use client';
+import { safeTicketUrl } from '../domain/ticket-links';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -429,6 +430,8 @@ export function EventDetail({ id }: { id: string }) {
         <Link href="/app">Back to your shortlist</Link>
       </Empty>
     );
+  const ticketDestination =
+    event.url && safeTicketUrl(event.url) ? new URL(event.url).hostname : null;
   const tours = data.allEvents
     .filter((e) => e.artistIds.some((id) => event.artistIds.includes(id)))
     .sort((a, b) => a.date.localeCompare(b.date) || a.city.localeCompare(b.city));
@@ -588,7 +591,7 @@ export function EventDetail({ id }: { id: string }) {
             onClick={ticket}
             disabled={
               outbound ||
-              !event.url ||
+              !ticketDestination ||
               event.provider === 'sample' ||
               ['cancelled', 'postponed'].includes(event.status)
             }
@@ -596,7 +599,9 @@ export function EventDetail({ id }: { id: string }) {
             <Ticket size={18} />
             {event.provider === 'sample'
               ? 'No real tickets in sample mode'
-              : 'Check official tickets'}
+              : ticketDestination
+                ? `Check tickets on ${ticketDestination}`
+                : 'Ticket link unavailable'}
             <ArrowUpRight size={16} />
           </button>
           <button

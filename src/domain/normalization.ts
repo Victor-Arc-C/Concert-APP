@@ -1,3 +1,5 @@
+import { safeTicketUrl } from './ticket-links';
+export { safeTicketUrl } from './ticket-links';
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import type { Concert } from './types';
@@ -133,39 +135,6 @@ export function fingerprint(e: Concert): string {
     : `${e.provider}|${e.externalId}`;
   return createHash('sha256').update(exact).digest('hex');
 }
-export function safeTicketUrl(value: string): boolean {
-  try {
-    const u = new URL(value);
-    return (
-      u.protocol === 'https:' &&
-      !u.username &&
-      !u.password &&
-      [
-        'ticketmaster.com',
-        'ticketmaster.fr',
-        'ticketmaster.co.uk',
-        'ticketmaster.nl',
-        'ticketmaster.de',
-        'ticketmaster.es',
-        'ticketmaster.it',
-        'ticketmaster.be',
-        'ticketmaster.ie',
-        'ticketmaster.se',
-        'ticketmaster.dk',
-        'ticketmaster.no',
-        'ticketmaster.ch',
-        'ticketmaster.at',
-        'ticketmaster.pl',
-        'ticketweb.uk',
-        'ticketweb.com',
-        'universe.com',
-      ].some((h) => u.hostname === h || u.hostname.endsWith(`.${h}`))
-    );
-  } catch {
-    return false;
-  }
-}
-
 // Some regional listings wrap the seller URL in Ticketmaster's affiliate redirect.
 // Extract only a validated official destination; never follow arbitrary redirects.
 export function officialTicketUrl(value: string): string | null {

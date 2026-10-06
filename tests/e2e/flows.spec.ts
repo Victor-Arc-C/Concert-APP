@@ -286,3 +286,34 @@ test('feed pages retain unique detail links and reset on search', async ({ page 
   await cards.locator('h2 a').first().click();
   await expect(page).toHaveURL(/\/app\/events\//);
 });
+
+test('detail tolerates missing data and identifies the external ticket destination', async ({
+  page,
+}) => {
+  let sourceUrl = 'https://www.ticketmaster.fr/example';
+  await page.route('**/api/state', async (route) => {
+    const response = await route.fetch();
+    const data = await response.json();
+    const event = data.allEvents.find((e: { id: string }) => e.id === 'sample-1');
+    Object.assign(event, {
+      price: null,
+      currency: null,
+      localTime: null,
+      saleAt: null,
+      provider: 'ticketmaster',
+      url: sourceUrl,
+    });
+    await route.fulfill({ response, json: data });
+  });
+  await page.goto('/app/events/sample-1');
+  await expect(page.getByText('Time to be announced', { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Check tickets on www.ticketmaster.fr' }),
+  ).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Save this show', exact: true })).toBeVisible();
+  await expect(page.getByText(/Source: Ticketmaster/)).toBeVisible();
+  await expect(page.locator('.reason-list li').first()).toBeVisible();
+  sourceUrl = 'https://unverified.example/tickets';
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Ticket link unavailable' })).toBeDisabled();
+});
