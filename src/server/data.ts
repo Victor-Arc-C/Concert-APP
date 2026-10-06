@@ -3,6 +3,7 @@ import { displayPrice } from '../domain/pricing';
 import { query } from './db';
 import { currentUser } from './security';
 import { env, spotifyAvailable, automaticConcertChecks } from './env';
+import { inviteRequired } from './invite';
 import { defaults } from '../domain/catalog';
 import { rankEvents } from '../domain/recommendations';
 import { safeTicketUrl } from '../domain/normalization';
@@ -155,6 +156,7 @@ export async function getAppData(): Promise<AppData> {
       : false,
     spotifyAvailable: spotifyAvailable(),
     liveAvailable: !!env().TICKETMASTER_API_KEY,
+    inviteRequired: inviteRequired(),
     automaticChecks: automaticConcertChecks(),
     artistChecks: user
       ? await query(

@@ -76,6 +76,10 @@ Set a random `CRON_SECRET` (`openssl rand -hex 32`) and invoke `POST /api/jobs` 
 
 Database credentials, OAuth tokens and provider keys stay on the server. Do not prefix them with `NEXT_PUBLIC_`. No real secrets are included. A `.env.example` documents settings.
 
+## Private beta invite codes (CON-35)
+
+Set `BETA_INVITE_CODES` (comma-separated, case-sensitive) to require one of those codes at signup. Leave it empty for open signup. Codes are compared server-side in constant time, checked before any account lookup, rate-limited, and never logged or returned. Sign-in for existing accounts is not affected. To rotate a code, change the variable and redeploy.
+
 ## Public-launch gates
 
 - Email verification, recovery flow, abuse protections, operational monitoring and external security review.
@@ -143,7 +147,11 @@ This Mac's existing application and database were recovered without replacing da
 
 Set `AUTO_CONCERT_CHECKS=true` and restart. On a single-process local PGlite server, a check runs 15 seconds after startup and every five minutes afterward. Newly followed live artists are picked up on the next check; successful artist results are reused for an hour across accounts, failed checks back off for 15 minutes. Manual and scheduled imports are serialized, overlapping job runs coalesce, and failed accounts do not block other accounts. Cached listings remain available during provider failures. Last attempt/success is shown per followed live artist in Settings. The visible app refreshes its inbox once a minute and when brought back to the foreground.
 
-Checks stop when the server stops or the computer sleeps and resume on the next timer tick after waking. This local timer is disabled on Vercel or when `DATABASE_URL` is configured; use the authenticated `/api/jobs` route with a centrally scheduled worker for deployment. Do not enable the timer during builds or browser tests. Important alerts include home-city shows, favourites, must-see matches and upcoming sales; Off generates no new alerts. A unique user/event/kind key prevents repeat alerts, while a sale reminder is intentionally separate from a discovery alert.
+Checks stop when the server stops or the computer sleeps and resume on the next timer tick after waking. This local timer is disabled on Vercel or when `DATABASE_URL` is configured; use the authenticated `/api/jobs` route with a centrally scheduled worker for deployment.
+
+### Scheduled checks on Vercel (CON-34)
+
+`vercel.json` schedules a daily Vercel Cron call to `GET /api/jobs` at `0 5 * * *` UTC. The Hobby plan allows one cron per day, triggered anywhere within that hour; Pro allows more frequent schedules. Set a long random `CRON_SECRET` in the Vercel project's Production environment. Vercel then sends `Authorization: Bearer <CRON_SECRET>`, and requests without that exact token get `401`. `POST /api/jobs` with the same header still works for external schedulers. Each run imports followed live artists (with the existing per-artist cache and failure backoff), evaluates alerts and removes expired sessions, OAuth attempts, analytics and rate-limit rows. To check that a run happened, look at the Vercel project's Cron Jobs / Logs, and at the per-artist "last checked" times in Settings. Do not enable the timer during builds or browser tests. Important alerts include home-city shows, favourites, must-see matches and upcoming sales; Off generates no new alerts. A unique user/event/kind key prevents repeat alerts, while a sale reminder is intentionally separate from a discovery alert.
 
 ## Contributing
 

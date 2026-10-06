@@ -4,7 +4,7 @@ Events use lowercase `object_action` names. Product analytics stay in the existi
 
 | Event | Trigger | Properties |
 | --- | --- | --- |
-| `onboarding_completed` | Successful onboarding write after consent choice | mode |
+| `onboarding_completed` | Successful onboarding write after consent choice | mode; source (`manual`, `spotify`, `mixed` or `demo`) when sent by the client, so manual selection is never reported as a Spotify import |
 | `spotify_connected` | Successful OAuth callback | mode |
 | `concert_impression` | At least half a feed card intersects the viewport while the document is visible; once per mounted card/user | eventId, source, recommendationSource, provider, ticketLinkAvailable, mode |
 | `concert_opened` | Detail view opens | same concert context |
