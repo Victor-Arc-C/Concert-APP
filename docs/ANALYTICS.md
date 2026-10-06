@@ -29,11 +29,11 @@ Verification: unit tests exercise consent suppression, server-derived source pro
 
 ## Weekly metrics report (CON-37)
 
-`npm run metrics:weekly` prints the five [CON-5 launch metrics](MVP_SCOPE.md) for the last finished Monday–Sunday week (UTC). It only reads the database: it runs inside a `BEGIN READ ONLY` transaction and never applies migrations.
+`npm run metrics:weekly` prints the five [CON-5 launch metrics](MVP_SCOPE.md) for the last finished Monday–Sunday week (UTC). It needs Node 22.18 or later. It never applies migrations. On Neon it runs inside a `BEGIN READ ONLY` transaction. It never loads emails: staff/test exclusions are matched inside the database.
 
 **Set up once**
 
-1. In the Neon console, open the project, click **Connect** and copy the connection string.
+1. In the Neon console, open the project, click **Connect** and copy the connection string. Safer option: first create a read-only role (Neon → **Roles** → add a role, then in the SQL Editor run `GRANT SELECT ON users, analytics TO <role>;`) and copy the connection string for that role.
 2. Paste it into `.env.local` as `METRICS_DATABASE_URL=...`. The file is git-ignored. The app ignores this variable, so your local app keeps using its own database.
 3. Optional: list staff/test accounts in `METRICS_EXCLUDE`, comma-separated, for example `METRICS_EXCLUDE=victor@example.com,@encore.team`. Each entry is an exact email, a user ID or an `@domain`. `@example.test` (automated tests) is always excluded.
 
@@ -43,7 +43,9 @@ Verification: unit tests exercise consent suppression, server-derived source pro
 npm run metrics:weekly
 ```
 
-Add `-- --week 2026-10-12` to report another finished week (any day of that week works). Example output:
+Run it on **Monday or Tuesday**. Analytics are deleted after 30 days. If it runs later, week-1 retention shows `unavailable`, because part of its cohort's data is gone. Add `-- --week 2026-09-28` to report another finished week (any day of that week works). A week older than the 30-day retention shows every metric as `unavailable`, never a number computed from what is left.
+
+Without `METRICS_DATABASE_URL`, the report reads the local PGlite database (`.data/encore`, or `LOCAL_DATABASE_PATH`). Stop `npm run dev` first: only one process may open that folder. Example output:
 
 ```text
 Encore — weekly beta metrics
@@ -67,7 +69,7 @@ Week-1 retention          50.0%  2 of 4 accounts activated Mon, 14 Sept 2026 –
 - Recommendation CTR / save rate: pairs with a `concert_impression` in the week; numerator = those pairs with a `concert_opened` / `concert_saved` in the week **after** the pair's first impression.
 - Ticket-link CTR: pairs with a `concert_opened` carrying `ticketLinkAvailable: true` in the week; numerator = those with a `ticket_link_clicked` after that open. A click is not a purchase.
 - Activation: always `unavailable`. Signup happens before the consent choice, so the denominator does not exist. It is never estimated from onboarding counts.
-- Week-1 retention: an account is activated at its first live `concert_impression` after its live `onboarding_completed`, if that is within 7 days of account creation (`users.created_at`). The cohort is the accounts activated in the week that ended 14 days before the report week ends, so all 14 days are observable. Numerator: accounts with a live open, save or ticket click on days 7–13 after activation. Accounts created more than 30 days before the report runs are left out (and counted in a note), because analytics older than 30 days are deleted.
-- `N/A` means the denominator is zero. Counts are always shown next to percentages.
+- Week-1 retention: an account is activated at its first live `concert_impression` after its live `onboarding_completed`, if that is within 7 days of account creation (`users.created_at`). The cohort is the accounts activated in the week that ended 14 days before the report week ends, so all 14 days are observable. Numerator: accounts with a live open, save or ticket click on days 7–13 after activation.
+- `N/A` means the denominator is zero. `unavailable` means the number cannot be measured: activation always, and any window that reaches past the 30-day analytics retention. Counts are always shown next to percentages.
 
-Run the report every Monday: analytics are kept for 30 days, so a late report loses retention data. Saving a trip also records a `concert_opened` event (CON-29), but the trip planner is reached from the opened concert, so distinct pairs are not inflated.
+Saving a trip also records a `concert_opened` event (CON-29), but the trip planner is reached from the opened concert, so distinct pairs are not inflated.

@@ -4,10 +4,11 @@
 
 export type MetricAccount = {
   id: string;
-  email: string;
   createdAt: Date;
   /** Current analytics consent. Revoked consent deletes events and excludes the account. */
   analyticsConsent: boolean;
+  /** Staff/test account, matched in SQL so emails never leave the database (ACCOUNTS_SQL). */
+  excluded: boolean;
 };
 
 export type MetricEvent = {
@@ -45,23 +46,29 @@ export const ANALYTICS_RETENTION_DAYS = 30;
 export const SMALL_COHORT = 10;
 export const DEFAULT_EXCLUDE = ['@example.test'];
 
-export function parseExcludeList(raw: string | undefined): string[] {
-  return [
+/** Splits METRICS_EXCLUDE into exact emails/user IDs ($1) and `@domain` suffixes ($2). */
+export function parseExcludeList(raw: string | undefined) {
+  const entries = [
     ...DEFAULT_EXCLUDE,
     ...(raw ?? '')
       .split(',')
-      .map((value) => value.trim().toLowerCase())
+      .map((value) => value.trim())
       .filter(Boolean),
   ];
+  return {
+    exact: entries.filter((e) => !e.startsWith('@')),
+    domains: entries.filter((e) => e.startsWith('@')).map((e) => e.toLowerCase()),
+  };
 }
 
-/** An entry matches an exact user ID, an exact email, or an email domain written as `@domain`. */
-export function isExcluded(account: MetricAccount, exclude: string[]) {
-  const email = account.email.toLowerCase();
-  return exclude.some((entry) =>
-    entry.startsWith('@') ? email.endsWith(entry) : entry === email || entry === account.id,
-  );
-}
+/** Accounts with consent and exclusion resolved inside the database. Params: parseExcludeList. */
+export const ACCOUNTS_SQL = `
+  SELECT id, created_at,
+    COALESCE(preferences->>'analytics' = 'true', FALSE) AS consent,
+    (lower(email) = ANY(SELECT lower(x) FROM unnest($1::text[]) AS x) OR id = ANY($1::text[])
+      OR EXISTS (SELECT 1 FROM unnest($2::text[]) AS d WHERE right(lower(email), length(d)) = d)
+    ) AS excluded
+  FROM users`;
 
 /** Monday 00:00 UTC of the given date's ISO week. */
 export function weekStartOf(date: Date) {
@@ -153,7 +160,6 @@ export function weeklyMetrics(input: {
   events: MetricEvent[];
   weekStart: Date;
   now: Date;
-  exclude: string[];
 }): WeeklyReport {
   const weekStart = weekStartOf(input.weekStart),
     weekEnd = new Date(weekStart.getTime() + 7 * DAY);
@@ -161,15 +167,25 @@ export function weeklyMetrics(input: {
     throw new Error(
       `The week starting ${weekStart.toISOString().slice(0, 10)} is not finished yet. Pick an earlier week.`,
     );
-  const excluded = input.accounts.filter((a) => isExcluded(a, input.exclude));
-  const notConsented = input.accounts.filter(
-    (a) => !a.analyticsConsent && !isExcluded(a, input.exclude),
-  );
+  const excluded = input.accounts.filter((a) => a.excluded);
+  const notConsented = input.accounts.filter((a) => !a.analyticsConsent && !a.excluded);
   const eligible = new Map(
-    input.accounts
-      .filter((a) => a.analyticsConsent && !isExcluded(a, input.exclude))
-      .map((a) => [a.id, a]),
+    input.accounts.filter((a) => a.analyticsConsent && !a.excluded).map((a) => [a.id, a]),
   );
+  // Analytics older than the retention are deleted, so a window reaching further back is
+  // incomplete: its metric is unavailable rather than computed from what is left.
+  const observableFrom = input.now.getTime() - ANALYTICS_RETENTION_DAYS * DAY;
+  const deleted = (label: string, key: MetricResult['key'], detail: string): MetricResult => ({
+    key,
+    label,
+    status: 'unavailable',
+    numerator: null,
+    denominator: null,
+    percent: null,
+    detail,
+  });
+  const weekDeleted = `Not measurable: part of this week is older than the ${ANALYTICS_RETENTION_DAYS}-day analytics retention.`;
+  const weekObservable = weekStart.getTime() >= observableFrom;
   // Events of deleted, revoked, staff/test or sample-mode activity never reach the metrics.
   const live = input.events.filter((e) => eligible.has(e.userId) && isLive(e));
   const week = live.filter((e) => inWindow(e, weekStart, weekEnd));
@@ -190,42 +206,48 @@ export function weeklyMetrics(input: {
   const impressed = earliestByPair(named('concert_impression'));
   const opened = followedPairs(impressed, named('concert_opened'));
   const saved = followedPairs(impressed, named('concert_saved'));
-  const recommendationCtr = ratio(
-    'recommendationCtr',
-    'Recommendation CTR',
-    opened,
-    impressed.size,
-    `${opened} of ${impressed.size} concerts seen in the feed were then opened`,
-  );
-  const saveRate = ratio(
-    'saveRate',
-    'Concert-save rate',
-    saved,
-    impressed.size,
-    `${saved} of ${impressed.size} concerts seen in the feed were then saved`,
-  );
+  const recommendationCtr = !weekObservable
+    ? deleted('Recommendation CTR', 'recommendationCtr', weekDeleted)
+    : ratio(
+        'recommendationCtr',
+        'Recommendation CTR',
+        opened,
+        impressed.size,
+        `${opened} of ${impressed.size} concerts seen in the feed were then opened`,
+      );
+  const saveRate = !weekObservable
+    ? deleted('Concert-save rate', 'saveRate', weekDeleted)
+    : ratio(
+        'saveRate',
+        'Concert-save rate',
+        saved,
+        impressed.size,
+        `${saved} of ${impressed.size} concerts seen in the feed were then saved`,
+      );
 
   const openedWithLink = earliestByPair(
     named('concert_opened').filter((e) => e.properties.ticketLinkAvailable === true),
   );
   const clicked = followedPairs(openedWithLink, named('ticket_link_clicked'));
-  const ticketLinkCtr = ratio(
-    'ticketLinkCtr',
-    'Ticket-link CTR',
-    clicked,
-    openedWithLink.size,
-    `${clicked} of ${openedWithLink.size} opened concerts with a ticket link got a ticket click (not a purchase)`,
-  );
+  const ticketLinkCtr = !weekObservable
+    ? deleted('Ticket-link CTR', 'ticketLinkCtr', weekDeleted)
+    : ratio(
+        'ticketLinkCtr',
+        'Ticket-link CTR',
+        clicked,
+        openedWithLink.size,
+        `${clicked} of ${openedWithLink.size} opened concerts with a ticket link got a ticket click (not a purchase)`,
+      );
 
   // Week-1 retention. Activation = first live impression after onboarding, within 7 days of signup.
   // The cohort activated in the week ending 14 days before the report week ends, so every
-  // account has its full 14 days observable.
+  // account has its full 14 days observable. Its signups and onboardings start up to 7 days
+  // before the cohort week, and all of that must still be within the analytics retention.
   const cohortStart = new Date(weekEnd.getTime() - 21 * DAY),
     cohortEnd = new Date(weekEnd.getTime() - 14 * DAY),
-    observableFrom = new Date(input.now.getTime() - ANALYTICS_RETENTION_DAYS * DAY);
+    cohortObservable = cohortStart.getTime() - 7 * DAY >= observableFrom;
   let cohort = 0,
-    retained = 0,
-    unobservable = 0;
+    retained = 0;
   for (const account of eligible.values()) {
     const own = live
       .filter((e) => e.userId === account.id)
@@ -239,27 +261,25 @@ export function weeklyMetrics(input: {
         e.at.getTime() <= account.createdAt.getTime() + 7 * DAY,
     );
     if (!activated || !inWindow(activated, cohortStart, cohortEnd)) continue;
-    if (account.createdAt.getTime() < observableFrom.getTime()) {
-      unobservable += 1;
-      continue;
-    }
     cohort += 1;
     const from = activated.at.getTime() + 7 * DAY,
       to = activated.at.getTime() + 14 * DAY;
     if (own.some((e) => MEANINGFUL.has(e.name) && e.at.getTime() >= from && e.at.getTime() < to))
       retained += 1;
   }
-  const week1Retention = ratio(
-    'week1Retention',
-    'Week-1 retention',
-    retained,
-    cohort,
-    `${retained} of ${cohort} accounts activated ${dayLabel(cohortStart)} – ${dayLabel(new Date(cohortEnd.getTime() - DAY))} came back on days 7–13`,
-  );
-  if (unobservable)
-    notes.push(
-      `${unobservable} activated account(s) left out of retention: their signup is older than the ${ANALYTICS_RETENTION_DAYS}-day analytics retention.`,
-    );
+  const week1Retention = !cohortObservable
+    ? deleted(
+        'Week-1 retention',
+        'week1Retention',
+        `Not measurable: its cohort's signups are older than the ${ANALYTICS_RETENTION_DAYS}-day analytics retention. Run the report on Monday or Tuesday.`,
+      )
+    : ratio(
+        'week1Retention',
+        'Week-1 retention',
+        retained,
+        cohort,
+        `${retained} of ${cohort} accounts activated ${dayLabel(cohortStart)} – ${dayLabel(new Date(cohortEnd.getTime() - DAY))} came back on days 7–13`,
+      );
 
   const metrics = [activation, recommendationCtr, saveRate, ticketLinkCtr, week1Retention];
   if (

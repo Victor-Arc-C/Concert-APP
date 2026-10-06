@@ -16,7 +16,7 @@
     "metrics:weekly": "node --env-file-if-exists=.env.local scripts/metrics-weekly.ts"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=22.18"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.8",

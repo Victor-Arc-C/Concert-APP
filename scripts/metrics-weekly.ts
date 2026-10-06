@@ -4,6 +4,7 @@ import { existsSync } from 'node:fs';
 import pg from 'pg';
 import { PGlite } from '@electric-sql/pglite';
 import {
+  ACCOUNTS_SQL,
   ANALYTICS_RETENTION_DAYS,
   formatReport,
   lastCompleteWeek,
@@ -31,8 +32,15 @@ async function withReadOnlyDatabase<T>(run: (query: Query) => Promise<T>): Promi
       await client.end();
     }
   }
-  const path = process.env.LOCAL_DATABASE_PATH || '.data/encore';
-  console.error(`No METRICS_DATABASE_URL set: reading the local database in ${path}.`);
+  // Same default folder as the app (src/server/env.ts). PGlite allows one process per folder:
+  // stop `npm run dev` / `npm start` before reading a local database.
+  const appEnv = process.env.APP_ENV || 'local';
+  const path =
+    process.env.LOCAL_DATABASE_PATH ||
+    (appEnv === 'local' ? '.data/encore' : `.data/encore-${appEnv}`);
+  console.error(
+    `No METRICS_DATABASE_URL set: reading the local database in ${path} (stop the local app first).`,
+  );
   // Opening a missing folder would silently create an empty database.
   if (!existsSync(path))
     throw new Error(
@@ -58,19 +66,23 @@ function requestedWeek(now: Date) {
 async function main() {
   const now = new Date(),
     weekStart = requestedWeek(now);
-  // Retention needs up to 21 days before the report week ends, and nothing older than
-  // the analytics retention exists anyway.
+  // Retention needs onboarding events up to 28 days before the report week ends; nothing
+  // older than the analytics retention exists anyway.
   const since = new Date(
     Math.min(
-      weekStart.getTime() - 14 * 86_400_000,
+      weekStart.getTime() - 21 * 86_400_000,
       now.getTime() - ANALYTICS_RETENTION_DAYS * 86_400_000,
     ),
   );
+  const exclude = parseExcludeList(process.env.METRICS_EXCLUDE);
   const { accounts, events } = await withReadOnlyDatabase(async (query) => {
-    const users = await query<{ id: string; email: string; created_at: Date; consent: boolean }>(
-      `SELECT id, email, created_at, COALESCE(preferences->>'analytics' = 'true', FALSE) AS consent
-       FROM users`,
-    );
+    // Exclusions are matched in SQL so that emails are never loaded by the report.
+    const users = await query<{
+      id: string;
+      created_at: Date;
+      consent: boolean;
+      excluded: boolean;
+    }>(ACCOUNTS_SQL, [exclude.exact, exclude.domains]);
     const rows = await query<{
       user_id: string;
       name: string;
@@ -93,9 +105,9 @@ async function main() {
     return {
       accounts: users.map((u): MetricAccount => ({
         id: u.id,
-        email: u.email,
         createdAt: new Date(u.created_at),
         analyticsConsent: u.consent === true,
+        excluded: u.excluded === true,
       })),
       events: rows.map((r): MetricEvent => ({
         userId: r.user_id,
@@ -110,7 +122,6 @@ async function main() {
     events,
     weekStart,
     now,
-    exclude: parseExcludeList(process.env.METRICS_EXCLUDE),
   });
   console.log(formatReport(report));
 }
