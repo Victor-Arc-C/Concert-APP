@@ -271,7 +271,7 @@ export function weeklyMetrics(input: {
     ? deleted(
         'Week-1 retention',
         'week1Retention',
-        `Not measurable: its cohort's signups are older than the ${ANALYTICS_RETENTION_DAYS}-day analytics retention. Run the report on Monday or Tuesday.`,
+        `Not measurable: its cohort's signups are older than the ${ANALYTICS_RETENTION_DAYS}-day analytics retention. For the latest week, run the report on Monday or Tuesday.`,
       )
     : ratio(
         'week1Retention',

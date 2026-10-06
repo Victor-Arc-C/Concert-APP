@@ -56,7 +56,14 @@ GROUP BY 1 ORDER BY 1 DESC;
 
 **Set up once**
 
-1. In the Neon console, open the project, click **Connect** and copy the connection string. Safer option: first create a read-only role (Neon → **Roles** → add a role, then in the SQL Editor run `GRANT SELECT ON users, analytics TO <role>;`) and copy the connection string for that role.
+1. In the Neon console, open the project, click **Connect** and copy the connection string. Safer option: create a read-only role in the Neon **SQL Editor** (roles created from the Console get admin rights) and use its connection string instead:
+
+   ```sql
+   CREATE ROLE metrics_reader LOGIN PASSWORD '<a long random password>';
+   GRANT SELECT (id, email, created_at, preferences) ON users TO metrics_reader;
+   GRANT SELECT ON analytics TO metrics_reader;
+   ```
+
 2. Paste it into `.env.local` as `METRICS_DATABASE_URL=...`. The file is git-ignored. The app ignores this variable, so your local app keeps using its own database.
 3. Optional: list staff/test accounts in `METRICS_EXCLUDE`, comma-separated, for example `METRICS_EXCLUDE=victor@example.com,@encore.team`. Each entry is an exact email, a user ID or an `@domain`. `@example.test` (automated tests) is always excluded.
 
