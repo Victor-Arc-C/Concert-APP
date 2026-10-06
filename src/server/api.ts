@@ -30,6 +30,10 @@ import { resolveSpotifyArtists, searchArtists, syncArtists } from './providers/t
 import { ProviderError } from './providers/http';
 import { runConcertChecks } from './jobs';
 import { ticketSources, selectTicketSource } from './tickets';
+import { generateTripOptions } from './trips';
+import type { SavedTrip } from '../domain/trip-types';
+
+
 function onboardingSpotifyState(state: string) {
   try {
     return Buffer.from(state, 'base64url')[0] === 255;
@@ -124,6 +128,23 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
         return ok({
           sources: await ticketSources(await ownEvent(url.searchParams.get('eventId') ?? '', user)),
         });
+      if (key === 'trips') {
+        const eventId = url.searchParams.get('eventId') ?? '';
+        const event = await ownEvent(eventId, user);
+        const options = await generateTripOptions(event, user);
+        return ok({ options });
+      }
+      if (key === 'trips/saved') {
+        const rows = await query<SavedTrip>(
+          `SELECT id, user_id AS "userId", event_id AS "eventId", trip_option_id AS "tripOptionId",
+           origin_city AS "originCity", destination_city AS "destinationCity", event_date AS "eventDate",
+           trip_data AS "tripData", created_at AS "createdAt", updated_at AS "updatedAt"
+           FROM saved_trips WHERE user_id=$1 ORDER BY created_at DESC`,
+          [user.id],
+        );
+        return ok({ savedTrips: rows });
+      }
+
       if (key === 'artists/search') {
         await rateLimit(`search:${user.id}`, 10, 60);
         const term = z.string().min(2).max(100).parse(url.searchParams.get('q'));
@@ -385,6 +406,70 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
       await recordConcertAnalytics(user, event, 'ticket_link_clicked', 'detail');
       return ok({ url: selected.url });
     }
+    if (key === 'trips/save') {
+      const input = z
+        .object({
+          eventId: z.string().min(1),
+          trip: z.object({
+            id: z.string(),
+            eventId: z.string(),
+            originCity: z.string(),
+            destinationCity: z.string(),
+            destinationVenue: z.string(),
+            eventDate: z.string(),
+            ticketPrice: z.number().nullable(),
+            ticketCurrency: z.string().nullable(),
+            ticketObservedAt: z.string().nullable(),
+            ticketProvider: z.string().nullable(),
+            transport: z.any(),
+            accommodation: z.any(),
+            estimatedTotal: z.number().nullable(),
+            totalCurrency: z.string().nullable(),
+            scores: z.any(),
+            label: z.string().nullable(),
+            reasons: z.array(z.string()),
+            generatedAt: z.string(),
+          }),
+        })
+        .parse(await body(request));
+      const event = await ownEvent(input.eventId, user);
+      if (['cancelled', 'postponed'].includes(event.status)) {
+        throw new HttpError(422, 'Cannot save a trip for a cancelled or postponed concert.');
+      }
+      const tripId = randomUUID();
+      await query(
+        `INSERT INTO saved_trips(id, user_id, event_id, trip_option_id, origin_city, destination_city, event_date, trip_data)
+         VALUES($1, $2, $3, $4, $5, $6, $7, $8)
+         ON CONFLICT(user_id, event_id, trip_option_id)
+         DO UPDATE SET trip_data=EXCLUDED.trip_data, updated_at=NOW()`,
+        [
+          tripId,
+          user.id,
+          event.id,
+          input.trip.id,
+          input.trip.originCity,
+          input.trip.destinationCity,
+          input.trip.eventDate,
+          JSON.stringify(input.trip),
+        ],
+      );
+      await recordConcertAnalytics(user, event, 'concert_opened', 'detail');
+      return ok();
+    }
+    if (key === 'trips/delete') {
+      const input = z
+        .object({
+          eventId: z.string().min(1),
+          tripOptionId: z.string().min(1),
+        })
+        .parse(await body(request));
+      await query(
+        'DELETE FROM saved_trips WHERE user_id=$1 AND event_id=$2 AND trip_option_id=$3',
+        [user.id, input.eventId, input.tripOptionId],
+      );
+      return ok();
+    }
+
     if (key === 'analytics') {
       const input = z
         .object({

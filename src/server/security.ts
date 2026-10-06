@@ -33,7 +33,13 @@ export async function verifyPassword(password: string, stored: string) {
   return actual.length === expected.length && timingSafeEqual(actual, expected);
 }
 export function checkOrigin(request: Request) {
-  if (request.headers.get('origin') !== new URL(env().APP_URL).origin)
+  const settings = env();
+  const allowedOrigins = new Set([new URL(settings.APP_URL).origin]);
+  if (settings.VERCEL_ENV === 'preview') {
+    for (const vercelUrl of [settings.VERCEL_URL, settings.VERCEL_BRANCH_URL])
+      if (vercelUrl) allowedOrigins.add(`https://${vercelUrl}`);
+  }
+  if (!allowedOrigins.has(request.headers.get('origin') ?? ''))
     throw new HttpError(403, 'This request did not come from this app. Reload and try again.');
 }
 export async function rateLimit(key: string, limit: number, seconds: number) {

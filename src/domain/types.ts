@@ -1,3 +1,4 @@
+import type { SavedTrip } from './trip-types';
 export type Artist = {
   id: string;
   name: string;
@@ -80,6 +81,7 @@ export type AppData = {
   events: RankedConcert[];
   allEvents: RankedConcert[];
   saved: RankedConcert[];
+  savedTrips?: SavedTrip[];
   alerts: Alert[];
   spotifyConnected: boolean;
   spotifyAvailable: boolean;
@@ -88,6 +90,7 @@ export type AppData = {
   artistChecks: { artistId: string; checkedAt: string | null; message: string | null }[];
   providerMessage: string | null;
 };
+
 export type TravelQuote = {
   provider: string;
   origin: string;

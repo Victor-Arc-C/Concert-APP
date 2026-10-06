@@ -3,10 +3,20 @@ const optionalString = z.preprocess(
   (value) => (value === '' ? undefined : value),
   z.string().optional(),
 );
+const vercelUrl = z.preprocess(
+  (value) => (value === '' ? undefined : value),
+  z
+    .string()
+    .regex(/^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/i, 'Use a Vercel hostname.')
+    .optional(),
+);
 const schema = z
   .object({
     APP_ENV: z.enum(['local', 'development', 'test', 'production']).default('local'),
     APP_URL: z.url().default('http://127.0.0.1:3000'),
+    VERCEL_ENV: z.enum(['development', 'preview', 'production']).optional(),
+    VERCEL_URL: vercelUrl,
+    VERCEL_BRANCH_URL: vercelUrl,
     DATABASE_URL: optionalString,
     LOCAL_DATABASE_PATH: optionalString,
     TICKETMASTER_API_KEY: optionalString,

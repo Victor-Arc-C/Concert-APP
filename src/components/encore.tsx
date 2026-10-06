@@ -14,19 +14,24 @@ import {
   AudioLines,
   X,
   LogOut,
+  Route,
 } from 'lucide-react';
+
 import type { AppData } from '@/domain/types';
 import { AppContext, api } from './context';
 import { Brand } from './ui';
 import { Landing, Auth, Onboarding, Privacy } from './onboarding';
 import { Feed, EventDetail, Artists, ArtistDetail, Saved, Inbox } from './screens';
 import { SettingsPage } from './settings';
+import { TripPlanner, TripsList } from './trips-screen';
 const navigation = [
   { url: '/app', label: 'For you', icon: Compass },
   { url: '/app/saved', label: 'Saved shows', icon: Bookmark },
+  { url: '/app/trips', label: 'Trips', icon: Route },
   { url: '/app/artists', label: 'Your artists', icon: Heart },
   { url: '/app/alerts', label: 'Your alerts', icon: Bell },
 ];
+
 export function Encore() {
   const [data, setData] = useState<AppData | null>(null),
     [failure, setFailure] = useState(''),
@@ -133,6 +138,10 @@ export function Encore() {
         <Feed />
       ) : path === '/app/saved' ? (
         <Saved />
+      ) : path === '/app/trips' ? (
+        <TripsList />
+      ) : path.startsWith('/app/trips/') ? (
+        <TripPlanner eventId={decodeURIComponent(path.split('/').pop()!)} />
       ) : path === '/app/artists' ? (
         <Artists />
       ) : path === '/app/alerts' ? (
@@ -162,12 +171,15 @@ export function Encore() {
               <Link
                 key={item.url}
                 href={item.url}
-                className={`nav-item ${path === item.url || (item.url === '/app/artists' && path.startsWith('/app/artists/')) ? 'active' : ''}`}
+                className={`nav-item ${path === item.url || (item.url === '/app/artists' && path.startsWith('/app/artists/')) || (item.url === '/app/trips' && path.startsWith('/app/trips/')) ? 'active' : ''}`}
               >
                 <item.icon size={20} />
                 <span>{item.label}</span>
                 {item.url === '/app/saved' && data.saved.length > 0 && (
                   <small>{data.saved.length}</small>
+                )}
+                {item.url === '/app/trips' && (data.savedTrips?.length ?? 0) > 0 && (
+                  <small>{data.savedTrips!.length}</small>
                 )}
                 {item.url === '/app/alerts' && data.alerts.some((a) => !a.read_at) && (
                   <i className="notification-dot" />
@@ -175,6 +187,7 @@ export function Encore() {
               </Link>
             ))}
           </nav>
+
           <div className="sidebar-note">
             <AudioLines />
             <p>

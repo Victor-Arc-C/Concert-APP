@@ -2631,3 +2631,399 @@ svg {
     scroll-behavior: auto !important;
   }
 }
+
+/* Trip Intelligence v1 Styles */
+.trip-planner,
+.trips-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.trip-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  width: fit-content;
+}
+.back-link:hover {
+  color: var(--text);
+}
+
+.trip-badge {
+  display: inline-block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  color: var(--amber);
+  margin-bottom: 6px;
+}
+
+.trip-subtitle {
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.trip-loading,
+.trip-error,
+.trip-empty {
+  padding: 48px 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.spin-slow {
+  animation: spin 3s linear infinite;
+  color: var(--amber);
+}
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.trip-options-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.section-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.option-pill-group {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.option-pill {
+  flex: 1;
+  min-width: 170px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.option-pill.active {
+  background: var(--raised);
+  border-color: var(--amber);
+}
+
+.pill-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.pill-mode {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.option-pill.active .pill-mode {
+  color: var(--text);
+}
+
+.pill-tag {
+  font-size: 10px;
+  background: rgba(241, 182, 109, 0.15);
+  color: var(--amber);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.pill-bottom {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.pill-bottom strong {
+  font-size: 15px;
+  color: var(--text);
+}
+
+.pill-bottom small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.trip-breakdown-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.breakdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.match-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--amber);
+  font-weight: 600;
+  font-size: 13px;
+  margin-right: 10px;
+}
+
+.highlight-tag {
+  display: inline-block;
+  background: rgba(241, 182, 109, 0.2);
+  color: var(--amber);
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.trip-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.trip-step {
+  display: flex;
+  gap: 14px;
+  padding: 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.step-icon {
+  color: var(--amber);
+  padding-top: 2px;
+}
+
+.step-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.step-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.step-header strong {
+  font-size: 15px;
+  color: var(--text);
+}
+
+.step-price {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text);
+}
+
+.step-details {
+  font-size: 13px;
+  color: var(--text);
+  margin: 0;
+}
+
+.step-source {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.external-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--amber);
+  margin-top: 4px;
+}
+.external-link:hover {
+  text-decoration: underline;
+}
+
+.trip-footer {
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.trip-total-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.total-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+.total-price {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--amber);
+}
+
+.total-fineprint {
+  font-size: 11px;
+  color: var(--muted);
+  max-width: 380px;
+}
+
+.trip-scores-bar {
+  display: flex;
+  gap: 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 10px 16px;
+  border-radius: 8px;
+}
+
+.score-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.score-item small {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.score-item strong {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.overall-highlight {
+  color: var(--amber) !important;
+}
+
+/* Saved Trips Grid */
+.saved-trips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.saved-trip-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.saved-trip-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.saved-trip-date {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--amber);
+  font-weight: 700;
+}
+
+.saved-trip-top h3 {
+  font-size: 18px;
+  margin-top: 2px;
+}
+
+.saved-trip-top p {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.saved-trip-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.saved-trip-metrics div {
+  display: flex;
+  flex-direction: column;
+}
+
+.saved-trip-metrics small {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.saved-trip-metrics span,
+.saved-trip-metrics strong {
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.saved-trip-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+

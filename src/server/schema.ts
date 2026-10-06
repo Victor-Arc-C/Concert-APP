@@ -114,4 +114,25 @@ CREATE INDEX rate_limits_window ON rate_limits(window_at);
     ON CONFLICT DO NOTHING;
   `,
   },
+  {
+    version: 7,
+    sql: `
+    CREATE TABLE saved_trips (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      event_id TEXT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+      trip_option_id TEXT NOT NULL,
+      origin_city TEXT NOT NULL,
+      destination_city TEXT NOT NULL,
+      event_date TEXT NOT NULL,
+      trip_data JSONB NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE(user_id, event_id, trip_option_id)
+    );
+    CREATE INDEX saved_trips_user_time ON saved_trips(user_id, created_at DESC);
+    CREATE INDEX saved_trips_event ON saved_trips(event_id);
+  `,
+  },
 ];
+

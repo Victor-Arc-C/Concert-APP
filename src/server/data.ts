@@ -17,6 +17,8 @@ import type {
   Intent,
   User,
 } from '../domain/types';
+import type { SavedTrip } from '../domain/trip-types';
+
 export async function userLists(userId: string) {
   const [affinities, intents, feedback] = await Promise.all([
     query<Affinity>(
@@ -144,7 +146,15 @@ export async function getAppData(): Promise<AppData> {
     ),
     allEvents: all,
     saved: all.filter((e) => e.saved),
+    savedTrips: user
+      ? await query<SavedTrip>(
+          'SELECT id,user_id AS "userId",event_id AS "eventId",trip_option_id AS "tripOptionId",origin_city AS "originCity",destination_city AS "destinationCity",event_date AS "eventDate",trip_data AS "tripData",created_at AS "createdAt",updated_at AS "updatedAt" FROM saved_trips WHERE user_id=$1 ORDER BY created_at DESC',
+          [user.id],
+        )
+      : [],
+
     alerts,
+
     spotifyConnected: user
       ? !!(await query('SELECT user_id FROM music_accounts WHERE user_id=$1', [user.id])).length
       : false,
