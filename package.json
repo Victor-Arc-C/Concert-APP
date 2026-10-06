@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "format": "prettier --write .",
     "check": "npm run typecheck && npm run lint && npm test",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "audit:coverage-fr": "node --env-file-if-exists=.env.local scripts/coverage-audit-fr.ts"
   },
   "engines": {
     "node": ">=22"
