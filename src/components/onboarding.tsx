@@ -257,7 +257,27 @@ export function PreferenceFields({
           }
           placeholder="No limit set"
         />
-        <small>Saved to your profile. Concert filtering currently uses your chosen region.</small>
+        <small>
+          Approximate city-centre distance. With a radius set, shows with unknown distance are
+          excluded.
+        </small>
+      </label>
+      <label>
+        Concerts from
+        <input
+          type="date"
+          value={value.dateFrom ?? ''}
+          onChange={(e) => onChange({ ...value, dateFrom: e.target.value || null })}
+        />
+      </label>
+      <label>
+        Concerts until
+        <input
+          type="date"
+          min={value.dateFrom ?? undefined}
+          value={value.dateTo ?? ''}
+          onChange={(e) => onChange({ ...value, dateTo: e.target.value || null })}
+        />
       </label>
       <label>
         Maximum travel time

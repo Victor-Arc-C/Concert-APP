@@ -48,12 +48,16 @@ test('founder flow: register, choose artists, save, persist, must-see, alert, di
   await page.goto('/app/settings');
   await page.getByLabel('Home city').selectOption('London');
   await page.getByLabel('Preferred radius (km), optional').fill('250');
+  await page.getByLabel('Concerts from', { exact: true }).fill('2026-10-01');
+  await page.getByLabel('Concerts until', { exact: true }).fill('2027-12-31');
   await page.getByRole('radio', { name: 'Off No new alerts.', exact: true }).check();
   await page.getByRole('button', { name: 'Save preferences', exact: true }).click();
   await expect(page.getByText('Your preferences are saved', { exact: true })).toBeVisible();
   await page.reload();
   await expect(page.getByLabel('Home city')).toHaveValue('London');
   await expect(page.getByLabel('Preferred radius (km), optional')).toHaveValue('250');
+  await expect(page.getByLabel('Concerts from', { exact: true })).toHaveValue('2026-10-01');
+  await expect(page.getByLabel('Concerts until', { exact: true })).toHaveValue('2027-12-31');
   expect((await (await page.request.get('/api/state')).json()).user.preferences.notifications).toBe(
     'off',
   );

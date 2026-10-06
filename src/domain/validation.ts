@@ -1,14 +1,23 @@
 import { z } from 'zod';
 import { cities } from './catalog';
-export const preferencesSchema = z.object({
-  home: z.string().refine((v) => cities.some((c) => c.name === v), 'Choose a supported home city'),
-  scope: z.enum(['city', 'country', 'europe']),
-  maxHours: z.number().min(1).max(48).nullable(),
-  radiusKm: z.number().int().min(1).max(5000).nullable().default(null),
-  budget: z.number().min(1).max(10000).nullable(),
-  notifications: z.enum(['off', 'critical', 'important', 'everything']),
-  analytics: z.boolean(),
-});
+export const preferencesSchema = z
+  .object({
+    home: z
+      .string()
+      .refine((v) => cities.some((c) => c.name === v), 'Choose a supported home city'),
+    scope: z.enum(['city', 'country', 'europe']),
+    maxHours: z.number().min(1).max(48).nullable(),
+    radiusKm: z.number().int().min(1).max(5000).nullable().default(null),
+    dateFrom: z.iso.date().nullable().optional(),
+    dateTo: z.iso.date().nullable().optional(),
+    budget: z.number().min(1).max(10000).nullable(),
+    notifications: z.enum(['off', 'critical', 'important', 'everything']),
+    analytics: z.boolean(),
+  })
+  .refine((p) => !p.dateFrom || !p.dateTo || p.dateFrom <= p.dateTo, {
+    message: 'End date must be on or after start date',
+    path: ['dateTo'],
+  });
 export const intentSchema = z.object({
   artistId: z.string().min(1).max(160),
   cities: z

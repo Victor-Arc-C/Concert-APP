@@ -76,6 +76,11 @@ export function rankEvents(
       const action = feedback.find((f) => f.eventId === event.id)?.action;
       const local =
         event.city.toLowerCase() === prefs.home.toLowerCase() && event.country === homeCountry;
+      const distance = cityDistanceKm(prefs.home, event.city, event.country);
+      const inRadius = prefs.radiusKm == null || (distance !== null && distance <= prefs.radiusKm);
+      const inDates =
+        (!prefs.dateFrom || event.date >= prefs.dateFrom) &&
+        (!prefs.dateTo || event.date <= prefs.dateTo);
       const allowed =
         prefs.scope === 'city'
           ? local
@@ -94,6 +99,8 @@ export function rankEvents(
           hidden ||
           action === 'dismissed' ||
           !allowed ||
+          !inRadius ||
+          !inDates ||
           !inBudget ||
           event.date < now.toISOString().slice(0, 10) ||
           ['cancelled', 'postponed'].includes(event.status))
@@ -158,7 +165,6 @@ export function rankEvents(
         score += 5;
         reasons.push('Ticket range starts within your budget; trip total unknown');
       }
-      const distance = cityDistanceKm(prefs.home, event.city, event.country);
       if (!local && distance !== null) {
         score += 5 * Math.max(0, 1 - distance / 1500);
         reasons.push(`About ${Math.round(distance)} km between city centres`);

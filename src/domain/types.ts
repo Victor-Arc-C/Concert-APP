@@ -11,6 +11,8 @@ export type Preferences = {
   scope: 'city' | 'country' | 'europe';
   maxHours: number | null;
   radiusKm?: number | null;
+  dateFrom?: string | null;
+  dateTo?: string | null;
   budget: number | null;
   notifications: 'off' | 'critical' | 'important' | 'everything';
   analytics: boolean;

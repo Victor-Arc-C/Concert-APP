@@ -44,3 +44,16 @@ it('ranks nearer and sooner shows with honest reasons and retains geography filt
   expect(cityDistanceKm('Paris', 'Unknown', 'FR')).toBeNull();
   expect(rankEvents([london], followed, [], [], { ...defaults, scope: 'city' }, now)).toEqual([]);
 });
+
+it('applies inclusive date windows and radius to canonical matches without guessing unknown distances', () => {
+  const paris = { ...event, city: 'Paris', country: 'FR' };
+  const london = { ...event, id: 'london', city: 'London', country: 'GB' };
+  const unknown = { ...event, id: 'unknown', city: 'Unknown', country: 'FR' };
+  const prefs = { ...defaults, radiusKm: 100, dateFrom: event.date, dateTo: event.date };
+  expect(
+    rankEvents([paris, london, unknown], followed, [], [], prefs, now).map((e) => e.id),
+  ).toEqual([event.id]);
+  expect(rankEvents([paris], followed, [], [], { ...prefs, dateFrom: '2026-10-11' }, now)).toEqual(
+    [],
+  );
+});
