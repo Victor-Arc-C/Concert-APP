@@ -561,7 +561,7 @@ export function EventDetail({ id }: { id: string }) {
           <div className="ticket-price">{money(event.price, event.currency)}</div>
           {event.provider !== 'sample' && event.price === null && (
             <p className="fineprint">
-              Ticketmaster hasn’t supplied a price for this show. Check official tickets for current
+              A current verified price is unavailable for this show. Check official tickets for current
               prices and availability.
             </p>
           )}

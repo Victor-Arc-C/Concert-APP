@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { displayPrice } from '../domain/pricing';
 import { query } from './db';
 import { currentUser } from './security';
 import { env, spotifyAvailable, automaticConcertChecks } from './env';
@@ -66,7 +67,14 @@ export async function getAppData(): Promise<AppData> {
   const eventRows = await query<{ data: Concert }>('SELECT data FROM events WHERE sample=$1', [
     sample,
   ]);
-  const events = eventRows.map((e) => e.data);
+  const events = eventRows.map(({ data: event }) =>
+    event.provider === 'sample'
+      ? event
+      : {
+          ...event,
+          price: displayPrice(event.price, event.currency, event.provider, event.fetchedAt),
+        },
+  );
   const lists = user
     ? await userLists(user.id)
     : {

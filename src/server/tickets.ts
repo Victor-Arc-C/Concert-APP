@@ -1,3 +1,4 @@
+import { displayPrice } from '../domain/pricing';
 import type { Concert } from '../domain/types';
 import { safeTicketUrl } from '../domain/ticket-links';
 import { query } from './db';
@@ -20,13 +21,18 @@ export async function ticketSources(event: Concert, now = new Date()) {
     [event.id],
   );
   // Stale listings require a provider refresh; never silently fall back to a disabled snapshot.
-  return rows.filter(
-    (row) =>
-      !row.disabledAt &&
-      row.url &&
-      safeTicketUrl(row.url) &&
-      new Date(row.observedAt).getTime() >= now.getTime() - 7 * 86400000,
-  );
+  return rows
+    .map((row) => ({
+      ...row,
+      price: displayPrice(row.price, row.currency, row.provider, row.observedAt, now),
+    }))
+    .filter(
+      (row) =>
+        !row.disabledAt &&
+        row.url &&
+        safeTicketUrl(row.url) &&
+        new Date(row.observedAt).getTime() >= now.getTime() - 7 * 86400000,
+    );
 }
 export async function selectTicketSource(
   event: Concert,
