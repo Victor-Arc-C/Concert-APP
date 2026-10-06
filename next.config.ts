@@ -1,7 +1,13 @@
 import type { NextConfig } from 'next';
+export const spotifyImageHosts = ['https://i.scdn.co'];
 const config: NextConfig = {
   devIndicators: false,
-  logging: { incomingRequests: false, fetches: { fullUrl: false }, serverFunctions: false, browserToTerminal: false },
+  logging: {
+    incomingRequests: false,
+    fetches: { fullUrl: false },
+    serverFunctions: false,
+    browserToTerminal: false,
+  },
   outputFileTracingRoot: process.cwd(),
   serverExternalPackages: ['@electric-sql/pglite', 'pg'],
   async headers() {
@@ -15,8 +21,7 @@ const config: NextConfig = {
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
           {
             key: 'Content-Security-Policy',
-            value:
-              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+            value: `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: ${spotifyImageHosts.join(' ')}; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'`,
           },
         ],
       },

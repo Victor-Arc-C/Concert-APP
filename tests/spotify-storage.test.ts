@@ -36,6 +36,7 @@ it('stores only confirmed provider mapping, preserves manual preferences and rem
     await migrate(adapter);
     await pg.exec(`INSERT INTO users(id,email,name,password_hash,preferences) VALUES('u','fixture@example.test','Fixture','test','{}');
       INSERT INTO artists VALUES('live','{"providerId":"tm-fixture","name":"Artist"}'),('sample','{"name":"Artist"}');
+      INSERT INTO artist_provider_records VALUES('spotify','sp-id','live');
       INSERT INTO affinities(user_id,artist_id,favorite) VALUES('u','live',TRUE);
       INSERT INTO oauth_attempts VALUES('denied','u','encrypted',NOW()+INTERVAL '10 minutes'),('other','u','encrypted',NOW()+INTERVAL '10 minutes');`);
     await pg.query('INSERT INTO music_accounts VALUES($1,$2,$3,$4)', [

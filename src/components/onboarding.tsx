@@ -328,7 +328,7 @@ export function Onboarding() {
         url: string;
         image?: string;
         artistId?: string;
-        mapping?: 'provider' | 'name' | 'ambiguous' | 'none';
+        mapping?: 'provider' | 'name' | 'spotify' | 'ambiguous' | 'none';
       }[]
     >([]),
     [spotifyLoaded, setSpotifyLoaded] = useState(false),
@@ -451,32 +451,33 @@ export function Onboarding() {
             {spotifyArtists.length > 0 && (
               <section className="spotify-import" aria-label="Imported Spotify artists">
                 <h2>From Spotify</h2>
-                <p>Select an imported artist when it matches one of the available artists.</p>
+                <p>Select any imported artist to add it to your favourites.</p>
                 <div className="artist-picker">
                   {spotifyArtists.map((imported) => {
                     const match = imported.artistId
                       ? data.artists.find((artist) => artist.id === imported.artistId)
                       : undefined;
-                    const isSelected = Boolean(match && selected.includes(match.id));
-                    const selectable = Boolean(match);
+                    const artistId = imported.artistId;
+                    const isSelected = Boolean(artistId && selected.includes(artistId));
+                    const selectable = Boolean(artistId);
                     return (
                       <button
                         key={imported.id}
                         className={`artist-choice ${isSelected ? 'selected' : ''}`}
                         disabled={!selectable}
                         onClick={() => {
-                          if (!match) {
+                          if (!artistId) {
                             return;
                           }
                           setSelected((current) =>
                             isSelected
-                              ? current.filter((id) => id !== match.id)
-                              : [...current, match.id],
+                              ? current.filter((id) => id !== artistId)
+                              : [...current, artistId],
                           );
                         }}
                         aria-pressed={isSelected}
                         aria-disabled={!selectable}
-                        title={match ? undefined : 'Search manually to choose this artist'}
+                        title={artistId ? undefined : 'This Spotify artist could not be imported'}
                       >
                         <Avatar
                           artist={{
@@ -490,7 +491,7 @@ export function Onboarding() {
                         />
                         <strong>{imported.name}</strong>
                         <span>
-                          {match ? 'Available to choose' : 'Not available yet · Search manually'}
+                          {match?.providerId ? 'Available to choose' : 'No live concerts found yet'}
                         </span>
                         <i>{isSelected ? <Check size={14} /> : null}</i>
                       </button>

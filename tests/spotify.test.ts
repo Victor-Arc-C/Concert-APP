@@ -57,7 +57,13 @@ it('refreshes expired tokens, preserves the existing refresh token when not rota
   const refresh = encrypt('fixture-refresh');
   db.mockResolvedValueOnce([
     { access_token: encrypt('expired'), refresh_token: refresh, expires_at: new Date(0) },
-  ]).mockResolvedValue([]);
+  ])
+    .mockResolvedValueOnce([])
+    .mockResolvedValueOnce([])
+    .mockResolvedValueOnce([])
+    .mockResolvedValueOnce([])
+    .mockResolvedValueOnce([])
+    .mockResolvedValueOnce([{ artist_id: 'spotify-artist-id' }]);
   const fetcher = vi
     .spyOn(globalThis, 'fetch')
     .mockResolvedValueOnce(json({ access_token: 'fresh', expires_in: 3600 }))
@@ -79,16 +85,14 @@ it('refreshes expired tokens, preserves the existing refresh token when not rota
       name: 'Artist',
       url: 'https://open.spotify.com/artist/artist-id',
       image: 'https://i.scdn.co/image/artist-image',
-      mapping: 'none',
+      artistId: 'spotify-artist-id',
+      mapping: 'spotify',
     },
   ]);
   expect(db.mock.calls[1][1]?.[1]).toBe(refresh);
   expect(fetcher.mock.calls[1][1]?.headers).toEqual({ Authorization: 'Bearer fresh' });
-  expect(
-    db.mock.calls.some(([sql]) =>
-      /INSERT INTO (artists|affinities|artist_provider_records)/.test(sql),
-    ),
-  ).toBe(false);
+  expect(db.mock.calls.some(([sql]) => /INSERT INTO artists/.test(sql))).toBe(true);
+  expect(db.mock.calls.some(([sql]) => /INSERT INTO artist_provider_records/.test(sql))).toBe(true);
 });
 it('returns canonical identity mappings and keeps image data transient', async () => {
   db.mockResolvedValueOnce([
