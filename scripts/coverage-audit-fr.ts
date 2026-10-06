@@ -40,7 +40,13 @@ async function get(path: string, params: Record<string, string>) {
 
 /** All French events of every attraction whose name matches exactly (accents and case ignored). */
 async function ticketmasterShows(name: string, window: Dataset['window']) {
-  const found = await get('/attractions.json', { keyword: name, locale: '*', size: '20' });
+  // Same filter as the app's artist search (src/server/providers/ticketmaster.ts).
+  const found = await get('/attractions.json', {
+    keyword: name,
+    locale: '*',
+    size: '20',
+    classificationName: 'music',
+  });
   const attractions = (
     (found._embedded as { attractions?: { id: string; name: string }[] })?.attractions ?? []
   ).filter((attraction) => normalize(attraction.name) === normalize(name));
@@ -55,6 +61,9 @@ async function ticketmasterShows(name: string, window: Dataset['window']) {
       endDateTime: `${window.to}T23:59:59Z`,
       sort: 'date,asc',
     });
+    const total = (page.page as { totalElements?: number } | undefined)?.totalElements ?? 0;
+    if (total > 200)
+      console.error(`Warning: ${name} has ${total} French events; only the first 200 were read.`);
     const list =
       (
         page._embedded as {
@@ -75,6 +84,8 @@ async function ticketmasterShows(name: string, window: Dataset['window']) {
     }
   }
   return { attractions: attractions.length, events };
+  // Note: events of every exactly-named attraction are merged. The app follows the one
+  // attraction a user picked, so this measures "Ticketmaster has the date", not "the app shows it".
 }
 
 async function main() {

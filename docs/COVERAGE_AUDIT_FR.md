@@ -24,8 +24,12 @@
   - pas de scraping : uniquement l'API que l'app utilise déjà.
 
 **Limites**
-- La liste publique peut être incomplète : petites salles, festivals d'hiver, dates ajoutées après le 6 octobre.
-- Le script signale donc aussi les dates présentes **uniquement** sur Ticketmaster.
+- La liste publique peut être incomplète : petites salles, festivals d'hiver, dates ajoutées après le 6 octobre. Le script signale donc aussi les dates présentes **uniquement** sur Ticketmaster.
+- Le script mesure si **Ticketmaster a la date**, pas si l'app l'affiche :
+  - il additionne toutes les attractions Ticketmaster qui portent exactement le nom de l'artiste, alors que l'app suit l'attraction choisie par l'utilisateur ;
+  - la comparaison se fait sur la date seulement (même artiste, même jour), sans vérifier la ville ;
+  - un concert vendu seulement sous le nom d'un festival n'est pas compté.
+- Si une ligne indique « TM attraction = **no** », vérifie le nom à la main (ex. « Bigflo et Oli » au lieu de « Bigflo & Oli ») avant de conclure : ces dates seraient comptées comme manquantes à tort.
 
 ---
 
@@ -64,9 +68,9 @@
 
 ## 4. Mesurer la couverture Ticketmaster (5 minutes, à faire par Victor)
 
-1. Dans le dossier du projet, crée `.env.local` s'il n'existe pas. Le plus simple est de copier celui de l'ancien projet, qui contient déjà la clé :
+1. Ajoute la clé Ticketmaster de l'ancien projet au `.env.local` du nouveau. La commande ci-dessous copie **seulement** la ligne de la clé, sans rien écraser ni afficher :
    ```bash
-   cp "$HOME/Documents/ChatGPT/Concert app/.env.local" "$HOME/Concert-APP/.env.local"
+   grep '^TICKETMASTER_API_KEY=' "$HOME/Documents/ChatGPT/Concert app/.env.local" >> "$HOME/Concert-APP/.env.local"
    ```
 2. Lance l'audit. Il faut Node 22.18 ou plus récent.
    ```bash
@@ -78,7 +82,7 @@
 
 ## 5. Recommandation sur CON-28 (fournisseurs FR secondaires)
 
-**Règle de décision**, appliquée au pourcentage global des 107 dates :
+**Règle de décision**, appliquée au pourcentage global des 107 dates. Regarde aussi le détail par artiste : Ninho et Orelsan font 63 dates sur 107. Si seuls ces deux-là manquent, le problème est leur billetterie (France Billet, site propre), pas Ticketmaster en général.
 
 | Couverture Ticketmaster | Décision CON-28 |
 |---|---|
@@ -88,6 +92,6 @@
 
 **Recommandation provisoire** : CON-28 **ne bloque pas** la bêta tant que la mesure n'est pas faite, et reste en High. Deux raisons :
 - l'essentiel du manque vient du calendrier (24/30 artistes sans date), pas de la source ;
-- la bêta est justement le moyen de vérifier si les testeurs remarquent des concerts manquants. La question 8 du script d'interview (`docs/BETA_KIT.md`) le demande explicitement.
+- la bêta est justement le moyen de vérifier si les testeurs remarquent des concerts manquants. La question 8 du script d'interview du kit bêta (`docs/BETA_KIT.md`, PR #15) le demande explicitement.
 
 À réviser dès que `npm run audit:coverage-fr` a tourné.
