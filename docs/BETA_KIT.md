@@ -7,7 +7,7 @@ Ce kit sert à recruter et suivre 10 à 20 vrais utilisateurs pendant 2 semaines
 - tester l'idée du voyage pour un concert, à la main (Wizard-of-Oz).
 
 **Critères de succès**
-- au moins 10 utilisateurs activés en mode live ;
+- au moins 10 utilisateurs activés en mode live. « Activé » = inscription faite, onboarding terminé en mode live, et au moins un vrai concert vu dans le feed. Tu le notes à la main dans le tableau (section 4) : le rapport hebdo affiche l'activation en `unavailable`, car elle n'est pas mesurable avec le consentement actuel ;
 - 2 rapports hebdo (`npm run metrics:weekly`) ;
 - un mémo de décision : continuer, changer d'angle ou arrêter.
 
@@ -15,8 +15,8 @@ Ce kit sert à recruter et suivre 10 à 20 vrais utilisateurs pendant 2 semaines
 
 ## 1. Avant d'inviter (checklist)
 
-- [ ] Les PR du milestone MVP sont fusionnées et la prod est verte (voir CON-22).
-- [ ] `CRON_SECRET` est défini dans Vercel (Production), et le cron `/api/jobs` a tourné au moins une fois : les heures « Checked … » apparaissent dans Settings.
+- [ ] Les PR du milestone MVP sont fusionnées et la prod est verte (voir CON-22). Il faut au minimum la PR #13 (bouton « Send feedback ») et la PR #14 (`npm run metrics:weekly`) : ce kit s'appuie sur les deux.
+- [ ] `CRON_SECRET` est défini dans Vercel (Production), et le cron `/api/jobs` a tourné au moins une fois : Vercel → projet concert-app → **Settings → Cron Jobs** (ou **Logs**, filtre `/api/jobs`) montre une exécution réussie.
 - [ ] `BETA_INVITE_CODES` est défini dans Vercel avec les codes ci-dessous (section 3), puis la prod est redéployée.
 - [ ] Tu as testé toi-même le parcours complet sur ton téléphone : code d'invitation → inscription → recherche d'un vrai artiste → feed → concert → lien billet → « Send feedback ».
 - [ ] Ton compte et ceux de tes tests sont dans `METRICS_EXCLUDE` (voir `docs/ANALYTICS.md`).
@@ -25,7 +25,7 @@ Ce kit sert à recruter et suivre 10 à 20 vrais utilisateurs pendant 2 semaines
 
 ## 2. Message d'invitation (WhatsApp)
 
-À envoyer en message privé, pas dans un groupe : chaque personne reçoit son propre code. L'app est en anglais pour l'instant ; le message le dit pour éviter la surprise.
+À envoyer en message privé, pas dans un groupe : chaque personne reçoit le code de son groupe (section 3). L'app est en anglais pour l'instant ; le message le dit pour éviter la surprise.
 
 > Salut [prénom] ! Je lance **Encore**, une petite app qui te montre les concerts de TES artistes près de chez toi (ou un peu plus loin 👀) et t'envoie vers la billetterie officielle.
 >
@@ -63,17 +63,19 @@ echo "ENCORE-AMIS-$(openssl rand -hex 3 | tr a-f A-F),ENCORE-CAMPUS-$(openssl ra
 ```
 
 **Pour les activer** :
-1. Va sur https://vercel.com/encore23/concert-app/settings/environment-variables.
+1. Va sur le tableau de bord Vercel → projet **concert-app** → **Settings → Environment Variables** (lien direct : https://vercel.com/encore23/concert-app/settings/environment-variables).
 2. Clique **Add New**.
 3. Name : `BETA_INVITE_CODES`. Value : la ligne copiée (les 3 codes séparés par des virgules). Environment : **Production**.
 4. Clique **Save**.
-5. Redéploie : onglet **Deployments** → **⋯** sur le dernier déploiement → **Redeploy**.
+5. Redéploie : onglet **Deployments** → **⋯** sur le déploiement **Production** marqué **Current** (pas un « Preview ») → **Redeploy**.
 
 Les codes sont sensibles à la casse. Pour en révoquer un, retire-le de la variable et redéploie.
 
 ---
 
-## 4. Liste de recrutement (à remplir)
+## 4. Liste de recrutement (à remplir dans tes notes, pas ici)
+
+**Données personnelles** : prénoms, budgets et notes d'interview restent dans tes notes personnelles (Notes, Google Sheet privé…). Ne les écris jamais dans ce fichier : il est dans git. Le tableau ci-dessous est seulement le modèle de colonnes.
 
 Vise 25 noms pour obtenir environ 15 « oui ». Mélange les profils : rap/pop FR, électro, international, gens qui voyagent pour des concerts et gens qui n'y vont presque jamais.
 
@@ -81,7 +83,7 @@ Vise 25 noms pour obtenir environ 15 « oui ». Mélange les profils : rap/pop F
 |---|---|---|---|---|---|---|---|---|
 | 1 | | | | | | | | |
 
-**Spotify** : il n'y a que 5 places dans l'allowlist du mode développeur. Garde-les pour les 5 testeurs les plus actifs après J3. L'ajout se fait dans le Spotify Developer Dashboard → ton app → **User Management**.
+**Spotify** : il n'y a que 5 places dans l'allowlist du mode développeur. Garde-les pour les 5 testeurs les plus actifs après J3. L'ajout se fait dans le Spotify Developer Dashboard → ton app → **User Management**, avec l'email de leur compte Spotify. Ça ne sert que si Spotify est activé en production. Sinon, Settings affiche « awaiting provider approval » et la recherche manuelle d'artistes suffit.
 
 ---
 
@@ -115,7 +117,7 @@ Vise 25 noms pour obtenir environ 15 « oui ». Mélange les profils : rap/pop F
 **9:00 – Fin (1 min)**
 « Une seule chose à changer ? » Puis : « Merci ! Si quelque chose te surprend cette semaine, utilise Send feedback. »
 
-**Après l'appel** : écris 3 lignes maximum dans la fiche du testeur (ce qui a marché, ce qui a bloqué, la citation la plus forte).
+**Après l'appel** : écris 3 lignes maximum dans la fiche du testeur, dans tes notes personnelles (ce qui a marché, ce qui a bloqué, la citation la plus forte).
 
 ---
 
@@ -143,6 +145,8 @@ L'app ne réserve **aucun** transport ni hôtel (hors scope du MVP). On teste l'
 
 ## 7. Calendrier J0 / J7 / J14
 
+**Choisis un lundi pour J0.** Le rapport hebdo couvre la semaine du lundi au dimanche (UTC) : avec un J0 un lundi, J7 et J14 tombent pile sur deux semaines complètes.
+
 | Jour | Quoi | Qui | Résultat attendu |
 |---|---|---|---|
 | J-2 | Checklist section 1, codes activés, test complet sur ton téléphone | Victor | Prod prête |
@@ -159,7 +163,9 @@ L'app ne réserve **aucun** transport ni hôtel (hors scope du MVP). On teste l'
 
 ## 8. Trame du mémo de décision (J14)
 
-1. **Chiffres** : les 5 métriques des 2 rapports, avec les effectifs. Rappel : sous 10 personnes, ce sont des anecdotes.
+1. **Chiffres** : les métriques des 2 rapports, avec les effectifs. Rappel : sous 10 personnes, ce sont des anecdotes.
+   - Deux des cinq métriques seront `unavailable` pour cette cohorte : l'activation (pas mesurable, compte-la à la main) et la rétention semaine 1 (il faut 14 jours d'observation après l'activation, plus le décalage du rapport).
+   - Les trois autres sont mesurées : CTR des recommandations, taux de sauvegarde, CTR des liens billets.
 2. **Ce que les gens ont dit** : les 5 citations les plus fortes et les thèmes qui reviennent.
 3. **Couverture** : concerts ou artistes manquants cités par les testeurs (lien avec CON-38 et CON-28).
 4. **Voyage** : combien ont dit oui, avec quels budgets, combien ont cliqué sur un plan fait à la main.
