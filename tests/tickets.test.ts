@@ -38,3 +38,30 @@ it('blocks disabled stale unsafe cancelled and sample sources without snapshot f
   expect(await ticketSources({ ...event, status: 'cancelled' })).toEqual([]);
   expect(await ticketSources({ ...event, provider: 'sample' })).toEqual([]);
 });
+it('keeps link availability independent of invalid/stale prices and preserves each source currency', async () => {
+  const now = new Date();
+  vi.mocked(query).mockResolvedValue([
+    { ...source, price: 70, currency: 'EUR', observedAt: now },
+    { ...source, externalId: 'two', price: 90, currency: 'GBP', observedAt: now },
+    {
+      ...source,
+      externalId: 'stale-price',
+      price: 1,
+      currency: 'EUR',
+      observedAt: new Date(now.getTime() - 2 * 86400000),
+    },
+    { ...source, externalId: 'negative', price: -1, currency: 'EUR', observedAt: now },
+    { ...source, externalId: 'bad-currency', price: 1, currency: 'bad', observedAt: now },
+    {
+      ...source,
+      externalId: 'future',
+      price: 1,
+      currency: 'EUR',
+      observedAt: new Date(now.getTime() + 3600000),
+    },
+  ]);
+  const rows = await ticketSources(event, now);
+  expect(rows.map((row) => row.price)).toEqual([70, 90, null, null, null, null]);
+  expect(rows.map((row) => row.currency).slice(0, 2)).toEqual(['EUR', 'GBP']);
+  expect(await ticketSources({ ...event, status: 'postponed' }, now)).toEqual([]);
+});

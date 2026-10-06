@@ -45,6 +45,7 @@ export type Concert = {
   externalId: string;
   url: string | null;
   fetchedAt: string;
+  priceObservedAt?: string | null;
   image: string;
   genre: string;
 };
