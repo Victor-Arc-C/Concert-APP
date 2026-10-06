@@ -1817,6 +1817,23 @@ svg {
   font-size: 11px;
   color: var(--muted);
 }
+.onboarding-live-search {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  margin: 24px 0 15px;
+}
+.onboarding-live-search .onboarding-search {
+  flex: 1;
+  margin: 0;
+}
+.live-onboarding > .text-button {
+  margin-top: 14px;
+}
+.live-onboarding .form-error,
+.live-onboarding .inline-note {
+  margin-bottom: 15px;
+}
 .onboarding-bottom {
   display: flex;
   align-items: center;

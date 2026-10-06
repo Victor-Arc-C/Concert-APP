@@ -29,6 +29,7 @@ import {
 import { resolveSpotifyArtists, searchArtists, syncArtists } from './providers/ticketmaster';
 import { ProviderError } from './providers/http';
 import { runConcertChecks } from './jobs';
+import { unsupportedLiveArtists } from '../domain/onboarding';
 import { ticketSources, selectTicketSource } from './tickets';
 import { generateTripOptions } from './trips';
 import type { SavedTrip } from '../domain/trip-types';
@@ -235,9 +236,29 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
           artistIds: z.array(z.string()).min(1).max(40),
           preferences: preferencesSchema,
           mode: z.enum(['sample', 'live']),
+          source: z.enum(['manual', 'spotify', 'mixed', 'demo']).optional(),
         })
         .parse(await body(request));
       for (const id of input.artistIds) await artistExists(id);
+      if (input.mode === 'live') {
+        // Never complete a live onboarding that would silently show nothing but fiction.
+        if (!env().TICKETMASTER_API_KEY)
+          throw new HttpError(
+            503,
+            'Live concerts are not available right now. Try again later or explore the demo.',
+          );
+        const backed = await query<{ artist_id: string }>(
+          'SELECT DISTINCT artist_id FROM artist_provider_records WHERE artist_id=ANY($1)',
+          [[...new Set(input.artistIds)]],
+        );
+        if (
+          unsupportedLiveArtists(
+            input.artistIds,
+            backed.map((row) => row.artist_id),
+          ).length
+        )
+          throw new HttpError(400, 'Choose artists from the live search to see real concerts.');
+      }
       await query('DELETE FROM affinities WHERE user_id=$1', [user.id]);
       for (const id of new Set(input.artistIds))
         await query('INSERT INTO affinities(user_id,artist_id) VALUES($1,$2)', [user.id, id]);
@@ -264,6 +285,7 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
       await recordAnalytics(
         { ...user, preferences: input.preferences, mode: input.mode },
         'onboarding_completed',
+        input.source ? { source: input.source } : {},
       );
       return ok();
     }

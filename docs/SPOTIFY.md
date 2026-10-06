@@ -1,6 +1,6 @@
 # Optional Spotify connection
 
-Manual artist selection, concert browsing and saved shows work without Spotify. Enable Spotify only for an approved pilot with its approved accounts. Keep all credentials and the 32-byte base64 encryption key in the local environment or deployment secret store.
+Manual artist selection, concert browsing and saved shows work without Spotify. Since CON-33, onboarding step 2 searches the live (Ticketmaster) catalogue directly whenever live concerts are available, and completes in live mode. The fictional demo catalogue is an explicit opt-in. Spotify development mode allows at most five allowlisted users, and extended quota is limited to organizations with at least 250k MAU (https://developer.spotify.com/documentation/web-api/concepts/quota-modes), so manual live search is the primary beta path. Enable Spotify only for an approved pilot with its approved accounts. Keep all credentials and the 32-byte base64 encryption key in the local environment or deployment secret store.
 
 Register the exact callback `${APP_URL origin}/api/spotify/callback` in Spotify. Local verification uses `http://127.0.0.1:3000/api/spotify/callback`. Only `user-top-read` is requested. OAuth uses encrypted PKCE verifiers and random, user-bound, single-use states with a ten-minute expiry. Cancellation removes the matching attempt and leaves any existing connection intact.
 
