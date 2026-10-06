@@ -145,5 +145,22 @@ CREATE INDEX rate_limits_window ON rate_limits(window_at);
     WHERE trip_data->>'version' IS DISTINCT FROM '1';
   `,
   },
+  {
+    version: 9,
+    sql: `
+    -- CON-36: private-beta feedback. Removed with the account through the cascading user FK.
+    CREATE TABLE beta_feedback (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      message TEXT NOT NULL CHECK (char_length(message) BETWEEN 1 AND 2000),
+      rating SMALLINT CHECK (rating BETWEEN 1 AND 5),
+      screen TEXT NOT NULL,
+      mode TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX beta_feedback_time ON beta_feedback(created_at DESC);
+    CREATE INDEX beta_feedback_user ON beta_feedback(user_id);
+  `,
+  },
 ];
 

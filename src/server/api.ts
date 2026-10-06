@@ -2,7 +2,12 @@ import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { NextResponse } from 'next/server';
 import { query } from './db';
-import { authSchema, intentSchema, preferencesSchema } from '../domain/validation';
+import {
+  authSchema,
+  betaFeedbackSchema,
+  intentSchema,
+  preferencesSchema,
+} from '../domain/validation';
 import { defaults } from '../domain/catalog';
 import type { Concert, User } from '../domain/types';
 import {
@@ -35,6 +40,7 @@ import { inviteCodes, inviteValid } from './invite';
 import { ticketSources, selectTicketSource } from './tickets';
 import { generateTripOptions } from './trips';
 import { savedTripsForUser, saveTrip, tripEvent } from './saved-trips';
+import { exportBetaFeedback, saveBetaFeedback } from './beta-feedback';
 
 
 function onboardingSpotifyState(state: string) {
@@ -164,6 +170,7 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
             alerts,
             analytics,
             clicks,
+            betaFeedback: await exportBetaFeedback(user.id),
             spotifyChoices: await query(
               'SELECT spotify_id,artist_id,affinity FROM spotify_artist_preferences WHERE user_id=$1',
               [user.id],
@@ -446,6 +453,10 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
       return ok();
     }
 
+    if (key === 'beta-feedback') {
+      await saveBetaFeedback(user, betaFeedbackSchema.parse(await body(request)));
+      return ok();
+    }
     if (key === 'analytics') {
       const input = z
         .object({

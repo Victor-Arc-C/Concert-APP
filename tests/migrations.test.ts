@@ -32,6 +32,7 @@ describe('versioned schema', () => {
         'analytics_time',
         'saved_trips_user_time',
         'saved_trips_event',
+        'beta_feedback_time',
       ])
         expect(indexes).toContain(name);
 

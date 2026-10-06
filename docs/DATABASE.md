@@ -15,6 +15,7 @@ The application uses PostgreSQL SQL through either managed PostgreSQL or local P
 | Affinity | `affinities`, unique user/artist pair with explicit favourite/hidden flags. |
 | Saves and feedback | `feedback`, unique user/event pair with saved/dismissed/clicked state; indexed by user through its primary key and by event. |
 | Recommendation events | `analytics`, consent-gated action name and JSON properties (including concert ID and mode), indexed by user/time and retention time. CON-9 owns emission/measurement changes. |
+| Beta feedback | `beta_feedback` (CON-36), free text ≤2,000 characters, optional 1–5 rating, in-app screen path and sample/live mode; user FK cascades on deletion, included in export. |
 | Intent and alerts | `intents`, unique user/artist; `alerts`, unique user/event/kind with user/time index. |
 
 Version 2 only adds tables and indexes. Existing JSON snapshots remain the read/write source for the current single-provider UI. Venue and ticket-source tables establish the multi-provider schema; future ingestion/ticket-source work must populate them from verified identities and preserve legacy snapshot compatibility. No synthetic external IDs, guessed venue merges, fabricated ticket prices or user-data backfill are performed here. CON-19 owns multi-source selection and outbound behavior.

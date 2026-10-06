@@ -26,3 +26,26 @@ Signup happens before the existing onboarding consent choice, so a `signup_compl
 For a local check, run the app in a terminal and inspect JSON lines with `service: encore`. In deployment, collect stderr through the hosting platform, count by code/time and alert on sustained API/framework errors or scheduler failures. Retain operational logs according to the deployment policy; no hosted log service, alert routing or on-call integration is provisioned by this change. Next.js/platform access logs must be configured separately not to capture query strings or request bodies.
 
 Verification: unit tests exercise consent suppression, server-derived source properties, non-fatal analytics failures and safe log fields. Browser/API tests verify onboarding/impression/open/save events, invalid event rejection, forged action/property rejection and deletion on opt-out. Provider/Spotify credentials are not needed for these tests.
+
+## Beta feedback (CON-36)
+
+Signed-in users can open **Send feedback** from the sidebar, the top bar or **Settings → Help shape the beta**. A message holds free text (max 2,000 characters), an optional 1–5 rating, the in-app screen path (no query string) and the account's sample/live mode. It is stored in the `beta_feedback` table of Encore's own database; no third-party service is involved. It is not product analytics, so it does not depend on the analytics opt-in. It is included in **Export my data** and deleted with the account. Each user can send 5 messages per hour.
+
+To read the latest feedback, run this in the Neon SQL editor (Neon console → your project → SQL Editor):
+
+```sql
+SELECT f.created_at, u.name, f.rating, f.screen, f.mode, f.message
+FROM beta_feedback f
+JOIN users u ON u.id = f.user_id
+ORDER BY f.created_at DESC
+LIMIT 50;
+```
+
+Average rating and volume per week:
+
+```sql
+SELECT date_trunc('week', created_at) AS week, COUNT(*) AS messages,
+       ROUND(AVG(rating)::numeric, 1) AS avg_rating, COUNT(rating) AS rated
+FROM beta_feedback
+GROUP BY 1 ORDER BY 1 DESC;
+```
