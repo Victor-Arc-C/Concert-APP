@@ -593,7 +593,8 @@ export function Onboarding() {
                 <div className="artist-picker">
                   {data.artists
                     .filter(
-                      (a) => !a.providerId && a.name.toLowerCase().includes(manualSearch.toLowerCase()),
+                      (a) =>
+                        !a.providerId && a.name.toLowerCase().includes(manualSearch.toLowerCase()),
                     )
                     .map((a) => (
                       <button
@@ -616,7 +617,10 @@ export function Onboarding() {
               </>
             ) : (
               <section className="live-onboarding" aria-label="Live artist search">
-                <form className="onboarding-live-search" onSubmit={(e) => void searchLiveArtists(e)}>
+                <form
+                  className="onboarding-live-search"
+                  onSubmit={(e) => void searchLiveArtists(e)}
+                >
                   <label className="search-field onboarding-search">
                     <span>Search real artists</span>
                     <input
@@ -712,8 +716,8 @@ export function Privacy() {
       <h1>Your music. Your choices.</h1>
       <p>
         This early-access pilot stores your account, explicitly chosen artists, saved shows,
-        must-see preferences, settings and in-app alerts in the app’s database. Sample concerts and
-        prices are fictional.
+        must-see preferences, settings, in-app alerts and any beta feedback you send in the app’s
+        database. Sample concerts and prices are fictional.
       </p>
       <h2>What we use</h2>
       <p>
