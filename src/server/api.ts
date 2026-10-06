@@ -1,4 +1,4 @@
-import { randomUUID, timingSafeEqual } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { NextResponse } from 'next/server';
 import { query } from './db';
@@ -29,6 +29,7 @@ import {
 import { resolveSpotifyArtists, searchArtists, syncArtists } from './providers/ticketmaster';
 import { ProviderError } from './providers/http';
 import { runConcertChecks } from './jobs';
+import { schedulerAuthorized } from './scheduler-auth';
 import { unsupportedLiveArtists } from '../domain/onboarding';
 import { inviteCodes, inviteValid } from './invite';
 import { ticketSources, selectTicketSource } from './tickets';
@@ -83,15 +84,9 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
   const key = path.join('/'),
     url = new URL(request.url);
   try {
-    if (key === 'jobs' && request.method === 'POST') {
-      const secret = env().CRON_SECRET,
-        token = request.headers.get('authorization')?.replace(/^Bearer /, '');
-      if (
-        !secret ||
-        !token ||
-        Buffer.byteLength(secret) !== Buffer.byteLength(token) ||
-        !timingSafeEqual(Buffer.from(secret), Buffer.from(token))
-      )
+    if (key === 'jobs' && (request.method === 'POST' || request.method === 'GET')) {
+      // GET is what Vercel Cron sends (see vercel.json); POST is kept for external schedulers.
+      if (!schedulerAuthorized(request.headers.get('authorization'), env().CRON_SECRET))
         throw new HttpError(401, 'Invalid scheduler credentials.');
       return ok(await runConcertChecks());
     }

@@ -204,6 +204,8 @@ test('API authorisation, CSRF, account isolation and honest provider errors', as
   expect((await a.post('/api/spotify/disconnect', { data: {} })).ok()).toBe(true);
   expect((await (await a.get('/api/export')).json()).spotifyChoices).toEqual([]);
   expect((await a.post('/api/jobs', { data: {} })).status()).toBe(401);
+  expect((await a.get('/api/jobs')).status()).toBe(401);
+  expect((await anon.get('/api/jobs')).status()).toBe(401);
   await a.post('/api/mode', { data: { mode: 'live' } });
   const live = await (await a.get('/api/state')).json();
   expect(live.events).toHaveLength(0);
