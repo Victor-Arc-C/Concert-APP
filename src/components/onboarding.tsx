@@ -16,7 +16,8 @@ import {
 import { api, useApp } from './context';
 import { Avatar, Brand } from './ui';
 import { cities, defaults } from '@/domain/catalog';
-import type { Preferences } from '@/domain/types';
+import type { Artist, Preferences } from '@/domain/types';
+import { onboardingSource } from '@/domain/onboarding';
 export function Landing() {
   return (
     <div className="landing">
@@ -345,7 +346,57 @@ export function Onboarding() {
       }[]
     >([]),
     [spotifyLoaded, setSpotifyLoaded] = useState(false),
-    [spotifyMessage, setSpotifyMessage] = useState('');
+    [spotifyMessage, setSpotifyMessage] = useState(''),
+    // Demo (fictional sample concerts) is opt-in whenever live concerts are available.
+    [demo, setDemo] = useState(!data.liveAvailable),
+    [liveQuery, setLiveQuery] = useState(''),
+    [liveResults, setLiveResults] = useState<Artist[]>([]),
+    [livePicked, setLivePicked] = useState<Record<string, Artist>>({}),
+    [liveSearching, setLiveSearching] = useState(false),
+    [liveMessage, setLiveMessage] = useState(''),
+    [liveFailed, setLiveFailed] = useState(false);
+  async function searchLiveArtists(event?: React.FormEvent) {
+    event?.preventDefault();
+    const term = liveQuery.trim();
+    if (term.length < 2) return;
+    setLiveSearching(true);
+    setLiveMessage('');
+    setLiveFailed(false);
+    try {
+      const result = await api<{ artists: Artist[] }>(
+        `artists/search?q=${encodeURIComponent(term)}`,
+      );
+      setLiveResults(result.artists);
+      if (!result.artists.length)
+        setLiveMessage('No artists found. Try the full artist name or another spelling.');
+    } catch (error) {
+      setLiveResults([]);
+      setLiveFailed(true);
+      setLiveMessage(
+        error instanceof Error ? error.message : 'Live artist search is unavailable right now.',
+      );
+    } finally {
+      setLiveSearching(false);
+    }
+  }
+  function toggleLive(artist: Artist) {
+    setLivePicked((current) => ({ ...current, [artist.id]: artist }));
+    setSelected((current) =>
+      current.includes(artist.id)
+        ? current.filter((id) => id !== artist.id)
+        : [...current, artist.id],
+    );
+  }
+  function switchMode(nextDemo: boolean) {
+    // Sample and live follows stay separate: switching clears the current picks.
+    setDemo(nextDemo);
+    setSelected([]);
+  }
+  const spotifyIds = spotifyArtists.flatMap((a) => (a.artistId ? [a.artistId] : []));
+  const liveChoices = [
+    ...selected.flatMap((id) => (livePicked[id] ? [livePicked[id]] : [])),
+    ...liveResults.filter((a) => !selected.includes(a.id)),
+  ];
   useEffect(() => {
     if (musicStatus === 'connected') {
       void api<{ artists: typeof spotifyArtists }>('spotify/artists')
@@ -386,7 +437,9 @@ export function Onboarding() {
         <p className="intro">
           {step === 1
             ? 'Start close to home, or leave room for a weekend away.'
-            : 'Connect Spotify or choose a few favourites manually. You can change these any time.'}
+            : demo
+              ? 'Pick a few favourites from the demo catalogue. You can change these any time.'
+              : 'Search for the artists you love. Spotify is optional, and you can change these any time.'}
         </p>
         {step === 1 ? (
           <form
@@ -513,38 +566,114 @@ export function Onboarding() {
                 </div>
               </section>
             )}
-            <label className="search-field onboarding-search">
-              <span>Choose manually</span>
-              <input
-                aria-label="Search artists to choose manually"
-                value={manualSearch}
-                onChange={(e) => setManualSearch(e.target.value)}
-                placeholder="Search artists"
-              />
-            </label>
-            <div className="artist-picker">
-              {data.artists
-                .filter(
-                  (a) => !a.providerId && a.name.toLowerCase().includes(manualSearch.toLowerCase()),
-                )
-                .map((a) => (
+            {demo ? (
+              <>
+                {data.liveAvailable ? (
+                  <div className="inline-note">
+                    Demo mode: concerts, dates and prices are fictional.{' '}
+                    <button className="text-button" type="button" onClick={() => switchMode(false)}>
+                      Search real artists instead
+                    </button>
+                  </div>
+                ) : (
+                  <div className="inline-note">
+                    Live concerts aren’t available right now, so you can explore the demo with
+                    fictional concerts.
+                  </div>
+                )}
+                <label className="search-field onboarding-search">
+                  <span>Choose manually</span>
+                  <input
+                    aria-label="Search artists to choose manually"
+                    value={manualSearch}
+                    onChange={(e) => setManualSearch(e.target.value)}
+                    placeholder="Search artists"
+                  />
+                </label>
+                <div className="artist-picker">
+                  {data.artists
+                    .filter(
+                      (a) => !a.providerId && a.name.toLowerCase().includes(manualSearch.toLowerCase()),
+                    )
+                    .map((a) => (
+                      <button
+                        key={a.id}
+                        className={`artist-choice ${selected.includes(a.id) ? 'selected' : ''}`}
+                        onClick={() =>
+                          setSelected((s) =>
+                            s.includes(a.id) ? s.filter((id) => id !== a.id) : [...s, a.id],
+                          )
+                        }
+                        aria-pressed={selected.includes(a.id)}
+                      >
+                        <Avatar artist={a} />
+                        <strong>{a.name}</strong>
+                        <span>{a.genre}</span>
+                        <i>{selected.includes(a.id) ? <Check size={14} /> : null}</i>
+                      </button>
+                    ))}
+                </div>
+              </>
+            ) : (
+              <section className="live-onboarding" aria-label="Live artist search">
+                <form className="onboarding-live-search" onSubmit={(e) => void searchLiveArtists(e)}>
+                  <label className="search-field onboarding-search">
+                    <span>Search real artists</span>
+                    <input
+                      aria-label="Search real artists"
+                      value={liveQuery}
+                      onChange={(e) => setLiveQuery(e.target.value)}
+                      maxLength={100}
+                      placeholder="Artist name, e.g. Angèle"
+                    />
+                  </label>
                   <button
-                    key={a.id}
-                    className={`artist-choice ${selected.includes(a.id) ? 'selected' : ''}`}
-                    onClick={() =>
-                      setSelected((s) =>
-                        s.includes(a.id) ? s.filter((id) => id !== a.id) : [...s, a.id],
-                      )
-                    }
-                    aria-pressed={selected.includes(a.id)}
+                    className="button secondary"
+                    disabled={liveSearching || liveQuery.trim().length < 2}
                   >
-                    <Avatar artist={a} />
-                    <strong>{a.name}</strong>
-                    <span>{a.genre}</span>
-                    <i>{selected.includes(a.id) ? <Check size={14} /> : null}</i>
+                    {liveSearching ? 'Searching…' : 'Search'}
                   </button>
-                ))}
-            </div>
+                </form>
+                {liveMessage && (
+                  <div className={liveFailed ? 'form-error' : 'inline-note'} role="status">
+                    {liveMessage}
+                    {liveFailed && (
+                      <>
+                        {' '}
+                        <button
+                          className="text-button"
+                          type="button"
+                          onClick={() => void searchLiveArtists()}
+                        >
+                          Try again
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+                {liveChoices.length > 0 && (
+                  <div className="artist-picker">
+                    {liveChoices.map((artist) => (
+                      <button
+                        key={artist.id}
+                        type="button"
+                        className={`artist-choice ${selected.includes(artist.id) ? 'selected' : ''}`}
+                        onClick={() => toggleLive(artist)}
+                        aria-pressed={selected.includes(artist.id)}
+                      >
+                        <Avatar artist={artist} />
+                        <strong>{artist.name}</strong>
+                        <span>Live catalogue</span>
+                        <i>{selected.includes(artist.id) ? <Check size={14} /> : null}</i>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <button className="text-button" type="button" onClick={() => switchMode(true)}>
+                  Just exploring? Try the demo with fictional concerts
+                </button>
+              </section>
+            )}
             <form
               onSubmit={async (e) => {
                 e.preventDefault();
@@ -552,7 +681,8 @@ export function Onboarding() {
                   await act('onboarding', {
                     artistIds: selected,
                     preferences: prefs,
-                    mode: 'sample',
+                    mode: demo ? 'sample' : 'live',
+                    source: onboardingSource(selected, spotifyIds, demo),
                   })
                 )
                   router.push('/app');
@@ -564,7 +694,7 @@ export function Onboarding() {
                   Back to preferences
                 </button>
                 <button className="button primary" disabled={busy || !selected.length}>
-                  {busy ? 'Connecting live concerts…' : 'Find my concerts'}{' '}
+                  {busy ? (demo ? 'One moment…' : 'Connecting live concerts…') : 'Find my concerts'}{' '}
                   <ArrowUpRight size={17} />
                 </button>
               </div>
