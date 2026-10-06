@@ -6,6 +6,7 @@ import { Bell, Download, RefreshCw, ShieldCheck, Music2, Trash2 } from 'lucide-r
 import { useApp, api } from './context';
 import { Empty, Modal } from './ui';
 import { PreferenceFields } from './onboarding';
+import { FeedbackButton } from './feedback';
 import type { Preferences } from '@/domain/types';
 export function SettingsPage() {
   const { data } = useApp();
@@ -262,6 +263,14 @@ function SettingsForm({ initial }: { initial: Preferences }) {
               </>
             )}
           </section>
+          <section className="settings-section connection-panel">
+            <h2>Help shape the beta</h2>
+            <p>
+              Something confusing, missing or broken? Send it straight to the Encore team. Your
+              feedback is part of your data export and is deleted with your account.
+            </p>
+            <FeedbackButton className="button secondary full" />
+          </section>
           <Link href="/privacy" className="text-button">
             Read the privacy notice
           </Link>
@@ -271,7 +280,7 @@ function SettingsForm({ initial }: { initial: Preferences }) {
         <Modal title="Delete your Encore account?" onClose={() => setConfirmDelete(false)}>
           <p>
             This permanently deletes your preferences, saved concerts, alerts, music connection,
-            analytics and account from the active database.
+            analytics, beta feedback and account from the active database.
           </p>
           <form
             onSubmit={async (e) => {
