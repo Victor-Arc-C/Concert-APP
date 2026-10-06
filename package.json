@@ -12,10 +12,11 @@
     "test:watch": "vitest",
     "format": "prettier --write .",
     "check": "npm run typecheck && npm run lint && npm test",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "metrics:weekly": "node --env-file-if-exists=.env.local scripts/metrics-weekly.ts"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=22.18"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.8",

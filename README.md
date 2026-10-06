@@ -153,6 +153,10 @@ Checks stop when the server stops or the computer sleeps and resume on the next 
 
 `vercel.json` schedules a daily Vercel Cron call to `GET /api/jobs` at `0 5 * * *` UTC. The Hobby plan allows one cron per day, triggered anywhere within that hour; Pro allows more frequent schedules. Set a long random `CRON_SECRET` in the Vercel project's Production environment. Vercel then sends `Authorization: Bearer <CRON_SECRET>`, and requests without that exact token get `401`. `POST /api/jobs` with the same header still works for external schedulers. Each run imports followed live artists (with the existing per-artist cache and failure backoff), evaluates alerts and removes expired sessions, OAuth attempts, analytics and rate-limit rows. To check that a run happened, look at the Vercel project's Cron Jobs / Logs, and at the per-artist "last checked" times in Settings. Do not enable the timer during builds or browser tests. Important alerts include home-city shows, favourites, must-see matches and upcoming sales; Off generates no new alerts. A unique user/event/kind key prevents repeat alerts, while a sale reminder is intentionally separate from a discovery alert.
 
+## Weekly beta metrics (CON-37)
+
+`npm run metrics:weekly` prints the five CON-5 launch metrics for the last finished week. Setup and definitions: [docs/ANALYTICS.md](docs/ANALYTICS.md#weekly-metrics-report-con-37).
+
 ## Contributing
 
 See [module and development conventions](docs/CONVENTIONS.md), the [database schema and migration contract](docs/DATABASE.md), and the [CON-6 audit](docs/CON-6-AUDIT.md). Preserve the existing MVP loop and keep issue changes small. Never commit `.env.local`, database contents, OAuth credentials, provider keys, logs or session exports.
