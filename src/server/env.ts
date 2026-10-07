@@ -33,6 +33,17 @@ const schema = z
       z.url({ protocol: /^https$/ }).optional(),
     ),
     BETA_INVITE_CODES: optionalString,
+    // Web Push (VAPID). Generate once with `npx web-push generate-vapid-keys`; without both keys
+    // the app keeps alerts in the in-app inbox only.
+    VAPID_PUBLIC_KEY: optionalString,
+    VAPID_PRIVATE_KEY: optionalString,
+    VAPID_SUBJECT: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      z
+        .string()
+        .regex(/^(mailto:|https:\/\/)/, 'Use a mailto: address or an https:// URL.')
+        .optional(),
+    ),
     // Shown on the privacy page: who is responsible for the data and how to reach them.
     PRIVACY_CONTROLLER: optionalString,
     PRIVACY_CONTACT_EMAIL: z.preprocess(
@@ -114,4 +125,8 @@ export function automaticConcertChecks() {
     !settings.DATABASE_URL &&
     !process.env.VERCEL
   );
+}
+export function pushAvailable() {
+  const settings = env();
+  return !!settings.VAPID_PUBLIC_KEY && !!settings.VAPID_PRIVATE_KEY;
 }

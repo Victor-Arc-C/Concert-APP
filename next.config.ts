@@ -25,6 +25,11 @@ const config: NextConfig = {
           },
         ],
       },
+      {
+        // Browsers must always fetch the latest worker so a fix ships with the next deploy.
+        source: '/sw.js',
+        headers: [{ key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' }],
+      },
     ];
   },
 };

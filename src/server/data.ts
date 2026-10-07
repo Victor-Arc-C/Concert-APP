@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { displayPrice } from '../domain/pricing';
 import { query } from './db';
 import { currentUser } from './security';
-import { env, spotifyAvailable, automaticConcertChecks } from './env';
+import { env, spotifyAvailable, automaticConcertChecks, pushAvailable } from './env';
 import { inviteRequired } from './invite';
 import { defaults } from '../domain/catalog';
 import { europe, rankEvents } from '../domain/recommendations';
@@ -189,6 +189,8 @@ export async function getAppData(): Promise<AppData> {
       ? !!(await query('SELECT user_id FROM music_accounts WHERE user_id=$1', [user.id])).length
       : false,
     spotifyAvailable: spotifyAvailable(),
+    // Public by design: browsers need it to subscribe. Null keeps push hidden.
+    pushPublicKey: pushAvailable() ? env().VAPID_PUBLIC_KEY! : null,
     liveAvailable: !!env().TICKETMASTER_API_KEY,
     inviteRequired: inviteRequired(),
     privacyContact: {

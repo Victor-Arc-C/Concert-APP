@@ -1923,6 +1923,42 @@ a.tour-row:hover {
   display: block;
   margin-top: 2px;
 }
+.push-settings {
+  margin-top: 20px;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  background: var(--panel);
+}
+.push-settings h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-data);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.push-settings > :last-child {
+  margin-bottom: 0;
+}
+.push-settings h3 > svg {
+  color: var(--accent);
+}
+.install-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding-left: 20px;
+  font-size: var(--step--1);
+}
+.install-steps svg {
+  vertical-align: -3px;
+  color: var(--accent);
+}
 .checkbox-label {
   flex-direction: row;
   align-items: flex-start;

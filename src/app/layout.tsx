@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   title: 'Encore — your next great night',
   description:
     'A personal shortlist of concerts by the artists you love. Explore the Encore pilot.',
+  // Home-screen app on iPhone: full screen, no Safari chrome, dark status bar over the board.
+  appleWebApp: { capable: true, title: 'Encore', statusBarStyle: 'black' },
 };
 export const viewport = { themeColor: '#0b0d12' };
 export default function RootLayout({ children }: { children: React.ReactNode }) {

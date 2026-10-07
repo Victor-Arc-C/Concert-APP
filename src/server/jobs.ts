@@ -3,10 +3,11 @@ import { reportError } from './monitoring';
 import { env } from './env';
 import { syncArtists } from './providers/ticketmaster';
 import { evaluateAlerts, userLists } from './data';
+import { pushNewAlerts } from './push';
 import type { Concert, User } from '../domain/types';
 
 const state = globalThis as typeof globalThis & {
-  encoreChecks?: Promise<{ evaluated: number; failures: number }>;
+  encoreChecks?: Promise<{ evaluated: number; failures: number; pushed: number }>;
 };
 export function runConcertChecks() {
   if (state.encoreChecks) return state.encoreChecks;
@@ -26,7 +27,8 @@ async function performChecks() {
   await query("DELETE FROM analytics WHERE created_at<NOW()-INTERVAL '30 days'");
   await query("DELETE FROM rate_limits WHERE window_at<NOW()-INTERVAL '2 days'");
   let evaluated = 0,
-    failures = 0;
+    failures = 0,
+    pushed = 0;
   for (const user of users) {
     try {
       if (user.mode === 'live' && env().TICKETMASTER_API_KEY) {
@@ -37,6 +39,8 @@ async function performChecks() {
       const events = await query<{ data: Concert }>('SELECT data FROM events WHERE sample=$1', [
         user.mode === 'sample',
       ]);
+      // Database time, so the comparison with alerts.created_at is not affected by clock skew.
+      const [clock] = await query<{ now: string }>('SELECT NOW() AS now');
       await evaluateAlerts(
         user,
         events.map((e) => e.data),
@@ -45,11 +49,13 @@ async function performChecks() {
         lists.feedback,
       );
       evaluated++;
+      // Only alerts created by this run: anything created while the user had Encore open was seen.
+      if (user.mode === 'live' && clock) pushed += await pushNewAlerts(user.id, clock.now);
     } catch {
       failures++;
       reportError('job_account_failed');
       // No provider URLs or credentials in logs. Keep processing other accounts.
     }
   }
-  return { evaluated, failures };
+  return { evaluated, failures, pushed };
 }
