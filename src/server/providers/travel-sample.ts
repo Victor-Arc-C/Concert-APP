@@ -6,13 +6,14 @@ import type {
   TransportProvider,
 } from '../../domain/trip-types';
 
-
-
 /**
  * Deterministic Sample/Mock Transport Provider.
- * Generates realistic European train and flight options connecting major cities.
+ * Generates fictional European transport fixtures connecting major cities.
  */
 export class SampleTransportProvider implements TransportProvider {
+  kind = 'sample' as const;
+  sourceIds = ['local-transit', 'sample-euro-rail', 'sample-euro-air', 'sample-euro-bus'];
+  bookingHosts: string[] = [];
   name = 'Sample European Transport';
 
   async getOptions(
@@ -30,6 +31,9 @@ export class SampleTransportProvider implements TransportProvider {
       // Local transit option (e.g. metro / local city transit)
       return [
         {
+          kind: 'sample',
+          availability: 'sample',
+          priceComplete: true,
           id: `trans-local-${origin.toLowerCase()}-${eventDate}`,
           provider: 'local-transit',
           mode: 'train',
@@ -66,6 +70,9 @@ export class SampleTransportProvider implements TransportProvider {
 
     const options: TransportOption[] = [
       {
+        kind: 'sample',
+        availability: 'sample',
+        priceComplete: true,
         id: `trans-train-${origin.toLowerCase()}-${destinationCity.toLowerCase()}-${eventDate}`,
         provider: 'sample-euro-rail',
         mode: 'train',
@@ -78,7 +85,7 @@ export class SampleTransportProvider implements TransportProvider {
         price: trainPrice,
         currency: 'EUR',
         observedAt,
-        bookingUrl: `https://www.sncf-connect.com`,
+        bookingUrl: null,
         operator: 'Euro High-Speed Rail',
       },
     ];
@@ -88,6 +95,9 @@ export class SampleTransportProvider implements TransportProvider {
       const flightDuration = Math.round(75 + (distance / 700) * 40); // flight in air + basic transfer
       const flightPrice = Math.max(55, Math.round(trainPrice * 1.35));
       options.push({
+        kind: 'sample',
+        availability: 'sample',
+        priceComplete: true,
         id: `trans-flight-${origin.toLowerCase()}-${destinationCity.toLowerCase()}-${eventDate}`,
         provider: 'sample-euro-air',
         mode: 'flight',
@@ -100,7 +110,7 @@ export class SampleTransportProvider implements TransportProvider {
         price: flightPrice,
         currency: 'EUR',
         observedAt,
-        bookingUrl: `https://www.google.com/travel/flights`,
+        bookingUrl: null,
         operator: 'Regional Express Airline',
       });
     } else {
@@ -108,6 +118,9 @@ export class SampleTransportProvider implements TransportProvider {
       const busDuration = Math.round(trainDuration * 1.7);
       const busPrice = Math.max(15, Math.round(trainPrice * 0.45));
       options.push({
+        kind: 'sample',
+        availability: 'sample',
+        priceComplete: true,
         id: `trans-bus-${origin.toLowerCase()}-${destinationCity.toLowerCase()}-${eventDate}`,
         provider: 'sample-euro-bus',
         mode: 'bus',
@@ -120,7 +133,7 @@ export class SampleTransportProvider implements TransportProvider {
         price: busPrice,
         currency: 'EUR',
         observedAt,
-        bookingUrl: `https://global.flixbus.com`,
+        bookingUrl: null,
         operator: 'Intercity Coach',
       });
     }
@@ -131,9 +144,12 @@ export class SampleTransportProvider implements TransportProvider {
 
 /**
  * Deterministic Sample/Mock Accommodation Provider.
- * Generates realistic hotels/stays close to concert venues.
+ * Generates fictional hotel/stay fixtures; distances are fictional.
  */
 export class SampleAccommodationProvider implements AccommodationProvider {
+  kind = 'sample' as const;
+  sourceIds = ['sample-stays'];
+  bookingHosts: string[] = [];
   name = 'Sample European Stays';
 
   async getOptions(
@@ -151,6 +167,9 @@ export class SampleAccommodationProvider implements AccommodationProvider {
     // Option 1: Boutique / Venue-Adjacent Hotel (Close, premium)
     const venueHotelPrice = 115 * Math.max(1, guests);
     const option1: AccommodationOption = {
+      kind: 'sample',
+      availability: 'sample',
+      priceComplete: true,
       id: `stay-close-${destinationCity.toLowerCase()}-${eventDate}`,
       provider: 'sample-stays',
       name: `${destinationCity} Grand Stage Hotel`,
@@ -162,12 +181,15 @@ export class SampleAccommodationProvider implements AccommodationProvider {
       currency: 'EUR',
       distanceKmToVenue: 0.8,
       observedAt,
-      bookingUrl: `https://www.booking.com`,
+      bookingUrl: null,
     };
 
     // Option 2: Central Budget Hotel / Design Hostel (Further, cheaper)
     const centralHotelPrice = 68 * Math.max(1, guests);
     const option2: AccommodationOption = {
+      kind: 'sample',
+      availability: 'sample',
+      priceComplete: true,
       id: `stay-central-${destinationCity.toLowerCase()}-${eventDate}`,
       provider: 'sample-stays',
       name: `${destinationCity} Central Hub Suites`,
@@ -179,7 +201,7 @@ export class SampleAccommodationProvider implements AccommodationProvider {
       currency: 'EUR',
       distanceKmToVenue: 2.9,
       observedAt,
-      bookingUrl: `https://www.booking.com`,
+      bookingUrl: null,
     };
 
     return [option1, option2];

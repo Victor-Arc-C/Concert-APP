@@ -3,8 +3,9 @@ import { displayPrice } from '../domain/pricing';
 import { query } from './db';
 import { currentUser } from './security';
 import { env, spotifyAvailable, automaticConcertChecks } from './env';
+import { inviteRequired } from './invite';
 import { defaults } from '../domain/catalog';
-import { rankEvents } from '../domain/recommendations';
+import { europe, rankEvents } from '../domain/recommendations';
 import { safeTicketUrl } from '../domain/normalization';
 import { reportError } from './monitoring';
 import type {
@@ -17,7 +18,7 @@ import type {
   Intent,
   User,
 } from '../domain/types';
-import type { SavedTrip } from '../domain/trip-types';
+import { savedTripsForUser } from './saved-trips';
 
 export async function userLists(userId: string) {
   const [affinities, intents, feedback] = await Promise.all([
@@ -62,6 +63,28 @@ export async function evaluateAlerts(
     );
   }
 }
+/** Live discovery candidates beyond the user's own artists (other followed live artists). */
+export const LIVE_DISCOVERY_LIMIT = 100;
+// One live response must stay far below Vercel's 4.5 MB limit however many artists other
+// accounts follow: the user's saved/dismissed/clicked/alerted concerts and saved trips, upcoming
+// European dates of their own (followed or hidden) artists, and a capped set of the nearest
+// other upcoming European concerts for discovery.
+export const LIVE_EVENTS_SQL = `
+  SELECT e.data,t.price_min::float AS price,t.currency,
+    t.observed_at AS "observedAt",t.disabled_at AS "disabledAt"
+  FROM events e LEFT JOIN ticket_sources t ON t.event_id=e.id
+    AND t.provider=e.data->>'provider' AND t.external_id=e.data->>'externalId'
+  WHERE e.sample=FALSE AND (
+    e.id IN (SELECT event_id FROM feedback WHERE user_id=$1
+             UNION SELECT event_id FROM alerts WHERE user_id=$1
+             UNION SELECT event_id FROM saved_trips WHERE user_id=$1)
+    OR (e.data->>'date' >= $2 AND e.data->>'country' = ANY($3::text[]) AND (
+      e.data->'artistIds' ?| $4::text[]
+      OR e.id IN (SELECT d.id FROM events d
+                  WHERE d.sample=FALSE AND d.data->>'date' >= $2
+                    AND d.data->>'country' = ANY($3::text[])
+                    AND NOT (d.data->'artistIds' ?| $4::text[])
+                  ORDER BY d.data->>'date', d.id LIMIT $5))))`;
 export async function getAppData(): Promise<AppData> {
   const user = await currentUser();
   const artistRows = await query<{ data: Artist }>(
@@ -72,20 +95,44 @@ export async function getAppData(): Promise<AppData> {
      FROM artists a ORDER BY a.id`,
   );
   const sample = user?.mode !== 'live';
-  const eventRows = await query<{
+  const lists = user
+    ? await userLists(user.id)
+    : {
+        affinities: artistRows
+          .filter((a) => !a.data.providerId)
+          .map((a) => ({
+            artistId: a.data.id,
+            favorite: a.data.id === 'fred-again',
+            hidden: false,
+          })),
+        intents: [],
+        feedback: [],
+      };
+  type EventRow = {
     data: Concert;
     price: number | null;
     currency: string | null;
     observedAt: Date | null;
     disabledAt: Date | null;
-  }>(
-    `SELECT e.data,t.price_min::float AS price,t.currency,
+  };
+  const eventRows =
+    sample || !user
+      ? await query<EventRow>(
+          `SELECT e.data,t.price_min::float AS price,t.currency,
       t.observed_at AS "observedAt",t.disabled_at AS "disabledAt"
      FROM events e LEFT JOIN ticket_sources t ON t.event_id=e.id
       AND t.provider=e.data->>'provider' AND t.external_id=e.data->>'externalId'
-     WHERE e.sample=$1`,
-    [sample],
-  );
+     WHERE e.sample=TRUE`,
+        )
+      : await query<EventRow>(LIVE_EVENTS_SQL, [
+          user.id,
+          // One day of slack so a show tonight in any timezone is still listed.
+          new Date(Date.now() - 86_400_000).toISOString().slice(0, 10),
+          [...europe],
+          // Hidden artists too: their own page still lists dates; ranking keeps them out of the feed.
+          lists.affinities.map((a) => a.artistId),
+          LIVE_DISCOVERY_LIMIT,
+        ]);
   const events = eventRows.map(({ data: event, price, currency, observedAt, disabledAt }) =>
     event.provider === 'sample'
       ? event
@@ -100,19 +147,6 @@ export async function getAppData(): Promise<AppData> {
           priceObservedAt: observedAt ? new Date(observedAt).toISOString() : null,
         },
   );
-  const lists = user
-    ? await userLists(user.id)
-    : {
-        affinities: artistRows
-          .filter((a) => !a.data.providerId)
-          .map((a) => ({
-            artistId: a.data.id,
-            favorite: a.data.id === 'fred-again',
-            hidden: false,
-          })),
-        intents: [],
-        feedback: [],
-      };
   if (user) await evaluateAlerts(user, events, lists.affinities, lists.intents, lists.feedback);
   const alerts = user
     ? await query<Alert>(
@@ -146,12 +180,8 @@ export async function getAppData(): Promise<AppData> {
     ),
     allEvents: all,
     saved: all.filter((e) => e.saved),
-    savedTrips: user
-      ? await query<SavedTrip>(
-          'SELECT id,user_id AS "userId",event_id AS "eventId",trip_option_id AS "tripOptionId",origin_city AS "originCity",destination_city AS "destinationCity",event_date AS "eventDate",trip_data AS "tripData",created_at AS "createdAt",updated_at AS "updatedAt" FROM saved_trips WHERE user_id=$1 ORDER BY created_at DESC',
-          [user.id],
-        )
-      : [],
+    // State is polled every minute: never call live travel providers from here.
+    savedTrips: user ? await savedTripsForUser(user, new Date(), { liveLookups: false }) : [],
 
     alerts,
 
@@ -160,6 +190,11 @@ export async function getAppData(): Promise<AppData> {
       : false,
     spotifyAvailable: spotifyAvailable(),
     liveAvailable: !!env().TICKETMASTER_API_KEY,
+    inviteRequired: inviteRequired(),
+    privacyContact: {
+      controller: env().PRIVACY_CONTROLLER ?? null,
+      email: env().PRIVACY_CONTACT_EMAIL ?? null,
+    },
     automaticChecks: automaticConcertChecks(),
     artistChecks: user
       ? await query(

@@ -24,6 +24,7 @@ import { Landing, Auth, Onboarding, Privacy } from './onboarding';
 import { Feed, EventDetail, Artists, ArtistDetail, Saved, Inbox } from './screens';
 import { SettingsPage } from './settings';
 import { TripPlanner, TripsList } from './trips-screen';
+import { FeedbackButton } from './feedback';
 const navigation = [
   { url: '/app', label: 'For you', icon: Compass },
   { url: '/app/saved', label: 'Saved shows', icon: Bookmark },
@@ -165,7 +166,7 @@ export function Encore() {
         </a>
         <aside className="sidebar">
           <Brand />
-          <div className="nav-label">Your live music, closer.</div>
+          <div className="nav-label">Every show worth the trip</div>
           <nav aria-label="Main navigation">
             {navigation.map((item) => (
               <Link
@@ -188,18 +189,8 @@ export function Encore() {
             ))}
           </nav>
 
-          <div className="sidebar-note">
-            <AudioLines />
-            <p>
-              Less searching.
-              <br />
-              More being there.
-            </p>
-            <Link href="/app/artists">
-              Make it yours <ArrowUpRight size={14} />
-            </Link>
-          </div>
           <div className="sidebar-bottom">
+            <FeedbackButton className="nav-item" />
             <Link
               className={`nav-item ${path === '/app/settings' ? 'active' : ''}`}
               href="/app/settings"
@@ -237,8 +228,9 @@ export function Encore() {
             <div className="mobile-brand">
               <Brand />
             </div>
-            <span className="topbar-title">A little closer to the music.</span>
+            <span className="topbar-title">Departures from {data.user?.preferences.home ?? 'Paris'}</span>
             <div className="topbar-actions">
+              <FeedbackButton className="icon-button" label={false} />
               <Link href="/app/settings" className="location-button">
                 <MapPin size={15} />
                 {data.user?.preferences.home ?? 'Paris'}

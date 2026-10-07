@@ -1,8 +1,13 @@
-import { randomUUID, timingSafeEqual } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { NextResponse } from 'next/server';
 import { query } from './db';
-import { authSchema, intentSchema, preferencesSchema } from '../domain/validation';
+import {
+  authSchema,
+  betaFeedbackSchema,
+  intentSchema,
+  preferencesSchema,
+} from '../domain/validation';
 import { defaults } from '../domain/catalog';
 import type { Concert, User } from '../domain/types';
 import {
@@ -29,10 +34,14 @@ import {
 import { resolveSpotifyArtists, searchArtists, syncArtists } from './providers/ticketmaster';
 import { ProviderError } from './providers/http';
 import { runConcertChecks } from './jobs';
+import { schedulerAuthorized } from './scheduler-auth';
+import { unsupportedLiveArtists } from '../domain/onboarding';
+import { inviteCodes, inviteValid } from './invite';
 import { ticketSources, selectTicketSource } from './tickets';
 import { generateTripOptions } from './trips';
-import type { SavedTrip } from '../domain/trip-types';
-
+import { savedTripsForUser, saveTrip, tripEvent } from './saved-trips';
+import { exportBetaFeedback, saveBetaFeedback } from './beta-feedback';
+import { joinWaitlist, publicGigs, waitlistSchema } from './marketing';
 
 function onboardingSpotifyState(state: string) {
   try {
@@ -81,20 +90,18 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
   const key = path.join('/'),
     url = new URL(request.url);
   try {
-    if (key === 'jobs' && request.method === 'POST') {
-      const secret = env().CRON_SECRET,
-        token = request.headers.get('authorization')?.replace(/^Bearer /, '');
-      if (
-        !secret ||
-        !token ||
-        Buffer.byteLength(secret) !== Buffer.byteLength(token) ||
-        !timingSafeEqual(Buffer.from(secret), Buffer.from(token))
-      )
+    if (key === 'jobs' && (request.method === 'POST' || request.method === 'GET')) {
+      // GET is what Vercel Cron sends (see vercel.json); POST is kept for external schedulers.
+      if (!schedulerAuthorized(request.headers.get('authorization'), env().CRON_SECRET))
         throw new HttpError(401, 'Invalid scheduler credentials.');
       return ok(await runConcertChecks());
     }
     if (request.method === 'GET') {
       if (key === 'state') return ok(await getAppData());
+      if (key === 'gigs')
+        return NextResponse.json(await publicGigs(), {
+          headers: { 'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=3600' },
+        });
       if (key === 'spotify/callback') {
         const user = await requireUser();
         if (url.searchParams.get('error')) {
@@ -129,20 +136,18 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
           sources: await ticketSources(await ownEvent(url.searchParams.get('eventId') ?? '', user)),
         });
       if (key === 'trips') {
+        // Each plan can call live travel providers with shared daily quotas.
+        await rateLimit(`trips:${user.id}`, 20, 60);
         const eventId = url.searchParams.get('eventId') ?? '';
-        const event = await ownEvent(eventId, user);
+        await ownEvent(eventId, user);
+        const event = await tripEvent(eventId);
+        if (!event) throw new HttpError(404, 'Concert not found.');
         const options = await generateTripOptions(event, user);
         return ok({ options });
       }
       if (key === 'trips/saved') {
-        const rows = await query<SavedTrip>(
-          `SELECT id, user_id AS "userId", event_id AS "eventId", trip_option_id AS "tripOptionId",
-           origin_city AS "originCity", destination_city AS "destinationCity", event_date AS "eventDate",
-           trip_data AS "tripData", created_at AS "createdAt", updated_at AS "updatedAt"
-           FROM saved_trips WHERE user_id=$1 ORDER BY created_at DESC`,
-          [user.id],
-        );
-        return ok({ savedTrips: rows });
+        await rateLimit(`trips:${user.id}`, 20, 60);
+        return ok({ savedTrips: await savedTripsForUser(user) });
       }
 
       if (key === 'artists/search') {
@@ -174,6 +179,11 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
             alerts,
             analytics,
             clicks,
+            betaFeedback: await exportBetaFeedback(user.id),
+            savedTrips: await query(
+              'SELECT id,event_id,trip_option_id,origin_city,destination_city,event_date,trip_data,created_at,updated_at FROM saved_trips WHERE user_id=$1',
+              [user.id],
+            ),
             spotifyChoices: await query(
               'SELECT spotify_id,artist_id,affinity FROM spotify_artist_preferences WHERE user_id=$1',
               [user.id],
@@ -191,12 +201,29 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
     }
     if (request.method !== 'POST') throw new HttpError(405, 'Method not supported.');
     checkOrigin(request);
+    if (key === 'waitlist') {
+      await rateLimit('waitlist-global', 300, 60);
+      const input = waitlistSchema.parse(await body(request));
+      await rateLimit(`waitlist:${input.email}`, 5, 3600);
+      await joinWaitlist(input);
+      return ok();
+    }
     if (key === 'auth/signup' || key === 'auth/login') {
       await rateLimit('auth-global', 100, 60);
       const input = authSchema.parse(await body(request));
       await rateLimit(`auth:${input.email}`, 8, 900);
       if (key === 'auth/signup') {
         if (!input.name) throw new HttpError(400, 'Add your name.');
+        const codes = inviteCodes();
+        if (codes.length) {
+          // Checked before the account lookup so a missing code never reveals registered emails.
+          await rateLimit('invite-global', 60, 900);
+          if (!inviteValid(input.inviteCode, codes))
+            throw new HttpError(
+              403,
+              'This invite code is not valid. Ask the person who invited you.',
+            );
+        }
         if ((await query('SELECT id FROM users WHERE email=$1', [input.email])).length)
           throw new HttpError(409, 'This account could not be created. Try signing in.');
         const id = randomUUID();
@@ -235,9 +262,29 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
           artistIds: z.array(z.string()).min(1).max(40),
           preferences: preferencesSchema,
           mode: z.enum(['sample', 'live']),
+          source: z.enum(['manual', 'spotify', 'mixed', 'demo']).optional(),
         })
         .parse(await body(request));
       for (const id of input.artistIds) await artistExists(id);
+      if (input.mode === 'live') {
+        // Never complete a live onboarding that would silently show nothing but fiction.
+        if (!env().TICKETMASTER_API_KEY)
+          throw new HttpError(
+            503,
+            'Live concerts are not available right now. Try again later or explore the demo.',
+          );
+        const backed = await query<{ artist_id: string }>(
+          'SELECT DISTINCT artist_id FROM artist_provider_records WHERE artist_id=ANY($1)',
+          [[...new Set(input.artistIds)]],
+        );
+        if (
+          unsupportedLiveArtists(
+            input.artistIds,
+            backed.map((row) => row.artist_id),
+          ).length
+        )
+          throw new HttpError(400, 'Choose artists from the live search to see real concerts.');
+      }
       await query('DELETE FROM affinities WHERE user_id=$1', [user.id]);
       for (const id of new Set(input.artistIds))
         await query('INSERT INTO affinities(user_id,artist_id) VALUES($1,$2)', [user.id, id]);
@@ -264,6 +311,7 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
       await recordAnalytics(
         { ...user, preferences: input.preferences, mode: input.mode },
         'onboarding_completed',
+        input.source ? { source: input.source } : {},
       );
       return ok();
     }
@@ -407,52 +455,7 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
       return ok({ url: selected.url });
     }
     if (key === 'trips/save') {
-      const input = z
-        .object({
-          eventId: z.string().min(1),
-          trip: z.object({
-            id: z.string(),
-            eventId: z.string(),
-            originCity: z.string(),
-            destinationCity: z.string(),
-            destinationVenue: z.string(),
-            eventDate: z.string(),
-            ticketPrice: z.number().nullable(),
-            ticketCurrency: z.string().nullable(),
-            ticketObservedAt: z.string().nullable(),
-            ticketProvider: z.string().nullable(),
-            transport: z.any(),
-            accommodation: z.any(),
-            estimatedTotal: z.number().nullable(),
-            totalCurrency: z.string().nullable(),
-            scores: z.any(),
-            label: z.string().nullable(),
-            reasons: z.array(z.string()),
-            generatedAt: z.string(),
-          }),
-        })
-        .parse(await body(request));
-      const event = await ownEvent(input.eventId, user);
-      if (['cancelled', 'postponed'].includes(event.status)) {
-        throw new HttpError(422, 'Cannot save a trip for a cancelled or postponed concert.');
-      }
-      const tripId = randomUUID();
-      await query(
-        `INSERT INTO saved_trips(id, user_id, event_id, trip_option_id, origin_city, destination_city, event_date, trip_data)
-         VALUES($1, $2, $3, $4, $5, $6, $7, $8)
-         ON CONFLICT(user_id, event_id, trip_option_id)
-         DO UPDATE SET trip_data=EXCLUDED.trip_data, updated_at=NOW()`,
-        [
-          tripId,
-          user.id,
-          event.id,
-          input.trip.id,
-          input.trip.originCity,
-          input.trip.destinationCity,
-          input.trip.eventDate,
-          JSON.stringify(input.trip),
-        ],
-      );
+      const event = await saveTrip(user, await body(request));
       await recordConcertAnalytics(user, event, 'concert_opened', 'detail');
       return ok();
     }
@@ -470,6 +473,10 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
       return ok();
     }
 
+    if (key === 'beta-feedback') {
+      await saveBetaFeedback(user, betaFeedbackSchema.parse(await body(request)));
+      return ok();
+    }
     if (key === 'analytics') {
       const input = z
         .object({

@@ -121,7 +121,7 @@ test('founder flow: register, choose artists, save, persist, must-see, alert, di
   await page.getByRole('button', { name: 'Delete account', exact: true }).click();
   await page.getByLabel('Confirm your current password').fill(password);
   await page.getByRole('button', { name: 'Delete my account permanently' }).click();
-  await expect(page.getByRole('heading', { name: /Your favourite music/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Every show worth the trip.' })).toBeVisible();
   expect((await (await page.request.get('/api/state')).json()).user).toBeNull();
 });
 test('API authorisation, CSRF, account isolation and honest provider errors', async ({
@@ -158,6 +158,29 @@ test('API authorisation, CSRF, account isolation and honest provider errors', as
         })
       ).ok(),
     ).toBe(true);
+  // CON-33: live onboarding never completes with fictional artists or without a live provider.
+  const onboardingPreferences = {
+    home: 'Paris',
+    scope: 'europe',
+    maxHours: null,
+    radiusKm: null,
+    budget: null,
+    notifications: 'off',
+    analytics: false,
+  };
+  expect(
+    (
+      await a.post('/api/onboarding', {
+        data: {
+          artistIds: ['fred-again'],
+          mode: 'live',
+          source: 'manual',
+          preferences: onboardingPreferences,
+        },
+      })
+    ).status(),
+  ).toBe(503);
+  expect((await (await a.get('/api/state')).json()).user.onboarded).toBe(false);
   expect(
     (await a.post('/api/feedback', { data: { eventId: 'sample-1', action: 'saved' } })).ok(),
   ).toBe(true);
@@ -181,6 +204,8 @@ test('API authorisation, CSRF, account isolation and honest provider errors', as
   expect((await a.post('/api/spotify/disconnect', { data: {} })).ok()).toBe(true);
   expect((await (await a.get('/api/export')).json()).spotifyChoices).toEqual([]);
   expect((await a.post('/api/jobs', { data: {} })).status()).toBe(401);
+  expect((await a.get('/api/jobs')).status()).toBe(401);
+  expect((await anon.get('/api/jobs')).status()).toBe(401);
   await a.post('/api/mode', { data: { mode: 'live' } });
   const live = await (await a.get('/api/state')).json();
   expect(live.events).toHaveLength(0);
@@ -207,8 +232,10 @@ test('desktop and mobile previews have working filters and no horizontal overflo
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
   );
-  await page.goto('/');
-  await expect(page.getByRole('link', { name: 'Try the sample experience' })).toBeVisible();
+  // The checks below are about layout, not image decoding, so don't wait for every screenshot.
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('heading', { name: 'Every show worth the trip.' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Join the waitlist' })).toBeVisible();
   await page.screenshot({ path: 'test-results/encore-landing-mobile.png', fullPage: true });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
@@ -494,6 +521,9 @@ test('trip intelligence flow: concert -> plan trip -> compare itineraries -> sav
   // Check that options are generated and loaded
   await expect(page.locator('.option-pill-group button').first()).toBeVisible();
 
+  await expect(page.getByText('Sample trip — all travel, stays, prices and distances are fictional.')).toBeVisible();
+  await expect(page.getByRole('link', { name: /Check transport booking|Check accommodation booking/ })).toHaveCount(0);
+
   // Check 3 steps: Ticket, Transport, Stay
   await expect(page.getByText('Concert Ticket')).toBeVisible();
   await expect(page.getByText(/Euro High-Speed Rail|Regional Express Airline|Intercity Coach/)).toBeVisible();
@@ -511,3 +541,126 @@ test('trip intelligence flow: concert -> plan trip -> compare itineraries -> sav
   await expect(page.getByRole('link', { name: 'View itinerary' })).toBeVisible();
 });
 
+test('trip API rejects snapshots, isolates saves and revalidates saved intent across modes', async ({ playwright }) => {
+  const a = await playwright.request.newContext({ baseURL: origin, extraHTTPHeaders: { Origin: origin } });
+  const b = await playwright.request.newContext({ baseURL: origin, extraHTTPHeaders: { Origin: origin } });
+  const anon = await playwright.request.newContext({ baseURL: origin, extraHTTPHeaders: { Origin: origin } });
+  try {
+    expect((await anon.get('/api/trips?eventId=sample-3')).status()).toBe(401);
+    expect((await anon.post('/api/trips/save', { data: { eventId: 'sample-3', tripOptionId: 'fake' } })).status()).toBe(401);
+    for (const [i, context] of [a, b].entries()) {
+      expect((await context.post('/api/auth/signup', { data: { email: `trip-safety-${i}-${Date.now()}@example.test`, password, name: 'Test' } })).ok()).toBe(true);
+    }
+    const { options } = await (await a.get('/api/trips?eventId=sample-3')).json();
+    const selection = { eventId: 'sample-3', tripOptionId: options[0].id };
+    for (const extra of [{ trip: options[0] }, { provider: 'arbitrary' }, { currency: 'bad' }, { price: -1 }, { bookingUrl: 'javascript:alert(1)' }, { userId: 'other' }]) {
+      expect((await a.post('/api/trips/save', { data: { ...selection, ...extra } })).status()).toBe(400);
+    }
+    expect((await a.post('/api/trips/save', { data: { ...selection, eventId: 'sample-1' } })).status()).toBe(422);
+    expect((await a.post('/api/trips/save', { headers: { Origin: 'https://evil.test' }, data: selection })).status()).toBe(403);
+    expect((await a.post('/api/trips/save', { data: selection })).ok()).toBe(true);
+    expect((await (await b.get('/api/trips/saved')).json()).savedTrips).toEqual([]);
+    expect((await b.post('/api/trips/delete', { data: selection })).ok()).toBe(true);
+    const fresh = (await (await a.get('/api/trips/saved')).json()).savedTrips;
+    expect(fresh).toHaveLength(1);
+    expect(fresh[0].revalidationStatus).toBe('current');
+    expect(fresh[0].tripData.transport.kind).toBe('sample');
+    expect(fresh[0].tripData.transport.bookingUrl).toBeNull();
+    expect(fresh[0].tripData.label).toBeNull();
+    expect((await a.post('/api/mode', { data: { mode: 'live' } })).ok()).toBe(true);
+    const saved = (await (await a.get('/api/trips/saved')).json()).savedTrips;
+    expect(saved).toHaveLength(1);
+    expect(saved[0].tripData).toMatchObject({ planStatus: 'mode_changed', transport: null, accommodation: null, estimatedTotal: null, label: null });
+    const state = await (await a.get('/api/state')).json();
+    expect(state.savedTrips[0].tripData.transport).toBeNull();
+  } finally {
+    for (const context of [a, b]) await context.post('/api/account/delete', { data: { password } });
+    await a.dispose(); await b.dispose(); await anon.dispose();
+  }
+});
+
+test('manual live onboarding without Spotify: search, retry, demo opt-in, live submit', async ({
+  page,
+}) => {
+  const email = `live-onboarding-${Date.now()}@example.test`;
+  expect(
+    (
+      await page.request.post('/api/auth/signup', {
+        headers: { Origin: origin },
+        data: { name: 'Live Picker', email, password },
+      })
+    ).ok(),
+  ).toBe(true);
+  await page.route('**/api/state', async (route) => {
+    const response = await route.fetch();
+    const state = await response.json();
+    state.liveAvailable = true;
+    state.spotifyAvailable = false;
+    state.user.onboarded = false;
+    await route.fulfill({ response, json: state });
+  });
+  let searchFails = true;
+  await page.route('**/api/artists/search**', async (route) => {
+    if (searchFails) {
+      await route.fulfill({
+        status: 503,
+        json: { error: 'The concert provider is unavailable. Try again shortly.' },
+      });
+      return;
+    }
+    expect(new URL(route.request().url()).searchParams.get('q')).toBe('Angele');
+    await route.fulfill({
+      json: {
+        artists: [
+          {
+            id: 'tm-artist-angele',
+            name: 'Angèle',
+            genre: 'Live music',
+            initials: 'an',
+            color: '#867496',
+            providerId: 'K8vZ-angele',
+          },
+        ],
+      },
+    });
+  });
+  let submitted: Record<string, unknown> | null = null;
+  await page.route('**/api/onboarding', async (route) => {
+    submitted = route.request().postDataJSON();
+    await route.fulfill({ json: { ok: true } });
+  });
+  await page.goto('/onboarding');
+  await page.getByRole('button', { name: 'Choose artists', exact: true }).click();
+  await expect(page.getByLabel('Search real artists')).toBeVisible();
+  // Fictional catalogue is not offered until the user opts into the demo.
+  await expect(page.getByRole('button', { name: /Fred again\.\./ })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Find my concerts' })).toBeDisabled();
+
+  await page.getByLabel('Search real artists').fill('Angele');
+  await page.getByRole('button', { name: 'Search', exact: true }).click();
+  await expect(page.getByText('The concert provider is unavailable. Try again shortly.')).toBeVisible();
+  searchFails = false;
+  await page.getByRole('button', { name: 'Try again', exact: true }).click();
+  const angele = page.getByRole('button', { name: /Angèle/ });
+  await expect(angele).toHaveAttribute('aria-pressed', 'false');
+  await angele.click();
+  await expect(angele).toHaveAttribute('aria-pressed', 'true');
+
+  // Demo is an explicit, reversible choice and does not mix with live picks.
+  await page.getByRole('button', { name: /Try the demo with fictional concerts/ }).click();
+  await expect(page.getByText('Demo mode: concerts, dates and prices are fictional.')).toBeVisible();
+  await expect(page.getByRole('button', { name: /Fred again\.\./ })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Find my concerts' })).toBeDisabled();
+  await page.getByRole('button', { name: 'Search real artists instead' }).click();
+
+  await page.getByLabel('Search real artists').fill('Angele');
+  await page.getByRole('button', { name: 'Search', exact: true }).click();
+  await page.getByRole('button', { name: /Angèle/ }).click();
+  await page.getByRole('button', { name: 'Find my concerts' }).click();
+  await expect.poll(() => submitted).not.toBeNull();
+  expect(submitted).toMatchObject({
+    artistIds: ['tm-artist-angele'],
+    mode: 'live',
+    source: 'manual',
+  });
+});

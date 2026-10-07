@@ -46,7 +46,10 @@ Tests create and delete accounts using `example.test` addresses. Provider integr
 
 **All sample concerts, dates and prices are fictional.** They are not real inventory. Photography provides generic atmosphere and does not depict the artist/event named. Sample mode cannot open ticket checkout.
 
-No live transport or hotel provider is connected. Trip Intelligence currently generates fictional sample transport and stays; its provider selection does not yet enforce sample/live separation. The target is provider-neutral comparison across trains, flights and buses/coaches, subject to approved live provider access. See the [CON-30 multimodal provider research, access prerequisites and proposed integration](docs/CON-30-TRAVEL-PROVIDERS.md) before enabling real travel recommendations. No tickets are held, purchased or guaranteed. In-app alerts are evaluated after scheduled refreshes and on app reads; email/push delivery is not connected. Live listings are cached per artist for one hour. Optional local automatic checks run while the server is awake; they are not real-time inventory monitoring.
+  No live transport or hotel provider is connected. Trip Intelligence currently generates fictional sample transport and stays; its provider selection does not yet enforce sample/live separation. The target is provider-neutral comparison across trains, flights and buses/coaches, subject to approved live provider access. See the [CON-30 multimodal provider research, access prerequisites and proposed integration](docs/CON-30-TRAVEL-PROVIDERS.md) before enabling real travel recommendations. No tickets are held, purchased or guaranteed. In-app alerts are evaluated after scheduled refreshes and on app reads; email/push delivery is not connected. Live listings are cached per artist for one hour. Optional local automatic checks run while the server is awake; they are not real-time inventory monitoring.
+Trip Intelligence uses live providers only when their server keys are set (see [docs/TRAVEL_PROVIDERS.md](docs/TRAVEL_PROVIDERS.md)): SNCF timetables for trains and coaches (times only, prices on SNCF Connect) and Nuitée LiteAPI hotel rates near the venue. Without keys, or when a provider fails, live mode shows explicit unavailable travel/stay components, never a sample fallback or invented total. Clearly labeled fictional transport/stays exist only for sample-mode concerts in test/local/development profiles. Sample travel/stay booking links are disabled. No tickets are held, purchased or guaranteed. In-app alerts are evaluated after scheduled refreshes and on app reads; email/push delivery is not connected. Live listings are cached per artist for one hour. Optional local automatic checks run while the server is awake; they are not real-time inventory monitoring.
+
+The [CON-31 accommodation research](docs/CON-31-ACCOMMODATION-PROVIDERS.md) recommends validating Nuitée LiteAPI access first, with Booking.com Demand redirect and Agoda MSE as managed alternatives. LiteAPI hotel rates are integrated behind `LITEAPI_API_KEY` (CON-43); production accepts only a LiteAPI production key. The [CON-32 safety gate](docs/CON-32-TRIP-SAFETY.md) covers provider-mode separation, current server selection, expiry and saved-plan revalidation.
 
 No affiliate commissions, premium subscription, sponsored placement, payment or package checkout is active. Stored ticket clicks are not purchases. Analytics events are collected only after the user opts in; not-yet-implemented actions do not produce fake events.
 
@@ -73,6 +76,10 @@ Set `DATABASE_URL` to managed PostgreSQL and set a canonical HTTPS `APP_URL`. Th
 Set a random `CRON_SECRET` (`openssl rand -hex 32`) and invoke `POST /api/jobs` with `Authorization: Bearer <secret>` from a scheduler. It refreshes followed live artists before evaluating alerts and removes expired sessions/OAuth attempts, old analytics (>30 days), and old rate-limit buckets. Run one scheduled worker centrally before a wider pilot; in-process serialization is not a distributed lock. Without scheduling, analytics cleanup is not automatic. In-app alert delivery is idempotent via a unique user/event/kind constraint.
 
 Database credentials, OAuth tokens and provider keys stay on the server. Do not prefix them with `NEXT_PUBLIC_`. No real secrets are included. A `.env.example` documents settings.
+
+## Private beta invite codes (CON-35)
+
+Set `BETA_INVITE_CODES` (comma-separated, case-sensitive) to require one of those codes at signup. Leave it empty for open signup. Codes are compared server-side in constant time, checked before any account lookup, rate-limited, and never logged or returned. Sign-in for existing accounts is not affected. To rotate a code, change the variable and redeploy.
 
 ## Public-launch gates
 
@@ -141,7 +148,15 @@ This Mac's existing application and database were recovered without replacing da
 
 Set `AUTO_CONCERT_CHECKS=true` and restart. On a single-process local PGlite server, a check runs 15 seconds after startup and every five minutes afterward. Newly followed live artists are picked up on the next check; successful artist results are reused for an hour across accounts, failed checks back off for 15 minutes. Manual and scheduled imports are serialized, overlapping job runs coalesce, and failed accounts do not block other accounts. Cached listings remain available during provider failures. Last attempt/success is shown per followed live artist in Settings. The visible app refreshes its inbox once a minute and when brought back to the foreground.
 
-Checks stop when the server stops or the computer sleeps and resume on the next timer tick after waking. This local timer is disabled on Vercel or when `DATABASE_URL` is configured; use the authenticated `/api/jobs` route with a centrally scheduled worker for deployment. Do not enable the timer during builds or browser tests. Important alerts include home-city shows, favourites, must-see matches and upcoming sales; Off generates no new alerts. A unique user/event/kind key prevents repeat alerts, while a sale reminder is intentionally separate from a discovery alert.
+Checks stop when the server stops or the computer sleeps and resume on the next timer tick after waking. This local timer is disabled on Vercel or when `DATABASE_URL` is configured; use the authenticated `/api/jobs` route with a centrally scheduled worker for deployment.
+
+### Scheduled checks on Vercel (CON-34)
+
+`vercel.json` schedules a daily Vercel Cron call to `GET /api/jobs` at `0 5 * * *` UTC. The Hobby plan allows one cron per day, triggered anywhere within that hour; Pro allows more frequent schedules. Set a long random `CRON_SECRET` in the Vercel project's Production environment. Vercel then sends `Authorization: Bearer <CRON_SECRET>`, and requests without that exact token get `401`. `POST /api/jobs` with the same header still works for external schedulers. Each run imports followed live artists (with the existing per-artist cache and failure backoff), evaluates alerts and removes expired sessions, OAuth attempts, analytics and rate-limit rows. To check that a run happened, look at the Vercel project's Cron Jobs / Logs, and at the per-artist "last checked" times in Settings. Do not enable the timer during builds or browser tests. Important alerts include home-city shows, favourites, must-see matches and upcoming sales; Off generates no new alerts. A unique user/event/kind key prevents repeat alerts, while a sale reminder is intentionally separate from a discovery alert.
+
+## Weekly beta metrics (CON-37)
+
+`npm run metrics:weekly` prints the five CON-5 launch metrics for the last finished week. Setup and definitions: [docs/ANALYTICS.md](docs/ANALYTICS.md#weekly-metrics-report-con-37).
 
 ## Contributing
 

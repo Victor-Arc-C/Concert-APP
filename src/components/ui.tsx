@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import Link from 'next/link';
 import { AudioLines, X, MapPin, Bookmark, ArrowUpRight, Sparkles } from 'lucide-react';
 import type { Artist, RankedConcert } from '@/domain/types';
@@ -18,7 +18,6 @@ export function Avatar({ artist, small = false }: { artist: Artist; small?: bool
   return (
     <span
       className={`artist-avatar ${small ? 'small' : ''}`}
-      style={{ background: artist.color }}
       aria-hidden={artist.image ? undefined : true}
     >
       {artist.image ? <img src={artist.image} alt="" loading="lazy" /> : artist.initials}
@@ -62,16 +61,17 @@ export function Modal({
   children: React.ReactNode;
   onClose: () => void;
 }) {
-  const ref = useRef<HTMLDialogElement>(null);
+  const ref = useRef<HTMLDialogElement>(null),
+    titleId = useId();
   useEffect(() => {
     const dialog = ref.current;
     dialog?.showModal();
     return () => dialog?.close();
   }, []);
   return (
-    <dialog ref={ref} className="modal" onCancel={onClose}>
+    <dialog ref={ref} className="modal" onCancel={onClose} aria-labelledby={titleId}>
       <div className="modal-heading">
-        <h2>{title}</h2>
+        <h2 id={titleId}>{title}</h2>
         <button className="icon-button" onClick={onClose} aria-label="Close dialog">
           <X />
         </button>
@@ -128,31 +128,56 @@ export function ConcertCard({
     observer.observe(card.current);
     return () => observer.disconnect();
   }, [trackImpression, consent, userId, event.id]);
+  const when = boardDate(event.date);
+  const status = boardStatus(event);
+  const via =
+    event.tier === 'Must see'
+      ? 'Must see'
+      : favorite
+        ? 'Favourite artist'
+        : event.tier === 'A favourite, live'
+          ? 'Artist you follow'
+          : event.tier;
   return (
-    <article ref={card} className={`concert-card ${featured ? 'featured' : ''}`}>
+    <article ref={card} className={`concert-card board-row ${featured ? 'featured' : ''}`}>
       <Link
-        className="card-image-link"
+        className="card-image-link board-when"
         href={`/app/events/${event.id}`}
         aria-label={`View ${event.artist} in ${event.city}`}
       >
-        <img
-          src={event.image}
-          alt=""
-          className="concert-image"
-          loading={featured ? 'eager' : 'lazy'}
-        />
+        <span className="board-weekday">{when.weekday}</span>
+        <span className="board-day">{when.day}</span>
+        <span className="board-month">{when.month}</span>
+        <span className="board-time">{event.localTime ? event.localTime.slice(0, 5) : '--:--'}</span>
       </Link>
-      <div className="image-shade" />
-      <span className={`fit-pill ${featured || favorite ? 'warm' : ''}`}>
-        <Sparkles size={13} />
-        {event.tier === 'Must see'
-          ? event.tier
-          : favorite
-            ? 'Favourite artist'
-            : event.tier === 'A favourite, live'
-              ? 'Artist you follow'
-              : event.tier}
-      </span>
+      <div className="board-what">
+        <h2>
+          <Link href={`/app/events/${event.id}`}>{event.artist}</Link>
+        </h2>
+        <p className="board-where">
+          <MapPin size={14} aria-hidden="true" />
+          <span>
+            <strong>{event.city}</strong>
+            <span className="meta-separator" aria-hidden="true" />
+            {event.venue}
+          </span>
+        </p>
+        <p className="board-via">
+          <Sparkles size={13} aria-hidden="true" />
+          {via}
+        </p>
+      </div>
+      <div className="board-fare">
+        <span className={`board-price ${event.price === null ? 'na' : ''}`}>
+          {event.price !== null && <small>from</small>}
+          {money(event.price, event.currency)}
+        </span>
+        <span className="board-flaps">
+          {featured && <span className="board-status wait">Next</span>}
+          <span className={`board-status ${status.tone}`}>{status.label}</span>
+        </span>
+        {event.provider === 'sample' && <small className="board-sample">Fictional sample</small>}
+      </div>
       <button
         className={`save-button ${event.saved ? 'saved' : ''}`}
         disabled={busy}
@@ -166,38 +191,37 @@ export function ConcertCard({
           )
         }
       >
-        <Bookmark size={19} fill={event.saved ? 'currentColor' : 'none'} />
+        <Bookmark size={18} fill={event.saved ? 'currentColor' : 'none'} />
       </button>
-      <div className="concert-content">
-        <div className="concert-genre">{event.genre}</div>
-        <h2>
-          <Link href={`/app/events/${event.id}`}>{event.artist}</Link>
-        </h2>
-        <p className="concert-meta">
-          <MapPin size={14} />
-          {event.city}
-          <span className="meta-separator" />
-          {event.venue}
-        </p>
-        <div className="concert-bottom">
-          <div>
-            <strong>{dateLabel(event.date)}</strong>
-            <span>
-              {event.price !== null ? 'From ' : ''}
-              {money(event.price, event.currency)}
-              {event.provider === 'sample' ? ' · sample' : ''}
-            </span>
-          </div>
-          <Link
-            className={featured ? 'button light' : 'round-link'}
-            href={`/app/events/${event.id}`}
-          >
-            {featured ? 'Explore this show' : <ArrowUpRight size={20} />}
-            <span className="sr-only">{featured ? '' : `View ${event.artist}`}</span>
-            {featured && <ArrowUpRight size={17} />}
-          </Link>
-        </div>
-      </div>
+      {featured && (
+        <Link className="button primary board-cta" href={`/app/events/${event.id}`}>
+          Explore this show
+          <ArrowUpRight size={17} />
+        </Link>
+      )}
     </article>
   );
+}
+/** Board-style date cells: weekday, day of month and month, read in UTC like dateLabel. */
+export function boardDate(date: string) {
+  const value = new Date(`${date}T12:00:00Z`);
+  const part = (options: Intl.DateTimeFormatOptions) =>
+    new Intl.DateTimeFormat('en-GB', { ...options, timeZone: 'UTC' }).format(value).toUpperCase();
+  return {
+    weekday: part({ weekday: 'short' }),
+    day: part({ day: '2-digit' }),
+    month: part({ month: 'short' }),
+  };
+}
+/** One honest status per row, the way a departures board shows on time / delayed / cancelled. */
+export function boardStatus(event: RankedConcert): {
+  label: string;
+  tone: 'go' | 'wait' | 'stop' | 'quiet';
+} {
+  if (event.status === 'cancelled') return { label: 'Cancelled', tone: 'stop' };
+  if (event.status === 'postponed') return { label: 'Postponed', tone: 'stop' };
+  if (event.saleAt && Date.parse(event.saleAt) > Date.now()) return { label: 'Sale soon', tone: 'wait' };
+  if (event.status === 'onsale') return { label: 'On sale', tone: 'go' };
+  if (event.status === 'offsale') return { label: 'Off sale', tone: 'stop' };
+  return { label: 'Check seller', tone: 'quiet' };
 }

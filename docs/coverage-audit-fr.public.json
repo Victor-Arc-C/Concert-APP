@@ -1,0 +1,730 @@
+{
+  "window": {
+    "from": "2026-10-06",
+    "to": "2027-04-06"
+  },
+  "checkedOn": "2026-10-06",
+  "artists": [
+    {
+      "name": "Ninho",
+      "genre": "rap/pop FR",
+      "source": "https://www.jds.fr/artistes/ninho-5446_N",
+      "shows": [
+        {
+          "date": "2027-01-20",
+          "city": "Amnéville",
+          "venue": "Le Galaxie"
+        },
+        {
+          "date": "2027-01-24",
+          "city": "Reims",
+          "venue": "Reims Arena"
+        },
+        {
+          "date": "2027-01-27",
+          "city": "Rennes",
+          "venue": "Le Liberté"
+        },
+        {
+          "date": "2027-02-20",
+          "city": "Rennes",
+          "venue": "Le Liberté"
+        },
+        {
+          "date": "2027-01-28",
+          "city": "Caen",
+          "venue": "Zénith de Caen"
+        },
+        {
+          "date": "2027-01-29",
+          "city": "Rouen",
+          "venue": "Zénith de Rouen"
+        },
+        {
+          "date": "2027-03-02",
+          "city": "Rouen",
+          "venue": "Zénith de Rouen"
+        },
+        {
+          "date": "2027-01-30",
+          "city": "Douai",
+          "venue": "Gayant Expo"
+        },
+        {
+          "date": "2027-02-03",
+          "city": "Lyon",
+          "venue": "LDLC Arena"
+        },
+        {
+          "date": "2027-02-04",
+          "city": "Lyon",
+          "venue": "LDLC Arena"
+        },
+        {
+          "date": "2027-02-05",
+          "city": "Dijon",
+          "venue": "Zénith de Dijon"
+        },
+        {
+          "date": "2027-02-06",
+          "city": "Orléans",
+          "venue": "CO'Met Arena"
+        },
+        {
+          "date": "2027-02-10",
+          "city": "Marseille",
+          "venue": "Le Dôme"
+        },
+        {
+          "date": "2027-02-11",
+          "city": "Marseille",
+          "venue": "Le Dôme"
+        },
+        {
+          "date": "2027-02-12",
+          "city": "Grenoble",
+          "venue": "Palais des Sports"
+        },
+        {
+          "date": "2027-02-19",
+          "city": "Brest",
+          "venue": "Parc des Expositions de Penfeld"
+        },
+        {
+          "date": "2027-02-21",
+          "city": "Le Mans",
+          "venue": "Antarès"
+        },
+        {
+          "date": "2027-02-24",
+          "city": "Nantes",
+          "venue": "Zénith de Nantes"
+        },
+        {
+          "date": "2027-02-25",
+          "city": "Nantes",
+          "venue": "Zénith de Nantes"
+        },
+        {
+          "date": "2027-02-26",
+          "city": "Angers",
+          "venue": "Arena Loire"
+        },
+        {
+          "date": "2027-02-27",
+          "city": "Tours",
+          "venue": "Parc Expo de Tours"
+        },
+        {
+          "date": "2027-03-03",
+          "city": "Amiens",
+          "venue": "Zénith d'Amiens"
+        },
+        {
+          "date": "2027-03-07",
+          "city": "Strasbourg",
+          "venue": "Zénith de Strasbourg"
+        },
+        {
+          "date": "2027-03-11",
+          "city": "Poitiers",
+          "venue": "Arena Futuroscope"
+        },
+        {
+          "date": "2027-03-12",
+          "city": "Limoges",
+          "venue": "Zénith de Limoges"
+        },
+        {
+          "date": "2027-03-13",
+          "city": "Clermont-Ferrand",
+          "venue": "Zénith d'Auvergne"
+        },
+        {
+          "date": "2027-03-18",
+          "city": "Nice",
+          "venue": "Palais Nikaïa"
+        },
+        {
+          "date": "2027-03-19",
+          "city": "Montpellier",
+          "venue": "Sud de France Arena"
+        },
+        {
+          "date": "2027-03-20",
+          "city": "Toulouse",
+          "venue": "Zénith Toulouse Métropole"
+        },
+        {
+          "date": "2027-03-21",
+          "city": "Saint-Étienne",
+          "venue": "Zénith de Saint-Étienne"
+        },
+        {
+          "date": "2027-03-24",
+          "city": "Bordeaux",
+          "venue": "Arkéa Arena"
+        },
+        {
+          "date": "2027-03-25",
+          "city": "Bordeaux",
+          "venue": "Arkéa Arena"
+        },
+        {
+          "date": "2027-03-26",
+          "city": "Pau",
+          "venue": "Zénith de Pau"
+        }
+      ]
+    },
+    {
+      "name": "Jul",
+      "genre": "rap/pop FR",
+      "source": "https://www.jds.fr/artistes/jul-22286_N",
+      "shows": []
+    },
+    {
+      "name": "SDM",
+      "genre": "rap/pop FR",
+      "source": "https://www.fnacspectacles.com/magazine/concerts/sdm-concert-2027-stade-de-france",
+      "shows": []
+    },
+    {
+      "name": "Gazo",
+      "genre": "rap/pop FR",
+      "source": "https://www.jds.fr/artistes/gazo-2590_N",
+      "shows": []
+    },
+    {
+      "name": "Tiakola",
+      "genre": "rap/pop FR",
+      "source": "https://songkick.com/artists/10243977-tiakola",
+      "shows": []
+    },
+    {
+      "name": "Aya Nakamura",
+      "genre": "rap/pop FR",
+      "source": "https://www.basket-mag.com/concert-aya-nakamura-2027-dates-billets-prix/",
+      "shows": []
+    },
+    {
+      "name": "Angèle",
+      "genre": "rap/pop FR",
+      "source": "https://www.sortiraparis.com/en/what-to-see-in-paris/concerts-music-festival/articles/351310-angele-set-for-a-concert-at-paris-bercy-in-march-2027",
+      "shows": [
+        {
+          "date": "2027-03-03",
+          "city": "Reims",
+          "venue": "Reims Arena"
+        },
+        {
+          "date": "2027-03-08",
+          "city": "Paris",
+          "venue": "Accor Arena"
+        },
+        {
+          "date": "2027-03-09",
+          "city": "Paris",
+          "venue": "Accor Arena"
+        },
+        {
+          "date": "2027-03-10",
+          "city": "Paris",
+          "venue": "Accor Arena"
+        }
+      ]
+    },
+    {
+      "name": "Orelsan",
+      "genre": "rap/pop FR",
+      "source": "https://www.jds.fr/artistes/orelsan-1008_N",
+      "shows": [
+        {
+          "date": "2026-10-19",
+          "city": "Strasbourg",
+          "venue": "Zénith de Strasbourg"
+        },
+        {
+          "date": "2026-10-22",
+          "city": "Lille",
+          "venue": "Zénith de Lille"
+        },
+        {
+          "date": "2026-10-23",
+          "city": "Lille",
+          "venue": "Zénith de Lille"
+        },
+        {
+          "date": "2026-10-26",
+          "city": "Bordeaux",
+          "venue": "Arkéa Arena"
+        },
+        {
+          "date": "2026-10-27",
+          "city": "Bordeaux",
+          "venue": "Arkéa Arena"
+        },
+        {
+          "date": "2026-10-30",
+          "city": "Toulouse",
+          "venue": "Zénith Toulouse Métropole"
+        },
+        {
+          "date": "2026-11-02",
+          "city": "Caen",
+          "venue": "Zénith de Caen"
+        },
+        {
+          "date": "2026-11-03",
+          "city": "Caen",
+          "venue": "Zénith de Caen"
+        },
+        {
+          "date": "2026-11-04",
+          "city": "Caen",
+          "venue": "Zénith de Caen"
+        },
+        {
+          "date": "2026-11-16",
+          "city": "Lyon",
+          "venue": "LDLC Arena"
+        },
+        {
+          "date": "2026-11-17",
+          "city": "Lyon",
+          "venue": "LDLC Arena"
+        },
+        {
+          "date": "2026-11-23",
+          "city": "Nantes",
+          "venue": "Zénith de Nantes"
+        },
+        {
+          "date": "2026-11-24",
+          "city": "Nantes",
+          "venue": "Zénith de Nantes"
+        },
+        {
+          "date": "2026-12-02",
+          "city": "Marseille",
+          "venue": "Le Dôme"
+        },
+        {
+          "date": "2026-12-03",
+          "city": "Marseille",
+          "venue": "Le Dôme"
+        },
+        {
+          "date": "2026-12-09",
+          "city": "Paris",
+          "venue": "Accor Arena"
+        },
+        {
+          "date": "2026-12-10",
+          "city": "Paris",
+          "venue": "Accor Arena"
+        },
+        {
+          "date": "2026-12-11",
+          "city": "Paris",
+          "venue": "Accor Arena"
+        },
+        {
+          "date": "2026-12-12",
+          "city": "Paris",
+          "venue": "Accor Arena"
+        },
+        {
+          "date": "2026-12-14",
+          "city": "Paris",
+          "venue": "Accor Arena"
+        },
+        {
+          "date": "2026-12-15",
+          "city": "Paris",
+          "venue": "Accor Arena"
+        },
+        {
+          "date": "2026-12-16",
+          "city": "Paris",
+          "venue": "Accor Arena"
+        },
+        {
+          "date": "2026-12-18",
+          "city": "Paris",
+          "venue": "Accor Arena"
+        },
+        {
+          "date": "2026-12-19",
+          "city": "Paris",
+          "venue": "Accor Arena"
+        },
+        {
+          "date": "2026-12-20",
+          "city": "Paris",
+          "venue": "Accor Arena"
+        },
+        {
+          "date": "2026-12-22",
+          "city": "Paris",
+          "venue": "Accor Arena"
+        },
+        {
+          "date": "2026-12-23",
+          "city": "Paris",
+          "venue": "Accor Arena"
+        },
+        {
+          "date": "2026-12-26",
+          "city": "Paris",
+          "venue": "Accor Arena"
+        },
+        {
+          "date": "2026-12-27",
+          "city": "Paris",
+          "venue": "Accor Arena"
+        },
+        {
+          "date": "2026-12-28",
+          "city": "Paris",
+          "venue": "Accor Arena"
+        }
+      ]
+    },
+    {
+      "name": "Damso",
+      "genre": "rap/pop FR",
+      "source": "https://www.jds.fr/artistes/damso-1006_N",
+      "shows": []
+    },
+    {
+      "name": "Theodora",
+      "genre": "rap/pop FR",
+      "source": "https://www.jds.fr/actu/theodora-tournee-2026-1205840_A",
+      "shows": []
+    },
+    {
+      "name": "Zaho de Sagazan",
+      "genre": "rap/pop FR",
+      "source": "https://www.jds.fr/artistes/zaho-de-sagazan-2169_N",
+      "shows": []
+    },
+    {
+      "name": "GIMS",
+      "genre": "rap/pop FR",
+      "source": "https://www.jds.fr/artistes/gims-2486_N",
+      "shows": [
+        {
+          "date": "2026-10-27",
+          "city": "Nantes",
+          "venue": "Zénith de Nantes"
+        },
+        {
+          "date": "2026-10-28",
+          "city": "Nantes",
+          "venue": "Zénith de Nantes"
+        },
+        {
+          "date": "2026-10-29",
+          "city": "Nantes",
+          "venue": "Zénith de Nantes"
+        },
+        {
+          "date": "2026-11-02",
+          "city": "Lyon",
+          "venue": "LDLC Arena"
+        },
+        {
+          "date": "2026-11-09",
+          "city": "Toulouse",
+          "venue": "Zénith Toulouse Métropole"
+        },
+        {
+          "date": "2026-11-17",
+          "city": "Strasbourg",
+          "venue": "Zénith de Strasbourg"
+        },
+        {
+          "date": "2026-12-04",
+          "city": "Orléans",
+          "venue": "CO'Met Arena"
+        },
+        {
+          "date": "2026-12-05",
+          "city": "Orléans",
+          "venue": "CO'Met Arena"
+        },
+        {
+          "date": "2026-12-16",
+          "city": "Nanterre",
+          "venue": "Paris La Défense Arena"
+        },
+        {
+          "date": "2026-12-17",
+          "city": "Nanterre",
+          "venue": "Paris La Défense Arena"
+        }
+      ]
+    },
+    {
+      "name": "Josman",
+      "genre": "rap/pop FR",
+      "source": "https://www.jds.fr/artistes/josman-1206_N",
+      "shows": [
+        {
+          "date": "2026-10-15",
+          "city": "Rouen",
+          "venue": "Zénith de Rouen"
+        },
+        {
+          "date": "2026-10-16",
+          "city": "Caen",
+          "venue": "Zénith de Caen"
+        },
+        {
+          "date": "2026-10-22",
+          "city": "Nantes",
+          "venue": "Zénith de Nantes"
+        },
+        {
+          "date": "2026-10-23",
+          "city": "Bordeaux",
+          "venue": "Arkéa Arena"
+        },
+        {
+          "date": "2026-10-24",
+          "city": "Poitiers",
+          "venue": "Arena Futuroscope"
+        },
+        {
+          "date": "2026-10-29",
+          "city": "Lille",
+          "venue": "Zénith de Lille"
+        },
+        {
+          "date": "2026-10-30",
+          "city": "Reims",
+          "venue": "Reims Arena"
+        },
+        {
+          "date": "2026-11-05",
+          "city": "Dijon",
+          "venue": "Zénith de Dijon"
+        },
+        {
+          "date": "2026-11-06",
+          "city": "Marseille",
+          "venue": "Le Dôme"
+        },
+        {
+          "date": "2026-11-07",
+          "city": "Lyon",
+          "venue": "Halle Tony Garnier"
+        }
+      ]
+    },
+    {
+      "name": "Pierre Garnier",
+      "genre": "rap/pop FR",
+      "source": "https://www.infoconcert.com/actualites/pierre-garnier-en-concert-pres-de-chez-vous-le-chanteur-ajoute-des-nouvelles-dates-en-region-et-une-2nd-au-zenith-de-paris-20171",
+      "shows": []
+    },
+    {
+      "name": "Bigflo & Oli",
+      "genre": "rap/pop FR",
+      "source": "https://www.jds.fr/artistes/bigflo-et-oli-989_N",
+      "shows": [
+        {
+          "date": "2026-10-08",
+          "city": "Dijon",
+          "venue": "Zénith de Dijon"
+        },
+        {
+          "date": "2026-10-09",
+          "city": "Reims",
+          "venue": "Reims Arena"
+        },
+        {
+          "date": "2026-10-10",
+          "city": "Nantes",
+          "venue": "Zénith de Nantes"
+        },
+        {
+          "date": "2026-10-19",
+          "city": "Paris",
+          "venue": "Accor Arena"
+        },
+        {
+          "date": "2026-10-20",
+          "city": "Paris",
+          "venue": "Accor Arena"
+        },
+        {
+          "date": "2026-11-05",
+          "city": "Nice",
+          "venue": "Palais Nikaïa"
+        },
+        {
+          "date": "2026-11-06",
+          "city": "Lyon",
+          "venue": "LDLC Arena"
+        },
+        {
+          "date": "2026-11-08",
+          "city": "Marseille",
+          "venue": "Le Dôme"
+        },
+        {
+          "date": "2026-11-14",
+          "city": "Toulouse",
+          "venue": "Zénith Toulouse Métropole"
+        },
+        {
+          "date": "2026-11-15",
+          "city": "Toulouse",
+          "venue": "Zénith Toulouse Métropole"
+        },
+        {
+          "date": "2026-11-19",
+          "city": "Amiens",
+          "venue": "Zénith d'Amiens"
+        },
+        {
+          "date": "2026-11-20",
+          "city": "Le Mans",
+          "venue": "Antarès"
+        },
+        {
+          "date": "2026-11-27",
+          "city": "Montpellier",
+          "venue": "Sud de France Arena"
+        },
+        {
+          "date": "2026-11-28",
+          "city": "Narbonne",
+          "venue": "Arena de Narbonne"
+        },
+        {
+          "date": "2026-12-04",
+          "city": "Rouen",
+          "venue": "Zénith de Rouen"
+        },
+        {
+          "date": "2026-12-05",
+          "city": "Caen",
+          "venue": "Zénith de Caen"
+        },
+        {
+          "date": "2026-12-10",
+          "city": "Bordeaux",
+          "venue": "Arkéa Arena"
+        },
+        {
+          "date": "2026-12-16",
+          "city": "Lille",
+          "venue": "Zénith de Lille"
+        },
+        {
+          "date": "2026-12-17",
+          "city": "Amnéville",
+          "venue": "Le Galaxie"
+        },
+        {
+          "date": "2026-12-18",
+          "city": "Strasbourg",
+          "venue": "Zénith de Strasbourg"
+        }
+      ]
+    },
+    {
+      "name": "Justice",
+      "genre": "électro",
+      "source": "https://www.eventworld.com/justice-tickets/performer/10210",
+      "shows": []
+    },
+    {
+      "name": "Polo & Pan",
+      "genre": "électro",
+      "source": "https://www.jds.fr/artistes/polo-et-pan-18785_N",
+      "shows": []
+    },
+    {
+      "name": "Kungs",
+      "genre": "électro",
+      "source": "https://www.jds.fr/artistes/kungs-4279_N",
+      "shows": []
+    },
+    {
+      "name": "Fred again..",
+      "genre": "électro",
+      "source": "https://www.infoconcert.com/actualites/fred-again-annonce-une-tournee-avec-deux-concerts-au-zenith-de-paris-en-septembre-18845",
+      "shows": []
+    },
+    {
+      "name": "Charlotte de Witte",
+      "genre": "électro",
+      "source": "https://www.infoconcert.com/artiste/charlotte-de-witte-143854/tous-les-concerts-festivals",
+      "shows": []
+    },
+    {
+      "name": "David Guetta",
+      "genre": "électro",
+      "source": "https://www.lagazettefrance.fr/article/arras-david-guetta-de-retour-au-main-square-festival-en-2027",
+      "shows": []
+    },
+    {
+      "name": "Dua Lipa",
+      "genre": "international",
+      "source": "https://www.basket-mag.com/concert-dua-lipa-paris-2026-billets-prix/",
+      "shows": []
+    },
+    {
+      "name": "The Weeknd",
+      "genre": "international",
+      "source": "https://www.infoconcert.com/actualites/the-weeknd-en-concert-exceptionnel-a-paris-au-stade-de-france-x3-et-a-nice-a-lalliance-riviera-x2-en-juillet-2026--21383",
+      "shows": []
+    },
+    {
+      "name": "Billie Eilish",
+      "genre": "international",
+      "source": "https://www.basket-mag.com/concert-billie-eilish-paris-2026-billets-prix/",
+      "shows": []
+    },
+    {
+      "name": "Travis Scott",
+      "genre": "international",
+      "source": "https://www.basket-mag.com/concert-travis-scott-paris-2026-billets-prix/",
+      "shows": []
+    },
+    {
+      "name": "Sabrina Carpenter",
+      "genre": "international",
+      "source": "https://www.basket-mag.com/concert-sabrina-carpenter-paris-2026-billets-prix/",
+      "shows": []
+    },
+    {
+      "name": "Shakira",
+      "genre": "international",
+      "source": "https://www.purebreak.com/news/shakira-pas-de-concerts-en-france/263612",
+      "shows": []
+    },
+    {
+      "name": "Imagine Dragons",
+      "genre": "international",
+      "source": "https://www.basket-mag.com/concert-imagine-dragons-paris-2026-billets-prix/",
+      "shows": []
+    },
+    {
+      "name": "Linkin Park",
+      "genre": "international",
+      "source": "https://linkinpedia.com/wiki/Live:20260616",
+      "shows": []
+    },
+    {
+      "name": "Coldplay",
+      "genre": "international",
+      "source": "https://www.sortiraparis.com/en/what-to-see-in-paris/concerts-music-festival/articles/332477-coldplay-chris-martin-extra-concerts-world-tour-2027",
+      "shows": []
+    }
+  ]
+}

@@ -12,16 +12,20 @@
     "test:watch": "vitest",
     "format": "prettier --write .",
     "check": "npm run typecheck && npm run lint && npm test",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "metrics:weekly": "node --env-file-if-exists=.env.local scripts/metrics-weekly.ts",
+    "audit:coverage-fr": "node --env-file-if-exists=.env.local scripts/coverage-audit-fr.ts"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=22.18"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.8",
     "@fontsource/barlow-condensed": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.3.0",
     "@fontsource/manrope": "^5.3.0",
     "lucide-react": "^1.52.0",
+    "motion": "^14.0.0",
     "next": "^16.3.8",
     "pg": "^8.23.1",
     "react": "^19.3.0",
