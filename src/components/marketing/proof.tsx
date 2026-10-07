@@ -1,8 +1,8 @@
 'use client';
-import { useRef } from 'react';
-import { useInView } from 'motion/react';
+import { useEffect, useRef, useState } from 'react';
+import { useInView, useReducedMotion } from 'motion/react';
+import { useI18n } from '@/i18n/client';
 import { useGigs } from './gigs-context';
-import { SplitFlap } from './split-flap';
 import styles from './marketing.module.css';
 
 /**
@@ -11,57 +11,71 @@ import styles from './marketing.module.css';
  */
 const pilotQuotes: { quote: string; name: string; detail: string }[] = [];
 
+/** Counts up once, when the figures are actually on screen. Reduced motion shows the number. */
+function Count({ value, run, delay }: { value: number; run: boolean; delay: number }) {
+  const { f } = useI18n();
+  const reduce = useReducedMotion();
+  const [shown, setShown] = useState(0);
+  useEffect(() => {
+    if (!run || reduce) return;
+    let frame = 0;
+    const start = performance.now() + delay;
+    const tick = (now: number) => {
+      const p = Math.min(1, Math.max(0, (now - start) / 900));
+      setShown(Math.round(value * (1 - (1 - p) ** 3)));
+      if (p < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [run, value, delay, reduce]);
+  return (
+    <>
+      <span aria-hidden="true">{f.number(reduce ? value : run ? shown : 0)}</span>
+      <span className="vh">{f.number(value)}</span>
+    </>
+  );
+}
+
 export function Proof() {
+  const { t } = useI18n();
+  const m = t.marketing;
   const { status, data } = useGigs();
   const grid = useRef<HTMLDListElement>(null);
-  // Flip the numbers in when the board is actually on screen, not while it is below the fold.
   const seen = useInView(grid, { once: true, amount: 0.4 });
   const stats = data?.stats;
-  const value = (n: number | undefined) =>
-    seen && status === 'ready' && n != null ? String(n) : '';
-  const cells = [
-    { label: 'Upcoming shows on the board', value: value(stats?.shows), big: true },
-    { label: 'Artists playing', value: value(stats?.artists) },
-    { label: 'Cities', value: value(stats?.cities) },
-    data?.waitlist != null
-      ? { label: 'Fans on the waitlist', value: value(data.waitlist) }
-      : { label: 'Countries', value: value(stats?.countries) },
-  ];
-  // Zeros are not proof: the section waits until there is something on the board.
+  // Zeros are not proof: the section waits until there is something on stage.
   if (status === 'ready' && !stats?.shows) return null;
+  const cells = [
+    { label: m.stats.shows, value: stats?.shows, big: true, color: 'var(--rose)' },
+    { label: m.stats.artists, value: stats?.artists, color: 'var(--cyan)' },
+    { label: m.stats.cities, value: stats?.cities, color: 'var(--amber)' },
+    data?.waitlist != null
+      ? { label: m.stats.waitlist, value: data.waitlist, color: 'var(--violet)' }
+      : { label: m.stats.countries, value: stats?.countries, color: 'var(--violet)' },
+  ];
   return (
     <section className={styles.proof} aria-labelledby="proof-title">
       <h2 id="proof-title" data-reveal>
-        On the board right now.
+        {m.proofTitle}
       </h2>
       <p className={styles.proofNote} data-reveal style={{ '--i': 1 } as React.CSSProperties}>
-        {data?.mode === 'sample'
-          ? 'Counted from sample listings until live data is connected.'
-          : 'Counted from the same listings the app uses, refreshed every night.'}
+        {data?.mode === 'sample' ? m.proofSample : m.proofLive}
       </p>
       <dl ref={grid} className={styles.stats}>
         {cells.map((cell, i) => (
           <div
-            // Keyed by slot, not label: the last label changes once the waitlist is public, and a
-            // remount would drop the reveal state the observer set.
             key={i}
             className={cell.big ? styles.statBig : styles.stat}
-            data-reveal
-            style={
-              {
-                '--i': i,
-                '--digits': Math.max(cell.big ? 4 : 3, cell.value.length),
-              } as React.CSSProperties
-            }
+            data-lit={seen && status === 'ready' ? '' : undefined}
+            style={{ '--c': cell.color, '--i': i } as React.CSSProperties}
           >
             <dt>{cell.label}</dt>
             <dd>
-              <SplitFlap
-                text={cell.value}
-                width={Math.max(cell.big ? 4 : 3, cell.value.length)}
-                delay={i * 160}
-                align="right"
-              />
+              {status === 'ready' && cell.value != null ? (
+                <Count value={cell.value} run={seen} delay={i * 140} />
+              ) : (
+                '·'
+              )}
             </dd>
           </div>
         ))}

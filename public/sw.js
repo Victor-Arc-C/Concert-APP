@@ -1,4 +1,4 @@
-// Encore service worker: Web Push only. No caching, so the app is always the deployed version.
+// Showbound service worker: Web Push only. No caching, so the app is always the deployed version.
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
 
@@ -9,7 +9,7 @@ self.addEventListener('push', (event) => {
   } catch {
     data = {};
   }
-  const title = typeof data.title === 'string' ? data.title : 'Encore';
+  const title = typeof data.title === 'string' ? data.title : 'Showbound';
   event.waitUntil(
     self.registration.showNotification(title, {
       body: typeof data.body === 'string' ? data.body : '',

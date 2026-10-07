@@ -87,7 +87,7 @@ it('says so when no long-distance train runs there, and outside France', async (
   const { fn: abroad } = fetcher(() => ({ results: [] }));
   expect(await trainRoutes(paris, { latitude: 50.85, longitude: 4.35 }, abroad)).toEqual({
     status: 'none',
-    reason: 'Encore covers trains within France for now.',
+    reason: 'Showbound covers trains within France for now.',
   });
 });
 

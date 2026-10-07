@@ -19,6 +19,8 @@ export type Preferences = {
   budget: number | null;
   notifications: 'off' | 'critical' | 'important' | 'everything';
   analytics: boolean;
+  /** Interface language chosen in the app (notifications follow it). */
+  locale?: 'en' | 'fr';
 };
 export type Intent = {
   artistId: string;

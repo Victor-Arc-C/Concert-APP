@@ -21,7 +21,7 @@ test('founder flow: register, choose artists, save, persist, must-see, alert, di
       .getByRole('button', { name: new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) })
       .click();
   await page.getByRole('button', { name: 'Find my concerts' }).click();
-  await expect(page.getByRole('heading', { name: 'Your next great night.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Who’s on' })).toBeVisible();
   const initial = await (await page.request.get('/api/state')).json();
   expect(initial.user.preferences.notifications).toBe('off');
   expect(initial.alerts).toEqual([]);
@@ -66,7 +66,7 @@ test('founder flow: register, choose artists, save, persist, must-see, alert, di
   expect(state1.alerts.length).toBe(state2.alerts.length);
   await page.goto('/app/events/sample-1');
   await page.getByRole('button', { name: 'Not for me', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Your next great night.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Who’s on' })).toBeVisible();
   expect(
     (await (await page.request.get('/api/state')).json()).events.some(
       (e: { id: string }) => e.id === 'sample-1',
@@ -109,7 +109,7 @@ test('founder flow: register, choose artists, save, persist, must-see, alert, di
   ).toBeVisible();
   await page.getByLabel('Password', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Your next great night.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Who’s on' })).toBeVisible();
   await page.goto('/app/settings');
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.getByRole('button', { name: 'Sign out', exact: true })).toBeVisible();
@@ -121,7 +121,7 @@ test('founder flow: register, choose artists, save, persist, must-see, alert, di
   await page.getByRole('button', { name: 'Delete account', exact: true }).click();
   await page.getByLabel('Confirm your current password').fill(password);
   await page.getByRole('button', { name: 'Delete my account permanently' }).click();
-  await expect(page.getByRole('heading', { name: 'Every show worth the trip.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Never miss your favourite artists live.' })).toBeVisible();
   expect((await (await page.request.get('/api/state')).json()).user).toBeNull();
 });
 test('API authorisation, CSRF, account isolation and honest provider errors', async ({
@@ -222,7 +222,7 @@ test('desktop and mobile previews have working filters and no horizontal overflo
 }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto('/app');
-  await expect(page.getByRole('heading', { name: 'Your next great night.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Who’s on' })).toBeVisible();
   await page.screenshot({ path: 'test-results/encore-desktop.png', fullPage: true });
   await page.getByLabel('Search your concerts').fill('no matching artist');
   await expect(page.getByRole('heading', { name: 'No shows match these filters.' })).toBeVisible();
@@ -234,7 +234,7 @@ test('desktop and mobile previews have working filters and no horizontal overflo
   );
   // The checks below are about layout, not image decoding, so don't wait for every screenshot.
   await page.goto('/', { waitUntil: 'domcontentloaded' });
-  await expect(page.getByRole('heading', { name: 'Every show worth the trip.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Never miss your favourite artists live.' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Join the waitlist' })).toBeVisible();
   await page.screenshot({ path: 'test-results/encore-landing-mobile.png', fullPage: true });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
@@ -507,7 +507,7 @@ test('trip intelligence flow: concert -> plan trip -> compare itineraries -> sav
   await page.getByRole('button', { name: 'Choose artists', exact: true }).click();
   await page.getByRole('button', { name: 'Fred again..' }).click();
   await page.getByRole('button', { name: 'Find my concerts' }).click();
-  await expect(page.getByRole('heading', { name: 'Your next great night.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Who’s on' })).toBeVisible();
 
   // Navigate to an out-of-town concert (Amsterdam)
   await page.goto('/app/events/sample-3');
@@ -521,7 +521,7 @@ test('trip intelligence flow: concert -> plan trip -> compare itineraries -> sav
   // Check that options are generated and loaded
   await expect(page.locator('.option-pill-group button').first()).toBeVisible();
 
-  await expect(page.getByText('Sample trip — all travel, stays, prices and distances are fictional.')).toBeVisible();
+  await expect(page.getByText('Sample trip: all travel, stays, prices and distances are fictional.')).toBeVisible();
   await expect(page.getByRole('link', { name: /Check transport booking|Book this hotel at this price/ })).toHaveCount(0);
 
   // Check 3 steps: Ticket, Transport, Stay

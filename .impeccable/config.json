@@ -1,0 +1,155 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font",
+        "value": "bagel fat one",
+        "createdAt": "2026-10-07T15:48:20.178Z",
+        "reason": "Claude: rebrand step-1 exploration in design/rebrand; DESIGN.md is replaced once the user picks a direction"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "onest",
+        "createdAt": "2026-10-07T15:48:20.196Z",
+        "reason": "Claude: rebrand step-1 exploration in design/rebrand; DESIGN.md is replaced once the user picks a direction"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "anybody",
+        "createdAt": "2026-10-07T15:48:20.214Z",
+        "reason": "Claude: rebrand step-1 exploration in design/rebrand; DESIGN.md is replaced once the user picks a direction"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "hanken grotesk",
+        "createdAt": "2026-10-07T15:48:20.232Z",
+        "reason": "Claude: rebrand step-1 exploration in design/rebrand; DESIGN.md is replaced once the user picks a direction"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "kalam",
+        "createdAt": "2026-10-07T15:48:20.250Z",
+        "reason": "Claude: rebrand step-1 exploration in design/rebrand; DESIGN.md is replaced once the user picks a direction"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "archivo",
+        "createdAt": "2026-10-07T15:48:20.268Z",
+        "reason": "Claude: rebrand step-1 exploration in design/rebrand; DESIGN.md is replaced once the user picks a direction"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "design/rebrand/b-allez/marketing.html"
+        ],
+        "createdAt": "2026-10-07T16:14:53.172Z",
+        "reason": "Claude: full-width printed rules of the lineup poster, not a card side-tab"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "design/rebrand/c-sortie/feed.html"
+        ],
+        "createdAt": "2026-10-07T16:14:53.193Z",
+        "reason": "Claude: J-card brand stripe on the cassette side label, part of the chosen world"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "design/rebrand/b-allez/marketing.html"
+        ],
+        "createdAt": "2026-10-07T16:21:26.356Z",
+        "reason": "Claude: .day section has 63px side gutters at 1440px; checked in captures, detector reads the unpadded child box"
+      },
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "design/rebrand/b-allez/marketing.html"
+        ],
+        "createdAt": "2026-10-07T16:21:26.375Z",
+        "reason": "Claude: headline sizes are fitted in JS (inline font-size up to ~150px); static read sees 16px defaults"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "design/rebrand/c-sortie/marketing.html"
+        ],
+        "createdAt": "2026-10-07T16:21:26.395Z",
+        "reason": "Claude: the J-card spine panel is a full-height vertical label with no horizontal padding by design; other panels have 28px"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "design/rebrand/index.html"
+        ],
+        "createdAt": "2026-10-07T16:21:26.414Z",
+        "reason": "Claude: neutral comparison chrome; table cells carry 14px padding and the sticky control bar spans the content width"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "bungee",
+        "createdAt": "2026-10-07T17:36:26.203Z",
+        "reason": "Claude: rebrand step-1 exploration round 2 in design/rebrand; DESIGN.md is replaced once the user picks a direction"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "geist",
+        "createdAt": "2026-10-07T17:36:26.224Z",
+        "reason": "Claude: rebrand step-1 exploration round 2 in design/rebrand; DESIGN.md is replaced once the user picks a direction"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "rubik",
+        "createdAt": "2026-10-07T17:36:26.243Z",
+        "reason": "Claude: rebrand step-1 exploration round 2 in design/rebrand; DESIGN.md is replaced once the user picks a direction"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "bricolage grotesque",
+        "createdAt": "2026-10-07T17:36:26.263Z",
+        "reason": "Claude: rebrand step-1 exploration round 2 in design/rebrand; DESIGN.md is replaced once the user picks a direction"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "schibsted grotesk",
+        "createdAt": "2026-10-07T17:39:37.400Z",
+        "reason": "Claude: rebrand exploration round 2 (design/rebrand/d-gigaway)"
+      },
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "design/rebrand/d-gigaway/marketing.html"
+        ],
+        "createdAt": "2026-10-07T17:44:33.786Z",
+        "reason": "Claude: h1 is clamp(46px, 5.4vw, 84px) and h2 up to 64px over 20px body; the static read misses the clamp in the font shorthand"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "design/rebrand/f-pitstop/marketing.html"
+        ],
+        "createdAt": "2026-10-07T17:53:50.642Z",
+        "reason": "Claude: the cue-sheet section has gutter padding on both sides; the static read measures the unpadded list"
+      },
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "design/rebrand/f-pitstop/marketing.html"
+        ],
+        "createdAt": "2026-10-07T17:53:50.661Z",
+        "reason": "Claude: h1 clamp(52px, 7vw, 112px) and h2 up to 72px over 20px body; static read misses the clamp"
+      }
+    ]
+  }
+}

@@ -1,0 +1,971 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#ffd5dc" />
+    <title>Roadie · feed prototype</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Onest:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../shared/proto.css" />
+    <style>
+      :root {
+        --garment: #ffd5dc;
+        --garment-fold: #ffc6d0;
+        --chalk: #fff7f5;
+        --ink: #c40f28;
+        --ink-deep: #8f0b1e;
+        --ink-soft: #a3283a;
+        --stitch: rgb(143 11 30 / 0.28);
+        --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+        --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+        --display: 'Bagel Fat One', 'Arial Rounded MT Bold', system-ui, sans-serif;
+        --text: 'Onest', system-ui, sans-serif;
+      }
+      ::selection {
+        background: var(--ink);
+        color: var(--chalk);
+      }
+      body {
+        font-family: var(--text);
+        color: var(--ink-deep);
+        background: var(--garment);
+      }
+      .device {
+        background: var(--garment);
+      }
+      /* Garment knit: fine ribs plus grain, fixed so it never repaints with scroll. */
+      .device::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 30;
+        opacity: 0.5;
+        background:
+          repeating-linear-gradient(90deg, rgb(143 11 30 / 0.035) 0 1px, transparent 1px 3px),
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .56 0 0 0 0 .04 0 0 0 0 .12 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        mix-blend-mode: multiply;
+      }
+      .screen {
+        position: absolute;
+        inset: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding: calc(var(--safe-top) + 8px) 0 calc(var(--safe-bottom) + 96px);
+        scrollbar-width: none;
+      }
+      .screen::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* Header: the neck label carries the logo. */
+      .top {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 16px 0;
+      }
+      .label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 12px 9px;
+        border-radius: 10px 10px 16px 16px;
+        background: var(--ink);
+        color: var(--chalk);
+        font: 22px/1 var(--display);
+        letter-spacing: 0.01em;
+        box-shadow: inset 0 -3px 0 rgb(0 0 0 / 0.12);
+        text-decoration: none;
+      }
+      .label i {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--garment);
+      }
+      .top .spacer {
+        flex: 1;
+      }
+      .chip-btn,
+      .icon-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        height: 44px;
+        min-width: 44px;
+        padding: 0 12px;
+        border: 0;
+        border-radius: 14px;
+        background: var(--chalk);
+        color: var(--ink-deep);
+        font-weight: 700;
+        font-size: 15px;
+        cursor: pointer;
+        user-select: none;
+        -webkit-user-select: none;
+        transition: transform 120ms var(--ease-out);
+      }
+      .icon-btn {
+        padding: 0;
+        position: relative;
+      }
+      .icon-btn .badge {
+        position: absolute;
+        top: 9px;
+        right: 10px;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--ink);
+        box-shadow: 0 0 0 2px var(--chalk);
+      }
+      .chip-btn:active,
+      .icon-btn:active {
+        transform: scale(0.96);
+      }
+      :focus-visible {
+        outline: 3px solid var(--ink);
+        outline-offset: 3px;
+      }
+
+      .sample {
+        margin: 14px 16px 0;
+        font-size: 13px;
+        color: var(--ink-soft);
+      }
+      h1 {
+        margin: 6px 16px 0;
+        font: 44px/0.95 var(--display);
+        color: var(--ink);
+        letter-spacing: -0.01em;
+      }
+      .sub {
+        margin: 8px 16px 0;
+        font-size: 15px;
+        line-height: 1.45;
+        color: var(--ink-deep);
+      }
+      .notice {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        margin: 16px 16px 0;
+        padding: 12px 14px;
+        border-radius: 16px;
+        background: var(--chalk);
+        font-size: 14px;
+        line-height: 1.4;
+      }
+      .notice svg {
+        flex-shrink: 0;
+        color: var(--ink);
+        margin-top: 1px;
+      }
+      .notice button {
+        margin-left: auto;
+        border: 0;
+        background: none;
+        color: var(--ink);
+        font-weight: 700;
+        padding: 0 0 0 8px;
+        min-height: 24px;
+        cursor: pointer;
+      }
+
+      h2 {
+        margin: 28px 16px 12px;
+        font-size: 15px;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+        color: var(--ink-deep);
+      }
+
+      /* Signature: turn the tee over. Front = the artist print. Back = the tour. */
+      .tees {
+        display: flex;
+        gap: 12px;
+        padding: 0 16px 6px;
+        margin: 0;
+        list-style: none;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scroll-padding: 0 16px;
+        scrollbar-width: none;
+        overscroll-behavior-x: contain;
+      }
+      .tees::-webkit-scrollbar {
+        display: none;
+      }
+      .tees li {
+        scroll-snap-align: start;
+        flex: 0 0 158px;
+      }
+      .tee {
+        position: relative;
+        display: block;
+        width: 158px;
+        height: 222px;
+        padding: 0;
+        border: 0;
+        background: none;
+        perspective: 900px;
+        cursor: pointer;
+        user-select: none;
+        -webkit-user-select: none;
+        text-align: left;
+      }
+      .tee-inner {
+        position: absolute;
+        inset: 0;
+        transform-style: preserve-3d;
+        will-change: transform;
+      }
+      .face {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        border-radius: 22px;
+        overflow: hidden;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        box-shadow: 0 10px 24px -14px rgb(143 11 30 / 0.55);
+      }
+      .front {
+        background: var(--chalk);
+      }
+      .front .ph {
+        width: 100%;
+        height: 140px;
+        background: var(--ink);
+      }
+      .ph img {
+        filter: grayscale(1) contrast(1.08) brightness(1.32);
+        mix-blend-mode: screen;
+      }
+      .front .ph::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle, rgb(143 11 30 / 0.22) 0 0.9px, transparent 1.3px) 0 0 / 4px 4px;
+        mix-blend-mode: multiply;
+        pointer-events: none;
+      }
+      .ph.is-missing {
+        background: var(--chalk) !important;
+        color: var(--ink);
+      }
+      .ph.is-missing::after {
+        display: none;
+      }
+      .ph-fallback {
+        font: 30px/1 var(--display);
+        position: relative;
+        z-index: 1;
+      }
+      .ph.is-missing::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle, rgb(196 15 40 / 0.2) 0 1.2px, transparent 1.6px) 0 0 / 7px 7px;
+      }
+      .front strong {
+        display: block;
+        padding: 10px 12px 0;
+        font: 19px/1.05 var(--display);
+        color: var(--ink);
+        overflow-wrap: anywhere;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .front small {
+        display: block;
+        padding: 4px 12px 0;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--ink-soft);
+      }
+      /* Faces are shown by angle in JS too: WebKit does not honour backface-visibility here. */
+      .back {
+        transform: rotateY(180deg);
+        visibility: hidden;
+        background: var(--ink);
+        color: var(--chalk);
+        padding: 8px 12px 12px;
+      }
+      .back svg.arch {
+        display: block;
+        width: 100%;
+        height: 38px;
+        overflow: visible;
+      }
+      .back svg.arch text {
+        font: 15px var(--display);
+        fill: var(--chalk);
+        letter-spacing: 0.06em;
+      }
+      .back strong {
+        font: 16px/1.05 var(--display);
+        margin: 2px 0 8px;
+        overflow-wrap: anywhere;
+      }
+      .back ol {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 5px;
+        font-size: 13px;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
+      .back li {
+        display: grid;
+        grid-template-columns: 52px 1fr;
+        gap: 4px;
+      }
+      .back li span {
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+      .back li.is-you {
+        color: var(--garment);
+      }
+      .back .none {
+        font-size: 13px;
+        opacity: 0.85;
+      }
+      .turn {
+        position: absolute;
+        right: 8px;
+        top: 8px;
+        z-index: 2;
+        display: grid;
+        place-items: center;
+        width: 30px;
+        height: 30px;
+        border-radius: 10px;
+        background: rgb(255 247 245 / 0.92);
+        color: var(--ink);
+        pointer-events: none;
+        transition: transform 300ms var(--ease-out);
+      }
+      .tee[aria-pressed='true'] .turn {
+        transform: rotate(-180deg);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .tee-inner {
+          transform: none !important;
+        }
+        .back {
+          transform: none;
+        }
+        .face {
+          transition: opacity 200ms ease;
+        }
+        .tee[aria-pressed='true'] .front,
+        .tee[aria-pressed='false'] .back {
+          opacity: 0;
+        }
+      }
+
+      /* Filters: woven tags, not pills. */
+      .filters {
+        display: flex;
+        gap: 8px;
+        padding: 0 16px;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      .filters button {
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 40px;
+        padding: 0 14px;
+        border: 2px solid var(--ink);
+        border-radius: 12px;
+        background: transparent;
+        color: var(--ink-deep);
+        font-weight: 700;
+        font-size: 14px;
+        cursor: pointer;
+        user-select: none;
+        -webkit-user-select: none;
+        transition:
+          background-color 160ms ease,
+          color 160ms ease,
+          transform 120ms var(--ease-out);
+      }
+      .filters button span {
+        font-variant-numeric: tabular-nums;
+        opacity: 0.75;
+      }
+      .filters button[aria-pressed='true'] {
+        background: var(--ink);
+        color: var(--chalk);
+      }
+      .filters button:active {
+        transform: scale(0.96);
+      }
+
+      /* Dates: the back print, one stitched line per show. */
+      .dates {
+        list-style: none;
+        margin: 10px 0 0;
+        padding: 0 16px;
+      }
+      .date {
+        position: relative;
+        isolation: isolate;
+        display: grid;
+        grid-template-columns: 50px 52px minmax(0, 1fr) 44px;
+        gap: 12px;
+        align-items: start;
+        padding: 16px 0;
+        background-image: linear-gradient(90deg, var(--stitch) 0 6px, transparent 6px 11px);
+        background-size: 11px 2px;
+        background-repeat: repeat-x;
+        background-position: 0 100%;
+      }
+      .date.enter {
+        animation: rise 320ms var(--ease-out) both;
+        animation-delay: calc(var(--i) * 35ms);
+      }
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .date.enter {
+          animation-name: fade;
+        }
+        @keyframes fade {
+          from {
+            opacity: 0;
+          }
+        }
+      }
+      .when {
+        display: grid;
+        justify-items: start;
+        line-height: 1;
+        color: var(--ink);
+        padding-top: 2px;
+      }
+      .when b {
+        font: 30px/0.9 var(--display);
+        font-variant-numeric: tabular-nums;
+      }
+      .when .dow {
+        margin-top: 2px;
+        color: var(--ink-soft);
+      }
+      .when span {
+        margin-top: 4px;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--ink-deep);
+      }
+      .date .ph {
+        width: 52px;
+        height: 52px;
+        border-radius: 16px;
+        background: var(--ink);
+      }
+      .date .ph .ph-fallback {
+        font-size: 19px;
+      }
+      .who {
+        min-width: 0;
+      }
+      .who strong {
+        display: block;
+        font-size: 17px;
+        font-weight: 800;
+        line-height: 1.2;
+        color: var(--ink-deep);
+        overflow-wrap: anywhere;
+      }
+      .who .where {
+        margin-top: 2px;
+        font-size: 14px;
+        line-height: 1.35;
+        color: var(--ink-soft);
+      }
+      .facts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+      }
+      .fact {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        height: 26px;
+        padding: 0 9px;
+        border-radius: 8px;
+        background: var(--chalk);
+        font-size: 13px;
+        font-weight: 700;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+      }
+      .fact.price {
+        color: var(--ink);
+      }
+      .fact.quiet {
+        color: var(--ink-soft);
+        font-weight: 600;
+      }
+      .fact.stop {
+        background: var(--ink-deep);
+        color: var(--chalk);
+      }
+      .date.is-off .who strong,
+      .date.is-off .when {
+        text-decoration: line-through;
+        text-decoration-thickness: 2px;
+        opacity: 0.6;
+      }
+      .save {
+        width: 44px;
+        height: 44px;
+        display: grid;
+        place-items: center;
+        border: 0;
+        border-radius: 14px;
+        background: var(--chalk);
+        color: var(--ink);
+        cursor: pointer;
+        position: relative;
+        z-index: 1;
+        user-select: none;
+        -webkit-user-select: none;
+        transition:
+          background-color 200ms ease,
+          color 200ms ease,
+          transform 120ms var(--ease-out);
+      }
+      .save:active {
+        transform: scale(0.92);
+      }
+      .save[aria-pressed='true'] {
+        background: var(--ink);
+        color: var(--chalk);
+      }
+      .save:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      /* Saving pulls ink across the line, like a squeegee through a screen. */
+      .date::before {
+        content: '';
+        position: absolute;
+        inset: 6px -10px;
+        border-radius: 18px;
+        background:
+          radial-gradient(circle, rgb(196 15 40 / 0.2) 0 1.1px, transparent 1.5px) 0 0 / 6px 6px,
+          rgb(255 247 245 / 0.75);
+        clip-path: inset(0 100% 0 0 round 18px);
+        transition: clip-path 220ms var(--ease-out);
+        pointer-events: none;
+        z-index: -1;
+      }
+      .date.is-saved::before {
+        clip-path: inset(0 0 0 0 round 18px);
+        transition: clip-path 520ms var(--ease-in-out);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .date::before {
+          clip-path: none;
+          opacity: 0;
+          transition: opacity 200ms ease;
+        }
+        .date.is-saved::before {
+          opacity: 1;
+          transition: opacity 200ms ease;
+        }
+      }
+
+      .empty {
+        margin: 26px 16px 0;
+        padding: 26px 20px;
+        border-radius: 24px;
+        background: var(--chalk);
+        text-align: center;
+      }
+      .empty b {
+        display: block;
+        font: 30px/1 var(--display);
+        color: var(--ink);
+      }
+      .empty p {
+        margin: 10px auto 18px;
+        max-width: 30ch;
+        font-size: 15px;
+        line-height: 1.45;
+      }
+      .primary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        height: 48px;
+        padding: 0 20px;
+        border: 0;
+        border-radius: 16px;
+        background: var(--ink);
+        color: var(--chalk);
+        font-weight: 800;
+        font-size: 16px;
+        cursor: pointer;
+        box-shadow: inset 0 -3px 0 rgb(0 0 0 / 0.14);
+        transition: transform 120ms var(--ease-out);
+      }
+      .primary:active {
+        transform: scale(0.97);
+      }
+
+      /* Toast: chalk tag, enters from the bottom, leaves the same way. */
+      .toast {
+        position: absolute;
+        left: 16px;
+        right: 16px;
+        bottom: calc(var(--safe-bottom) + 88px);
+        z-index: 40;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 12px 12px 16px;
+        border-radius: 18px;
+        background: var(--ink-deep);
+        color: var(--chalk);
+        font-weight: 600;
+        font-size: 15px;
+        box-shadow: 0 14px 30px -12px rgb(90 6 20 / 0.6);
+        transform: translateY(16px);
+        opacity: 0;
+        transition:
+          transform 300ms ease,
+          opacity 300ms ease;
+        pointer-events: none;
+      }
+      .toast.show {
+        transform: none;
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .toast button {
+        margin-left: auto;
+        height: 36px;
+        padding: 0 12px;
+        border: 0;
+        border-radius: 10px;
+        background: rgb(255 247 245 / 0.14);
+        color: var(--chalk);
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      /* Tab bar: a stitched hem. */
+      .tabs {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 35;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        padding: 8px 6px calc(var(--safe-bottom) + 4px);
+        background: var(--chalk);
+        border-radius: 26px 26px 0 0;
+        box-shadow: 0 -10px 30px -18px rgb(143 11 30 / 0.5);
+      }
+      .tabs a {
+        position: relative;
+        display: grid;
+        justify-items: center;
+        gap: 3px;
+        padding: 6px 0 4px;
+        min-height: 48px;
+        color: var(--ink-soft);
+        font-size: 11px;
+        font-weight: 700;
+        text-decoration: none;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      .tabs a[aria-current] {
+        color: var(--ink);
+      }
+      .tabs a[aria-current]::before {
+        content: '';
+        position: absolute;
+        top: -8px;
+        left: 50%;
+        translate: -50% 0;
+        width: 26px;
+        height: 4px;
+        border-radius: 0 0 4px 4px;
+        background: var(--ink);
+      }
+      .tabs .count {
+        position: absolute;
+        top: 2px;
+        left: calc(50% + 6px);
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 9px;
+        background: var(--ink);
+        color: var(--chalk);
+        font-size: 11px;
+        line-height: 18px;
+        font-variant-numeric: tabular-nums;
+        transition: transform 300ms var(--ease-out);
+      }
+      .tabs .count.bump {
+        animation: bump 360ms var(--ease-out);
+      }
+      @keyframes bump {
+        40% {
+          transform: scale(1.25);
+        }
+      }
+      .vh {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+    </style>
+  </head>
+  <body class="phone-page">
+    <div class="device">
+      <div class="screen" id="screen"></div>
+      <div class="toast" role="status" aria-live="polite" id="toast"></div>
+      <nav class="tabs" aria-label="Main"></nav>
+    </div>
+    <script src="../shared/icons.js"></script>
+    <script src="../shared/data.js"></script>
+    <script src="../shared/proto.js"></script>
+    <script>
+      const { shows, mode, providerError, note } = PROTO;
+      const { dateParts, money, esc, Spring, photo } = P;
+      if (PROTO.embed) document.body.classList.add('embed');
+      const screen = document.getElementById('screen');
+      const saved = new Set(mode === 'demo' ? ['kendrick-ams'] : []);
+      let filter = 'all';
+
+      const artists = [...new Map(shows.map((s) => [s.artist, s])).values()];
+      const trips = shows.filter((s) => !s.home).length;
+
+      const arch = (text, id) =>
+        `<svg class="arch" viewBox="0 0 134 38" aria-hidden="true"><defs><path id="${id}" d="M6 34 Q67 -2 128 34"/></defs><text><textPath href="#${id}" startOffset="50%" text-anchor="middle">${text}</textPath></text></svg>`;
+
+      const teeCard = (s, i) => {
+        const tour = s.tour.length
+          ? `<ol>${s.tour
+              .map(([d, city]) => {
+                const p = dateParts(d);
+                return `<li class="${city === PROTO.home ? 'is-you' : ''}"><b>${p.day} ${p.mon}</b><span>${esc(city)}</span></li>`;
+              })
+              .join('')}</ol>`
+          : `<p class="none">No other dates announced.</p>`;
+        const next = dateParts(s.date);
+        return `<li><button class="tee" aria-pressed="false" data-i="${i}" aria-label="${esc(s.artist)}. Turn over for tour dates">
+          <span class="tee-inner">
+            <span class="face front">${photo(s)}<strong>${esc(s.artist)}</strong><small>Next: ${next.day} ${next.mon}, ${esc(s.city)}</small></span>
+            <span class="face back" aria-hidden="true">${arch('ON TOUR', 'arch-' + i)}<strong>${esc(s.artist)}</strong>${tour}</span>
+          </span>
+          <span class="turn">${icon('rotate-ccw', 16, 2.5)}</span>
+        </button></li>`;
+      };
+
+      const statusFact = (s) => {
+        if (s.status === 'cancelled') return `<span class="fact stop">Cancelled</span>`;
+        if (s.status === 'postponed') return `<span class="fact stop">Postponed</span>`;
+        const price = money(s.price);
+        return price
+          ? `<span class="fact price">From ${price}</span>`
+          : `<span class="fact quiet">Price not listed</span>`;
+      };
+      const travelFact = (s) => {
+        if (!s.travel) return '';
+        const ico = s.travel.mode === 'flight' ? 'plane' : 'train-front';
+        const label = s.travel.duration
+          ? `${s.travel.mode === 'flight' ? 'Flight' : 'Train'} ${s.travel.duration}`
+          : 'No timetable yet';
+        return `<span class="fact ${s.travel.duration ? '' : 'quiet'}">${icon(ico, 14, 2.4)}${label}</span>`;
+      };
+
+      const row = (s, i) => {
+        const p = dateParts(s.date);
+        const off = s.status === 'cancelled';
+        return `<li class="date enter ${saved.has(s.id) ? 'is-saved' : ''} ${off ? 'is-off' : ''}" style="--i:${i}" data-id="${s.id}">
+          <span class="when"><b>${p.day}</b><span>${p.mon}</span><span class="dow">${p.dow}</span></span>
+          ${photo(s)}
+          <span class="who">
+            <strong>${esc(s.artist)}</strong>
+            <span class="where">${esc(s.city)} · ${esc(s.venue)}</span>
+            <span class="facts">${statusFact(s)}${travelFact(s)}</span>
+          </span>
+          <button class="save" aria-pressed="${saved.has(s.id)}" ${off ? 'disabled' : ''} aria-label="${saved.has(s.id) ? 'Remove' : 'Save'} ${esc(s.artist)}, ${p.full}">${icon(saved.has(s.id) ? 'check' : 'bookmark', 20, 2.4)}</button>
+        </li>`;
+      };
+
+      const visible = () => shows.filter((s) => (filter === 'home' ? s.home : filter === 'trip' ? !s.home : true));
+
+      function renderList() {
+        const list = document.getElementById('dates');
+        const items = visible();
+        list.innerHTML = items.length
+          ? items.map(row).join('')
+          : `<li class="empty"><b>Nothing here</b><p>${filter === 'home' ? 'None of your artists plays in Paris yet.' : 'No trips to plan right now.'}</p></li>`;
+      }
+
+      function render() {
+        const head = `<header class="top">
+            <a class="label" href="#" aria-label="Roadie home">roadie<i></i></a>
+            <span class="spacer"></span>
+            <button class="chip-btn" aria-label="Home city: Paris">${icon('map-pin', 17, 2.4)}Paris</button>
+            <button class="icon-btn" aria-label="Alerts, 1 new">${icon('bell', 20, 2.3)}<span class="badge"></span></button>
+          </header>
+          <p class="sample">${esc(note)}</p>`;
+
+        if (mode === 'error') {
+          screen.innerHTML = `${head}<h1>Your tour</h1>
+            <div class="notice" role="alert">${icon('circle-alert', 18, 2.4)}<span>${esc(providerError)}</span></div>
+            <div class="empty"><b>Can’t load dates</b><p>Your artists and saved shows are safe. Try again in a minute.</p><button class="primary">${icon('refresh-cw', 18, 2.4)}Try again</button></div>`;
+          return;
+        }
+        if (!shows.length) {
+          screen.innerHTML = `${head}<h1>Your tour</h1>
+            <div class="empty"><b>No dates yet</b><p>None of your artists has announced a show. We’ll tell you the moment one does.</p><button class="primary">${icon('plus', 18, 2.6)}Add artists</button></div>`;
+          return;
+        }
+        const homeCount = shows.filter((s) => s.home).length;
+        screen.innerHTML = `${head}
+          <h1>Your tour</h1>
+          <p class="sub">${shows.length} dates from your artists. ${trips} ${trips === 1 ? 'is' : 'are'} worth the trip.</p>
+          ${providerError ? `<div class="notice">${icon('circle-alert', 18, 2.4)}<span>${esc(providerError)}</span><button>Refresh</button></div>` : ''}
+          <h2 id="artists-h">Turn over an artist</h2>
+          <ul class="tees" aria-labelledby="artists-h">${artists.map(teeCard).join('')}</ul>
+          <h2 id="dates-h">Next dates</h2>
+          <div class="filters" role="group" aria-label="Filter dates">
+            <button aria-pressed="true" data-f="all">All <span>${shows.length}</span></button>
+            <button aria-pressed="false" data-f="home">In Paris <span>${homeCount}</span></button>
+            <button aria-pressed="false" data-f="trip">Worth the trip <span>${trips}</span></button>
+          </div>
+          <ul class="dates" id="dates" aria-labelledby="dates-h"></ul>`;
+        renderList();
+        wireTees();
+      }
+
+      // The flip is a spring on the rotation angle, so a second tap mid-turn reverses from where
+      // the card is, keeping its velocity.
+      function wireTees() {
+        document.querySelectorAll('.tee').forEach((btn) => {
+          const inner = btn.querySelector('.tee-inner');
+          const front = btn.querySelector('.front');
+          const back = btn.querySelector('.back');
+          const spring = new Spring({
+            response: 0.55,
+            damping: 0.78,
+            onUpdate: (deg) => {
+              inner.style.transform = `rotateY(${deg}deg)`;
+              const backShown = deg >= 90;
+              front.style.visibility = backShown ? 'hidden' : 'visible';
+              back.style.visibility = backShown ? 'visible' : 'hidden';
+            },
+          });
+          btn.addEventListener('click', () => {
+            const flipped = btn.getAttribute('aria-pressed') !== 'true';
+            btn.setAttribute('aria-pressed', flipped);
+            front.setAttribute('aria-hidden', flipped);
+            back.setAttribute('aria-hidden', !flipped);
+            spring.to(flipped ? 180 : 0);
+          });
+        });
+      }
+
+      let toastTimer;
+      function toast(message, undo) {
+        const el = document.getElementById('toast');
+        el.innerHTML = `<span>${message}</span>${undo ? '<button>Undo</button>' : ''}`;
+        el.classList.add('show');
+        el.querySelector('button')?.addEventListener('click', () => {
+          undo();
+          el.classList.remove('show');
+        });
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove('show'), 4000);
+      }
+
+      function toggleSave(id) {
+        const li = document.querySelector(`.date[data-id="${id}"]`);
+        const s = shows.find((x) => x.id === id);
+        const on = !saved.has(id);
+        on ? saved.add(id) : saved.delete(id);
+        li.classList.toggle('is-saved', on);
+        const btn = li.querySelector('.save');
+        btn.setAttribute('aria-pressed', on);
+        btn.setAttribute('aria-label', `${on ? 'Remove' : 'Save'} ${s.artist}, ${dateParts(s.date).full}`);
+        btn.innerHTML = icon(on ? 'check' : 'bookmark', 20, 2.4);
+        renderTabs(true);
+        if (on) toast(`Saved. ${s.artist} is on your tour.`, () => toggleSave(id));
+      }
+
+      screen.addEventListener('click', (e) => {
+        const save = e.target.closest('.save');
+        if (save) return toggleSave(save.closest('.date').dataset.id);
+        const f = e.target.closest('.filters button');
+        if (f && f.dataset.f !== filter) {
+          filter = f.dataset.f;
+          document.querySelectorAll('.filters button').forEach((b) => b.setAttribute('aria-pressed', b === f));
+          renderList();
+        }
+      });
+
+      function renderTabs(bump) {
+        const tabs = [
+          ['For you', 'compass', true],
+          ['Saved', 'bookmark'],
+          ['Trips', 'route'],
+          ['Artists', 'heart'],
+          ['Alerts', 'bell'],
+        ];
+        document.querySelector('.tabs').innerHTML = tabs
+          .map(
+            ([label, ico, current]) =>
+              `<a href="#" ${current ? 'aria-current="page"' : ''}>${icon(ico, 22, current ? 2.6 : 2.2)}${label}${
+                label === 'Saved' && saved.size ? `<span class="count ${bump ? 'bump' : ''}">${saved.size}<span class="vh"> saved</span></span>` : ''
+              }</a>`,
+          )
+          .join('');
+      }
+
+      render();
+      renderTabs();
+      P.mountDataToggle();
+    </script>
+  </body>
+</html>

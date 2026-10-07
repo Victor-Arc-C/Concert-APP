@@ -1,5 +1,5 @@
 // Omio affiliate links (Impact, "Omio Travel Partner Program"). The programme gives tracking
-// links, not an API: Encore sends people to Omio's route page, where Omio shows live times
+// links, not an API: Showbound sends people to Omio's route page, where Omio shows live times
 // and prices, and the booking is attributed through the Impact link.
 import { env } from '../env';
 
@@ -33,7 +33,8 @@ export function omioRouteUrl(
   if (!affiliate) return landing;
   const link = new URL(affiliate);
   link.searchParams.set('u', landing);
-  // Non-personal attribution: which Encore surface and mode sent the booking.
+  // Non-personal attribution: which surface and mode sent the booking. The 'encore-trip'
+  // value predates the Showbound name; it stays so partner reports remain comparable.
   link.searchParams.set('subId1', 'encore-trip');
   link.searchParams.set('subId2', mode);
   return link.toString();

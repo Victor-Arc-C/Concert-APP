@@ -182,7 +182,7 @@ export async function trainRoutes(
     stationsNear(venue, VENUE_STATION_RADIUS_KM, fetcher, now),
   ]);
   if (!origins.length || !nearVenue.length)
-    return { status: 'none', reason: 'Encore covers trains within France for now.' };
+    return { status: 'none', reason: 'Showbound covers trains within France for now.' };
   const homeUics = new Set(origins.map((s) => s.uic));
   const venueSide = nearVenue.filter((s) => !homeUics.has(s.uic));
   if (!venueSide.length)

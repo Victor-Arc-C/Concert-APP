@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rebranding · série 2</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bungee&family=Rubik:wght@800;900&family=Bricolage+Grotesque:opsz,wght@12..96,800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* Neutral presentation chrome: it must not compete with the three directions. */
+      :root {
+        --bg: #f3f3f5;
+        --panel: #ffffff;
+        --text: #18181b;
+        --muted: #55555e;
+        --line: #e2e2e7;
+        --focus: #2a5bd7;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font: 16px/1.55 system-ui, -apple-system, 'Segoe UI', sans-serif;
+      }
+      a {
+        color: inherit;
+        text-underline-offset: 3px;
+      }
+      :focus-visible {
+        outline: 3px solid var(--focus);
+        outline-offset: 2px;
+      }
+      .wrap {
+        max-width: 1360px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+      header.top {
+        padding: 40px 0 8px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 34px;
+        line-height: 1.15;
+        letter-spacing: -0.01em;
+      }
+      .lede {
+        max-width: 72ch;
+        margin: 12px 0 0;
+        color: var(--muted);
+      }
+      h2 {
+        margin: 48px 0 14px;
+        font-size: 24px;
+        letter-spacing: -0.01em;
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 15px;
+      }
+      th,
+      td {
+        padding: 12px 14px;
+        text-align: left;
+        vertical-align: top;
+        border-bottom: 1px solid var(--line);
+      }
+      th {
+        font-size: 13px;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      tr:last-child td {
+        border-bottom: 0;
+      }
+      td b {
+        font-size: 17px;
+      }
+      .tag {
+        display: inline-block;
+        padding: 1px 8px;
+        border-radius: 6px;
+        background: #ececf0;
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .tag.warn {
+        background: #fde8e6;
+        color: #8a1c12;
+      }
+      .tag.ok {
+        background: #e5f3ea;
+        color: #1d5b33;
+      }
+      .reco {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 24px;
+        padding: 22px 24px;
+      }
+      .reco h3 {
+        margin: 0 0 6px;
+        font-size: 18px;
+      }
+      .reco p,
+      .reco ul {
+        margin: 0;
+      }
+      .reco ul {
+        padding-left: 18px;
+      }
+      .controls {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px 16px;
+        margin-top: 40px;
+        padding: 12px 0;
+        background: rgb(243 243 245 / 0.92);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid var(--line);
+      }
+      .seg {
+        display: inline-flex;
+        padding: 3px;
+        border-radius: 10px;
+        background: #e3e3e8;
+      }
+      .seg button {
+        border: 0;
+        background: none;
+        padding: 7px 12px;
+        border-radius: 8px;
+        font: 600 14px system-ui, sans-serif;
+        color: #3a3a42;
+        cursor: pointer;
+      }
+      .seg button[aria-pressed='true'] {
+        background: #fff;
+        color: #111;
+        box-shadow: 0 1px 2px rgb(0 0 0 / 0.12);
+      }
+      .controls p {
+        margin: 0;
+        font-size: 14px;
+        color: var(--muted);
+      }
+      .dir {
+        margin-top: 28px;
+        padding: 28px;
+      }
+      .dir-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 8px 16px;
+      }
+      .dir-head .letter {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--muted);
+      }
+      .dir-head h3 {
+        margin: 0;
+        font-size: 28px;
+        letter-spacing: -0.01em;
+      }
+      .dir-head .badge {
+        padding: 3px 10px;
+        border-radius: 999px;
+        background: #18181b;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .idea {
+        margin: 8px 0 0;
+        font-size: 18px;
+        max-width: 80ch;
+      }
+      .logos {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 20px;
+      }
+      .logo-tile {
+        display: grid;
+        place-items: center;
+        gap: 10px;
+        min-height: 150px;
+        padding: 16px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+      }
+      .logo-tile small {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .sizes {
+        display: flex;
+        align-items: end;
+        gap: 14px;
+      }
+      .previews {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 300px;
+        gap: 20px;
+        margin-top: 20px;
+        align-items: start;
+      }
+      .frame-desk {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1440 / 900;
+        overflow: hidden;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: #ddd;
+      }
+      .frame-desk iframe {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1440px;
+        height: 900px;
+        border: 0;
+        transform-origin: 0 0;
+      }
+      .frame-phone {
+        position: relative;
+        width: 300px;
+        height: calc(844px * 300 / 390);
+        overflow: hidden;
+        border-radius: 42px;
+        box-shadow:
+          0 0 0 8px #16161a,
+          0 0 0 9px #3a3a40;
+        margin: 9px;
+        background: #000;
+      }
+      .frame-phone iframe {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 390px;
+        height: 844px;
+        border: 0;
+        transform: scale(calc(300 / 390));
+        transform-origin: 0 0;
+      }
+      .cap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 14px;
+        margin-top: 8px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .facts {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 20px;
+        margin-top: 22px;
+      }
+      .facts h4 {
+        margin: 0 0 4px;
+        font-size: 14px;
+        color: var(--muted);
+        font-weight: 700;
+      }
+      .facts p {
+        margin: 0;
+      }
+      .demoted {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 12px;
+        font-size: 14px;
+      }
+      .demoted div {
+        padding: 14px 16px;
+      }
+      .demoted b {
+        display: block;
+      }
+      .demoted span {
+        color: var(--muted);
+      }
+      .two {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 20px;
+      }
+      .two .card {
+        padding: 20px 22px;
+      }
+      .two h3 {
+        margin: 0 0 8px;
+        font-size: 17px;
+      }
+      .two ul {
+        margin: 0;
+        padding-left: 18px;
+      }
+      footer {
+        margin: 56px 0 40px;
+        font-size: 14px;
+        color: var(--muted);
+      }
+      @media (max-width: 980px) {
+        .previews,
+        .reco,
+        .facts,
+        .two,
+        .demoted {
+          grid-template-columns: 1fr;
+        }
+        .logos {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .frame-phone {
+          justify-self: center;
+        }
+        table {
+          display: block;
+          overflow-x: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="top">
+        <h1>Rebranding : série 2, trois nouvelles directions</h1>
+        <p class="lede">
+          Vous avez écarté la première série (<a href="round-1.html">toujours consultable ici</a>) et les noms français. Ces trois directions sont nouvelles et donnent plus de place aux photos d’artistes. Chacune montre son logo, sa page marketing et son feed iPhone, tous interactifs. Dates, prix et temps de trajet fictifs ; photos d’artistes publiques Spotify, chargées à l’affichage.
+        </p>
+      </header>
+
+      <section aria-labelledby="names-h">
+        <h2 id="names-h">Noms anglais</h2>
+        <div class="card">
+          <table>
+            <thead>
+              <tr><th>Nom</th><th>Pourquoi</th><th>Collisions repérées (recherche web du 7 octobre 2026)</th><th>Domaines (RDAP)</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>Showbound</b><br /><span class="tag">direction E</span></td>
+                <td>« Bound for the show » : en route vers le concert. Porte le concert et le déplacement dans un seul mot anglais.</td>
+                <td><span class="tag ok">Aucune app trouvée</span></td>
+                <td>showbound.app (août 2026), showbound.com (2001) : pris.</td>
+              </tr>
+              <tr>
+                <td><b>Gigaway</b><br /><span class="tag">direction D</span></td>
+                <td>Gig + getaway : le concert devient une escapade.</td>
+                <td><span class="tag ok">Aucune app trouvée</span> Concept proche de GigTrip (concurrent concert + voyage).</td>
+                <td>gigaway.com (2004), gigaway.app (août 2026) : pris.</td>
+              </tr>
+              <tr>
+                <td><b>Pitstop</b><br /><span class="tag">direction F</span></td>
+                <td>La fosse devant la scène, et l’arrêt sur la route. Connu en français.</td>
+                <td><span class="tag ok">Aucune app concerts trouvée</span> Mot courant (garages, bars) : marque plus faible.</td>
+                <td>pitstop.live (janvier 2026) : pris.</td>
+              </tr>
+              <tr>
+                <td><b>Roadie</b></td>
+                <td>Celui qui suit la tournée de ville en ville.</td>
+                <td><span class="tag warn">Collisions musique</span> Roadie (gestion de tournée), Mobile Roadie, Roadie Tuner.</td>
+                <td>roadie.app, roadie.live : pris.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="lede">
+          Écartés après vérification : NoFOMO (app d’événements musicaux), Afterglow (carnet de concerts), Soundcheck (Soundcheck Live), GigTrip (concurrent direct), Sound Trip (Thrillist), Groupie (ancienne app de concerts). Tous les .app en un mot sont pris : il faudra un domaine composé. Ces recherches ne valent pas validation juridique.
+        </p>
+      </section>
+
+      <section aria-labelledby="reco-h">
+        <h2 id="reco-h">Recommandation : E, « Showbound »</h2>
+        <div class="card reco">
+          <div>
+            <h3>Pourquoi</h3>
+            <ul>
+              <li>La photo de l’artiste occupe tout l’écran : la reconnaissance est immédiate, sans métaphore à décoder.</li>
+              <li>Le geste est déjà connu de chaque étudiant : toucher pour avancer, tirer vers le bas pour fermer. Rien à apprendre.</li>
+              <li>Les informations de décision sont des autocollants lisibles posés sur la photo : compte à rebours, lieu, prix, trajet.</li>
+              <li>Clair, simple et très animé, avec un seul accent de couleur ; le nom dit à la fois le concert et le départ.</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Ce qu’il faudra tenir</h3>
+            <ul>
+              <li>Le format story est familier (Instagram) : la singularité vient du compte à rebours, de « Going? » et du trajet en dernière diapositive.</li>
+              <li>Tout dépend de la qualité des photos : le fallback sans photo (fond uni, grandes initiales) doit rester aussi soigné.</li>
+              <li>Si vous préférez une identité plus singulière, D (Gigaway) est la plus originale des trois.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <div class="controls">
+        <span class="seg" role="group" aria-label="Données des feeds">
+          <button aria-pressed="true" data-data="demo">Démo</button>
+          <button aria-pressed="false" data-data="worst">Pire cas</button>
+          <button aria-pressed="false" data-data="empty">Vide</button>
+          <button aria-pressed="false" data-data="error">Erreur</button>
+        </span>
+        <p>Change les données des trois iPhone en même temps : photo absente, prix absent, noms longs, annulation, liste vide, erreur fournisseur.</p>
+      </div>
+
+      <section aria-labelledby="dirs-h">
+        <h2 id="dirs-h">Les trois directions</h2>
+
+        <article class="card dir" id="d">
+          <div class="dir-head"><span class="letter">D</span><h3>Gigaway · le photomaton</h3></div>
+          <p class="idea">Chaque concert est une photo de photomaton en noir et blanc. Garder un concert déclenche le flash : la photo passe en couleur. Noir et blanc = possible, couleur = j’y vais.</p>
+          <div class="logos" data-logos="d"></div>
+          <div class="previews">
+            <div>
+              <div class="frame-desk"><iframe title="Gigaway, page marketing" src="d-gigaway/marketing.html" loading="lazy" tabindex="-1"></iframe></div>
+              <div class="cap"><a href="d-gigaway/marketing.html">Ouvrir la page marketing</a><span>Rideau orange, enseigne lumineuse, panneau d’instructions qui porte la liste d’attente, bande photo qui sort de la fente.</span></div>
+            </div>
+            <div>
+              <div class="frame-phone"><iframe title="Gigaway, feed iPhone" data-feed="d-gigaway/feed.html" loading="lazy"></iframe></div>
+              <div class="cap"><a href="d-gigaway/feed.html">Ouvrir le feed</a></div>
+            </div>
+          </div>
+          <div class="facts">
+            <div><h4>Interaction signature</h4><p>Toucher une photo : flash bref sur la photo, puis elle se développe en couleur. Les photos arrivent délavées et « se développent » quand elles entrent à l’écran. Toucher à nouveau la remet en noir et blanc.</p></div>
+            <div><h4>Avantage pour l’étudiant</h4><p>Le photomaton est un rituel de sortie entre amis. Les grandes photos rendent chaque artiste reconnaissable, et le noir et blanc unifie des photos de qualités très différentes.</p></div>
+            <div><h4>Compromis réel</h4><p>Encore un objet-métaphore, ce que la première série avait de trop. Le lettrage d’enseigne est très chargé. Certaines photos Spotify sont déjà presque monochromes : leur passage en couleur se voit peu.</p></div>
+          </div>
+        </article>
+
+        <article class="card dir" id="e">
+          <div class="dir-head"><span class="letter">E</span><h3>Showbound · les stories</h3><span class="badge">Recommandée</span></div>
+          <p class="idea">Chaque concert possible est une story : l’artiste en plein écran, la date en compte à rebours, le lieu et le prix en autocollants, le trajet en diapositive suivante.</p>
+          <div class="logos" data-logos="e"></div>
+          <div class="previews">
+            <div>
+              <div class="frame-desk"><iframe title="Showbound, page marketing" src="e-showbound/marketing.html" loading="lazy" tabindex="-1"></iframe></div>
+              <div class="cap"><a href="e-showbound/marketing.html">Ouvrir la page marketing</a><span>Une story au centre, les artistes voisins sur les côtés ; la barre de réponse est la liste d’attente.</span></div>
+            </div>
+            <div>
+              <div class="frame-phone"><iframe title="Showbound, feed iPhone" data-feed="e-showbound/feed.html" loading="lazy"></iframe></div>
+              <div class="cap"><a href="e-showbound/feed.html">Ouvrir le feed</a></div>
+            </div>
+          </div>
+          <div class="facts">
+            <div><h4>Interaction signature</h4><p>Lecteur de stories : toucher à droite pour avancer, à gauche pour revenir, maintenir pour mettre en pause, tirer vers le bas pour fermer (avec l’élan du doigt). « Going? » se remplit pour enregistrer le concert.</p></div>
+            <div><h4>Avantage pour l’étudiant</h4><p>Aucun apprentissage : c’est le geste qu’il fait cent fois par jour. Les photos portent l’identité, l’information reste lisible sur des autocollants contrastés.</p></div>
+            <div><h4>Compromis réel</h4><p>Format très familier, donc moins singulier. Dépend fortement de la qualité des photos ; les photos sombres demandent un voile sombre en bas pour lire le texte.</p></div>
+          </div>
+        </article>
+
+        <article class="card dir" id="f">
+          <div class="dir-head"><span class="letter">F</span><h3>Pitstop · les lumières de scène</h3></div>
+          <p class="idea">L’écran est une scène blanche sous une rampe de projecteurs. Chaque artiste a sa couleur de gélatine, et son concert s’allume quand on le regarde.</p>
+          <div class="logos" data-logos="f"></div>
+          <div class="previews">
+            <div>
+              <div class="frame-desk"><iframe title="Pitstop, page marketing" src="f-pitstop/marketing.html" loading="lazy" tabindex="-1"></iframe></div>
+              <div class="cap"><a href="f-pitstop/marketing.html">Ouvrir la page marketing</a><span>Rampe de six projecteurs, faisceaux colorés, trois artistes sur scène qu’on peut viser au projecteur, plan de voyage en feuille de conduite lumière.</span></div>
+            </div>
+            <div>
+              <div class="frame-phone"><iframe title="Pitstop, feed iPhone" data-feed="f-pitstop/feed.html" loading="lazy"></iframe></div>
+              <div class="cap"><a href="f-pitstop/feed.html">Ouvrir le feed</a></div>
+            </div>
+          </div>
+          <div class="facts">
+            <div><h4>Interaction signature</h4><p>En faisant défiler, chaque carte s’allume dans la couleur de son artiste quand elle passe au centre de l’écran. Les filtres changent l’éclairage : chaud pour Paris, froid pour les voyages. Sur ordinateur, choisir un artiste y braque tous les faisceaux.</p></div>
+            <div><h4>Avantage pour l’étudiant</h4><p>La plus musicale et la plus lumineuse : on retrouve la scène elle-même. Chaque artiste a une couleur qui aide à le repérer d’un écran à l’autre.</p></div>
+            <div><h4>Compromis réel</h4><p>La teinte colorée cache les vraies couleurs des photos. Les faisceaux peuvent sembler décoratifs s’ils ne servent pas une action. Le nom Pitstop évoque aussi les garages.</p></div>
+          </div>
+        </article>
+
+        <div class="demoted">
+          <div class="card"><b>Écartés du tirage : enseignes de nuit à Tokyo, câblage néon, cape à cordons, instruments de vol</b><span>Mondes sombres ou étrangers au public. Retenu : la lumière n’indique que ce qui est actif (F), un seul geste transforme l’écran (E : tirer pour fermer).</span></div>
+          <div class="card"><b>Écarté : affiche de sound system jamaïcain</b><span>Trop proche de l’affiche de festival déjà refusée. Retenu : chaque bande ou carte porte une seule information par case (D).</span></div>
+          <div class="card"><b>Écarté : spécimen de police variable</b><span>Univers de graphiste, pas d’étudiant. Retenu pour l’étape 2 : un réglage de distance qui réorganise le feed en continu.</span></div>
+        </div>
+      </section>
+
+      <section aria-labelledby="checked-h">
+        <h2 id="checked-h">Ce qui a été vérifié, et les limites</h2>
+        <div class="two">
+          <div class="card">
+            <h3>Vérifié</h3>
+            <ul id="checked">
+              <li>WebKit en émulation iPhone 15 (Playwright, toucher activé), avec et sans « réduire les animations » : garder une photo qui passe en couleur (D) ; « Going? », ouvrir une story, avancer, fermer (E) ; changer l’éclairage et enregistrer (F).</li>
+              <li>Données pire cas, vide et erreur dans les trois feeds : aucun débordement horizontal mesuré, après correction d’une étiquette de lieu trop longue dans E.</li>
+              <li>Captures iPhone (WebKit) et ordinateur (Chromium 1440 × 900) dans <code>captures/</code>, planche <code>comparison-sheet-2.png</code>.</li>
+              <li>Détecteur Impeccable sur les sept pages : contrastes conformes après correction (liens illisibles dans E, cellule photo dans D) ; interlettrage ramené à la limite dans F.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Pas encore vérifié</h3>
+            <ul>
+              <li>Aucun essai sur un iPhone physique : WebKit simulé seulement.</li>
+              <li>Pas de parcours complet au lecteur d’écran ; zoom à 200 % et mode sombre non testés.</li>
+              <li>Ce sont des maquettes : aucun texte n’est traduit, rien n’est branché à l’app, polices chargées depuis Google Fonts.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <footer>Branche <code>victormarsaut/rebrand-directions</code>, dossier <code>design/rebrand</code>. Rien n’est fusionné ni publié.</footer>
+    </div>
+
+    <script>
+      const symbols = {
+        d: (s) => `<svg width="${s}" height="${s}" viewBox="0 0 64 64" role="img" aria-label="Gigaway symbol"><rect width="64" height="64" rx="16" fill="#232327"/><rect x="21" y="7" width="22" height="50" rx="3" fill="#ffffff"/><rect x="24" y="10" width="16" height="13" rx="1.5" fill="#ff5b24"/><rect x="24" y="25.5" width="16" height="13" rx="1.5" fill="#9a9aa2"/><rect x="24" y="41" width="16" height="13" rx="1.5" fill="#9a9aa2"/></svg>`,
+        e: (s) => `<svg width="${s}" height="${s}" viewBox="0 0 64 64" role="img" aria-label="Showbound symbol"><rect width="64" height="64" rx="16" fill="#d8ff3e"/><g transform="translate(6.5 6.5) scale(1.96)"><circle cx="13" cy="13" r="10.5" fill="none" stroke="#0e0e12" stroke-width="3" stroke-dasharray="52 14" transform="rotate(-50 13 13)"/><path d="M18 5.5 L23.5 7 L22 12.5" fill="none" stroke="#0e0e12" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="13" cy="13" r="4" fill="#0e0e12"/></g></svg>`,
+        f: (s) => `<svg width="${s}" height="${s}" viewBox="0 0 64 64" role="img" aria-label="Pitstop symbol"><rect width="64" height="64" rx="16" fill="#fbfaff" stroke="#e7e4f3"/><g transform="translate(6.5 6) scale(1.96)"><rect x="8" y="1.5" width="10" height="7" rx="2.5" fill="#15122b"/><path d="M10 8.5 L4 22 H22 L16 8.5 Z" fill="#ff3d7f" opacity=".9"/><circle cx="13" cy="21" r="3.2" fill="#15122b"/></g></svg>`,
+      };
+      const words = {
+        d: (mono) => `<svg width="230" height="64" viewBox="0 0 230 64" role="img" aria-label="Gigaway"><rect x="3" y="3" width="224" height="58" rx="13" fill="${mono === '#ffffff' ? '#ffffff' : mono || '#232327'}" stroke="${mono ? 'none' : '#5c4d18'}" stroke-width="3"/><text x="115" y="44" text-anchor="middle" font-family="Bungee" font-size="31" fill="${mono === '#ffffff' ? '#18181b' : mono ? '#ffffff' : '#ffd84a'}">GIGAWAY</text></svg>`,
+        e: (mono) => `<svg width="240" height="60" viewBox="0 0 240 60" role="img" aria-label="Showbound"><g transform="translate(4 9) scale(1.6)"><circle cx="13" cy="13" r="10.5" fill="none" stroke="${mono || '#0e0e12'}" stroke-width="3" stroke-dasharray="52 14" transform="rotate(-50 13 13)"/><path d="M18 5.5 L23.5 7 L22 12.5" fill="none" stroke="${mono || '#0e0e12'}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="13" cy="13" r="4" fill="${mono || '#d8ff3e'}" stroke="${mono || '#0e0e12'}" stroke-width="2"/></g><text x="56" y="42" font-family="Rubik" font-weight="900" font-size="34" letter-spacing="-1.2" fill="${mono || '#0e0e12'}">showbound</text></svg>`,
+        f: (mono) => `<svg width="220" height="60" viewBox="0 0 220 60" role="img" aria-label="Pitstop"><g transform="translate(4 6) scale(1.8)"><rect x="8" y="1.5" width="10" height="7" rx="2.5" fill="${mono || '#15122b'}"/><path d="M10 8.5 L4 22 H22 L16 8.5 Z" fill="${mono || '#ff3d7f'}" opacity="${mono ? 0.5 : 0.9}"/><circle cx="13" cy="21" r="3.2" fill="${mono || '#15122b'}"/></g><text x="58" y="43" font-family="Bricolage Grotesque" font-weight="800" font-size="38" letter-spacing="-1.4" fill="${mono || '#15122b'}">pitstop</text></svg>`,
+      };
+      const grounds = { d: '#ff5b24', e: '#f5f6f8', f: '#fbfaff' };
+      document.querySelectorAll('[data-logos]').forEach((el) => {
+        const k = el.dataset.logos;
+        el.innerHTML = `
+          <div class="logo-tile" style="background:${grounds[k]}">${words[k]()}<small style="color:#18181b">Logo couleur</small></div>
+          <div class="logo-tile" style="background:#fff"><span class="sizes">${symbols[k](64)}${symbols[k](32)}${symbols[k](16)}</span><small>Symbole à 64, 32 et 16 px (favicon)</small></div>
+          <div class="logo-tile" style="background:#fff">${words[k]('#18181b')}<small>Monochrome noir</small></div>
+          <div class="logo-tile" style="background:#18181b">${words[k]('#ffffff')}<small style="color:#c9c9d1">Monochrome blanc</small></div>`;
+      });
+      const fit = () =>
+        document.querySelectorAll('.frame-desk').forEach((f) => {
+          f.querySelector('iframe').style.transform = `scale(${f.clientWidth / 1440})`;
+        });
+      fit();
+      addEventListener('resize', fit);
+      const load = (data) =>
+        document.querySelectorAll('[data-feed]').forEach((f) => {
+          f.src = `${f.dataset.feed}?embed&data=${data}`;
+        });
+      load('demo');
+      document.querySelector('.seg').addEventListener('click', (e) => {
+        const b = e.target.closest('button');
+        if (!b) return;
+        document.querySelectorAll('.seg button').forEach((x) => x.setAttribute('aria-pressed', x === b));
+        load(b.dataset.data);
+      });
+    </script>
+  </body>
+</html>

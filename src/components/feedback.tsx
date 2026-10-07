@@ -2,12 +2,13 @@
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { MessageSquare } from 'lucide-react';
+import { useI18n } from '@/i18n/client';
 import { api, useApp } from './context';
 import { Modal } from './ui';
 
 const MAX_LENGTH = 2000;
 
-// CON-36: private-beta feedback, stored in Encore's own database with the current screen.
+// CON-36: private-beta feedback, stored in Showbound's own database with the current screen.
 export function FeedbackButton({
   className,
   label = true,
@@ -16,6 +17,7 @@ export function FeedbackButton({
   label?: boolean;
 }) {
   const { data } = useApp();
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   if (!data.user) return null;
   return (
@@ -23,11 +25,11 @@ export function FeedbackButton({
       <button
         type="button"
         className={className}
-        aria-label={label ? undefined : 'Send feedback'}
+        aria-label={label ? undefined : t.feedback.button}
         onClick={() => setOpen(true)}
       >
-        <MessageSquare size={label ? 19 : 18} />
-        {label && 'Send feedback'}
+        <MessageSquare size={label ? 19 : 18} aria-hidden="true" />
+        {label && t.feedback.button}
       </button>
       {open && <FeedbackDialog onClose={() => setOpen(false)} />}
     </>
@@ -36,6 +38,7 @@ export function FeedbackButton({
 
 function FeedbackDialog({ onClose }: { onClose: () => void }) {
   const { toast } = useApp();
+  const { t } = useI18n();
   const screen = usePathname();
   const [message, setMessage] = useState(''),
     [rating, setRating] = useState<number | null>(null),
@@ -47,23 +50,20 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
     setError('');
     try {
       await api('beta-feedback', { message, rating, screen });
-      toast('Thanks! Your feedback was sent to the Encore team.');
+      toast(t.feedback.thanks);
       onClose();
     } catch (failure) {
-      setError(failure instanceof Error ? failure.message : 'Please try again.');
+      setError(failure instanceof Error ? failure.message : t.common.somethingWrong);
     } finally {
       setSending(false);
     }
   }
   return (
-    <Modal title="Send feedback" onClose={onClose}>
-      <p>
-        Tell us what worked, what was missing or what went wrong. Only the Encore team reads it,
-        together with the screen you are on ({screen}).
-      </p>
+    <Modal title={t.feedback.title} onClose={onClose}>
+      <p className="intro">{t.feedback.intro(screen)}</p>
       <form className="feedback-form" onSubmit={send}>
         <label htmlFor="feedback-message">
-          Your feedback
+          {t.feedback.label}
           <textarea
             id="feedback-message"
             required
@@ -78,13 +78,13 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
           {message.length}/{MAX_LENGTH}
         </small>
         <fieldset className="feedback-rating">
-          <legend>How is Encore so far? (optional)</legend>
+          <legend>{t.feedback.rating}</legend>
           {[1, 2, 3, 4, 5].map((value) => (
             <button
               key={value}
               type="button"
               aria-pressed={rating === value}
-              aria-label={`${value} out of 5`}
+              aria-label={t.feedback.outOf(value)}
               onClick={() => setRating(rating === value ? null : value)}
             >
               {value}
@@ -97,7 +97,7 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
           </p>
         )}
         <button className="button primary full" disabled={sending || !message.trim()}>
-          {sending ? 'Sending…' : 'Send feedback'}
+          {sending ? t.feedback.sending : t.feedback.send}
         </button>
       </form>
     </Modal>

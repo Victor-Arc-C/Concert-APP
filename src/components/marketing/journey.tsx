@@ -8,33 +8,14 @@ import {
   useScroll,
   useTransform,
 } from 'motion/react';
+import { useI18n } from '@/i18n/client';
 import styles from './marketing.module.css';
 
-const stops = [
-  {
-    name: 'Set home',
-    body: 'Pick your city and how far you would go: a metro ride, a train, a weekend abroad.',
-    image: '/screens/onboarding.png',
-    alt: 'Encore onboarding screen asking for a home city and how far you would travel',
-  },
-  {
-    name: 'Follow',
-    body: 'Choose the artists you would travel for. No listening history needed, just your picks.',
-    image: '/screens/artists.png',
-    alt: 'Encore artists screen with Charli xcx, Fontaines D.C., Fred again.. and Kendrick Lamar followed',
-  },
-  {
-    name: 'Get the alert',
-    body: 'When one of them announces a date in reach, it lands in your Encore alerts.',
-    image: '/screens/alerts.png',
-    alt: 'Encore alerts screen with new dates for Charli xcx and Fred again.. in Paris',
-  },
-  {
-    name: 'Go',
-    body: 'Open the show for the ticket link and the ways to get there, from the train to a bed for the night.',
-    image: '/screens/trip.png',
-    alt: 'Encore trip planner for Tame Impala in Brussels, comparing train and bus options from Paris',
-  },
+const images = [
+  '/screens/onboarding.png',
+  '/screens/artists.png',
+  '/screens/alerts.png',
+  '/screens/trip.png',
 ];
 
 const wide = '(min-width: 1024px)';
@@ -52,6 +33,8 @@ function useWide() {
 
 /** Vertical scroll drives a horizontal ride through the four stops (desktop only). */
 export function Journey() {
+  const { t } = useI18n();
+  const stops = t.marketing.stops;
   const section = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
   const pan = useWide() && !reduce;
@@ -68,15 +51,15 @@ export function Journey() {
   );
   return (
     <section
-      id="how"
+      id="journey"
       ref={section}
       className={styles.journey}
       style={pan ? { height: `${stops.length * 100}svh` } : undefined}
-      aria-labelledby="how-title"
+      aria-labelledby="journey-title"
     >
       <div className={pan ? styles.journeySticky : styles.journeyStatic}>
         <header className={styles.journeyHead}>
-          <h2 id="how-title">From your sofa to the barrier.</h2>
+          <h2 id="journey-title">{t.marketing.journeyTitle}</h2>
           {pan && (
             <div className={styles.route} aria-hidden="true">
               <motion.span className={styles.routeFill} style={{ transform: fill }} />
@@ -89,7 +72,7 @@ export function Journey() {
           )}
         </header>
         <motion.ol className={styles.track} style={pan ? { transform: track } : undefined}>
-          {stops.map((stop) => (
+          {stops.map((stop, i) => (
             <li key={stop.name} className={styles.stop}>
               <div className={styles.stopText}>
                 <h3>{stop.name}</h3>
@@ -97,7 +80,7 @@ export function Journey() {
               </div>
               <div className={styles.stopShot}>
                 <Image
-                  src={stop.image}
+                  src={images[i]}
                   alt={stop.alt}
                   width={780}
                   height={1688}
@@ -107,7 +90,7 @@ export function Journey() {
             </li>
           ))}
         </motion.ol>
-        <p className={styles.shotNote}>App screens shown in sample mode with fictional listings.</p>
+        <p className={styles.shotNote}>{t.marketing.shotNote}</p>
       </div>
     </section>
   );

@@ -314,7 +314,7 @@ export function formatReport(report: WeeklyReport) {
         : 'unavailable';
   const width = Math.max(...report.metrics.map((m) => m.label.length));
   const lines = [
-    'Encore — weekly beta metrics',
+    'Showbound: weekly beta metrics',
     `Week: ${dayLabel(report.weekStart)} → ${dayLabel(new Date(report.weekEnd.getTime() - DAY))} (UTC)`,
     `Accounts counted: ${report.includedAccounts} consented · not consented: ${report.notConsentedAccounts} · staff/test excluded: ${report.excludedAccounts}`,
     '',

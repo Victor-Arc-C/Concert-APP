@@ -1,0 +1,129 @@
+/* Prototype chrome shared by the three directions: device frame on desktop, data toggle. */
+html {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+button,
+a,
+[role='button'] {
+  touch-action: manipulation;
+}
+button {
+  font: inherit;
+  color: inherit;
+}
+input,
+textarea,
+select {
+  font-size: 16px;
+}
+
+/* On a phone the app is the whole screen. On a desktop it sits in an iPhone-sized frame. */
+.device {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+}
+@media (min-width: 600px) {
+  body.phone-page {
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    background: #e7e7ec;
+  }
+  body.phone-page.embed {
+    background: transparent;
+    display: block;
+  }
+  body.phone-page:not(.embed) .device {
+    width: 390px;
+    height: 844px;
+    border-radius: 54px;
+    box-shadow:
+      0 0 0 10px #16161a,
+      0 0 0 11px #3a3a40,
+      0 40px 80px -20px rgb(20 20 30 / 0.45);
+  }
+  body.phone-page .device {
+    --safe-top: 47px;
+    --safe-bottom: 30px;
+  }
+  body.phone-page.embed .device {
+    width: 390px;
+    height: 844px;
+  }
+}
+
+.ph {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.ph img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 30%;
+}
+.ph .ph-fallback {
+  display: none;
+}
+.ph.is-missing .ph-fallback {
+  display: block;
+}
+
+.data-toggle {
+  position: fixed;
+  left: 50%;
+  bottom: 14px;
+  translate: -50% 0;
+  z-index: 1000;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: #d9d9de;
+  font: 500 12px/1 system-ui, sans-serif;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.12);
+}
+.data-toggle a {
+  padding: 7px 11px;
+  border-radius: 999px;
+  color: #3a3a42;
+  text-decoration: none;
+}
+.data-toggle a[aria-current] {
+  background: #fff;
+  color: #111;
+}
+@media (max-width: 599px) {
+  /* Above the app's tab bar on a phone, out of the header's way. */
+  .data-toggle {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 92px);
+  }
+}
+
+.vh {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

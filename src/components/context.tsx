@@ -1,6 +1,8 @@
 'use client';
 import { createContext, useContext } from 'react';
 import type { AppData } from '@/domain/types';
+import { clientLocale } from '@/i18n/client';
+import { translate } from '@/i18n/server-text';
 export async function api<T = { ok: boolean }>(path: string, payload?: unknown): Promise<T> {
   const response = await fetch(
     `/api/${path}`,
@@ -13,7 +15,9 @@ export async function api<T = { ok: boolean }>(path: string, payload?: unknown):
         },
   );
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error ?? 'Something went wrong. Try again.');
+  // Server messages are English; show them in the visitor's language.
+  if (!response.ok)
+    throw new Error(translate(data.error ?? 'Something went wrong. Try again.', clientLocale()));
   return data as T;
 }
 export type AppContextValue = {
@@ -28,4 +32,8 @@ export function useApp() {
   const context = useContext(AppContext);
   if (!context) throw new Error('App context missing');
   return context;
+}
+/** For shared pieces (the language switch) that also render outside the app, on marketing. */
+export function useOptionalApp() {
+  return useContext(AppContext);
 }

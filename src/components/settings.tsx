@@ -2,29 +2,38 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Bell, Download, RefreshCw, ShieldCheck, Trash2 } from 'lucide-react';
+import { Bell, Download, Languages, RefreshCw, ShieldCheck, Trash2 } from 'lucide-react';
+import { useI18n } from '@/i18n/client';
 import { useApp, api } from './context';
-import { Empty, Modal } from './ui';
+import { Empty, LanguageSwitch, Modal } from './ui';
 import { PreferenceFields } from './onboarding';
 import { FeedbackButton } from './feedback';
 import { PushSettings } from './push';
+import { useCue } from './stage/rig';
 import type { Preferences } from '@/domain/types';
+
 export function SettingsPage() {
   const { data } = useApp();
+  const { t } = useI18n();
+  useCue('quiet');
   if (!data.user)
     return (
-      <Empty title="Make Encore yours.">
-        <p>Create an account to save travel and notification preferences.</p>
-        <Link href="/signup" className="button primary">
-          Create account
-        </Link>
+      <Empty title={t.settings.signedOutTitle}>
+        <p>{t.settings.signedOutBody}</p>
+        <div className="button-row">
+          <Link href="/signup" className="button primary">
+            {t.settings.createAccount}
+          </Link>
+        </div>
       </Empty>
     );
   return <SettingsForm key={data.user.id} initial={data.user.preferences} />;
 }
+
 function SettingsForm({ initial }: { initial: Preferences }) {
   const { data, act, busy, toast, reload } = useApp(),
     router = useRouter();
+  const { t, f, s, locale } = useI18n();
   const [prefs, setPrefs] = useState(initial),
     [confirmDelete, setConfirmDelete] = useState(false),
     [password, setPassword] = useState(''),
@@ -34,7 +43,7 @@ function SettingsForm({ initial }: { initial: Preferences }) {
     setSyncing(true);
     try {
       const result = await api<{ count: number; message: string }>('sync', {});
-      setSyncMessage(result.message);
+      setSyncMessage(s(result.message));
       await reload();
     } catch (e) {
       setSyncMessage((e as Error).message);
@@ -44,69 +53,57 @@ function SettingsForm({ initial }: { initial: Preferences }) {
   }
   return (
     <>
-      <div className="page-heading">
-        <div>
-          <h1>Your way to be there.</h1>
-          <p>Your travel plans, your alerts, your data.</p>
-        </div>
-      </div>
+      <header className="page-head">
+        <h1>{t.settings.title}</h1>
+        <p className="page-intro">{t.settings.intro}</p>
+      </header>
       <div className="settings-layout">
         <div>
           <form
             onSubmit={async (e) => {
               e.preventDefault();
-              await act('preferences', prefs, 'Your preferences are saved');
+              await act('preferences', { ...prefs, locale }, t.prefs.saved);
             }}
           >
-            <section className="settings-section">
-              <h2>Where the music takes you</h2>
+            <section className="panel settings-section" aria-labelledby="where-title">
+              <h2 id="where-title">{t.settings.whereTitle}</h2>
               <PreferenceFields value={prefs} onChange={setPrefs} />
             </section>
-            <section className="settings-section">
-              <h2>
-                <Bell size={20} />A little less noise
+            <section className="panel settings-section" aria-labelledby="alerts-title">
+              <h2 id="alerts-title">
+                <Bell size={20} aria-hidden="true" />
+                {t.settings.alertsTitle}
               </h2>
-              <p>
-                Choose which alerts you get. They always appear in your inbox, and as notifications
-                on devices where you turn them on.
-              </p>
+              <p>{t.settings.alertsBody}</p>
               <div className="radio-options">
-                {[
-                  ['off', 'Off', 'No new alerts.'],
-                  ['critical', 'Critical only', 'Verified ticket sale times within 24 hours.'],
-                  [
-                    'important',
-                    'Important',
-                    'Home-city shows, favourites, must-see artists and sale reminders.',
-                  ],
-                  ['everything', 'Everything', 'All relevant new concerts and sale reminders.'],
-                ].map(([value, title, description]) => (
-                  <label key={value} htmlFor={`notification-${value}`}>
-                    <input
-                      id={`notification-${value}`}
-                      type="radio"
-                      name="notifications"
-                      value={value}
-                      checked={prefs.notifications === value}
-                      onChange={() =>
-                        setPrefs({ ...prefs, notifications: value as Preferences['notifications'] })
-                      }
-                    />
-                    <span>
-                      <strong>{title}</strong>
-                      <small>{description}</small>
-                    </span>
-                  </label>
-                ))}
+                {(['off', 'critical', 'important', 'everything'] as const).map((value) => {
+                  const [title, description] = t.settings.notification[value];
+                  return (
+                    <label key={value} htmlFor={`notification-${value}`}>
+                      <input
+                        id={`notification-${value}`}
+                        type="radio"
+                        name="notifications"
+                        value={value}
+                        checked={prefs.notifications === value}
+                        onChange={() => setPrefs({ ...prefs, notifications: value })}
+                      />
+                      <span>
+                        <strong>{title}</strong>
+                        <small>{description}</small>
+                      </span>
+                    </label>
+                  );
+                })}
               </div>
               <PushSettings />
             </section>
-            <section className="settings-section">
-              <h2>
-                <ShieldCheck size={20} />
-                Your data stays yours
+            <section className="panel settings-section" aria-labelledby="data-title">
+              <h2 id="data-title">
+                <ShieldCheck size={20} aria-hidden="true" />
+                {t.settings.dataTitle}
               </h2>
-              <label className="checkbox-label" htmlFor="analytics-consent">
+              <label className="checkbox-label" htmlFor="analytics-consent" style={{ marginTop: 14 }}>
                 <input
                   id="analytics-consent"
                   type="checkbox"
@@ -114,25 +111,23 @@ function SettingsForm({ initial }: { initial: Preferences }) {
                   onChange={(e) => setPrefs({ ...prefs, analytics: e.target.checked })}
                 />
                 <span>
-                  <strong>Share product usage to improve Encore</strong>
-                  <small>
-                    Optional. Records in-app actions for up to 30 days. Turning this off and saving
-                    deletes existing analytics.
-                  </small>
+                  <strong>{t.settings.analytics}</strong>
+                  <small>{t.settings.analyticsHint}</small>
                 </span>
               </label>
-              <p className="fineprint">
-                Your explicit choices power your recommendations. We don’t sell personal listening
-                profiles.
+              <p className="fineprint" style={{ marginTop: 12 }}>
+                {t.settings.dataNote}
               </p>
             </section>
-            <button className="button primary" disabled={busy}>
-              {busy ? 'Saving…' : 'Save preferences'}
-            </button>
+            <div className="save-row">
+              <button className="button primary" disabled={busy}>
+                {busy ? t.prefs.saving : t.prefs.save}
+              </button>
+            </div>
           </form>
-          <section className="settings-section">
-            <h2>Manage your account</h2>
-            <div className="button-row">
+          <section className="panel settings-section" aria-labelledby="account-title">
+            <h2 id="account-title">{t.settings.accountTitle}</h2>
+            <div className="button-row" style={{ marginTop: 14 }}>
               <button
                 className="button secondary"
                 disabled={busy}
@@ -140,47 +135,53 @@ function SettingsForm({ initial }: { initial: Preferences }) {
                   if (await act('auth/logout', {})) router.push('/');
                 }}
               >
-                Sign out
+                {t.settings.signOut}
               </button>
-              <a href="/api/export" download="encore-data.json" className="button secondary">
-                <Download size={16} />
-                Export my data
+              <a href="/api/export" download="showbound-data.json" className="button secondary">
+                <Download size={16} aria-hidden="true" />
+                {t.settings.export}
               </a>
               <button
                 className="button secondary"
-                onClick={() => act('feedback/reset', {}, 'Dismissed concerts restored')}
+                onClick={() => act('feedback/reset', {}, t.settings.restored)}
               >
-                Restore dismissed shows
+                {t.settings.restore}
               </button>
               <button className="text-button danger" onClick={() => setConfirmDelete(true)}>
-                <Trash2 size={16} />
-                Delete account
+                <Trash2 size={16} aria-hidden="true" />
+                {t.settings.deleteAccount}
               </button>
             </div>
           </section>
         </div>
         <aside>
-          <section className="settings-section connection-panel">
-            <h2>Your music connection</h2>
+          <section className="panel settings-section connection-panel" aria-labelledby="language-title">
+            <h2 id="language-title">
+              <Languages size={20} aria-hidden="true" />
+              {t.settings.languageTitle}
+            </h2>
+            <p>{t.settings.languageBody}</p>
+            <LanguageSwitch />
+          </section>
+          <section className="panel settings-section connection-panel" aria-labelledby="music-title">
+            <h2 id="music-title">{t.settings.musicTitle}</h2>
             <p>
               {data.spotifyConnected
-                ? 'Spotify is connected. Choose artists from your imported list.'
+                ? t.settings.spotifyConnected
                 : data.spotifyAvailable
-                  ? 'Spotify is available for approved pilot accounts.'
-                  : 'Spotify is awaiting provider approval for this pilot. Manual artist selection is ready to use.'}
+                  ? t.settings.spotifyAvailable
+                  : t.settings.spotifyPending}
             </p>
             {data.spotifyConnected ? (
               <>
                 <Link href="/app/artists" className="button secondary full">
-                  Choose Spotify artists
+                  {t.settings.chooseSpotify}
                 </Link>
                 <button
                   className="text-button full"
-                  onClick={() =>
-                    act('spotify/disconnect', {}, 'Spotify disconnected; tokens removed')
-                  }
+                  onClick={() => act('spotify/disconnect', {}, t.settings.disconnected)}
                 >
-                  Disconnect Spotify
+                  {t.settings.disconnect}
                 </button>
               </>
             ) : null}
@@ -200,26 +201,26 @@ function SettingsForm({ initial }: { initial: Preferences }) {
             >
               {data.spotifyAvailable
                 ? data.spotifyConnected
-                  ? 'Reconnect Spotify'
-                  : 'Connect Spotify'
-                : 'Connection not enabled'}
+                  ? t.settings.reconnect
+                  : t.settings.connect
+                : t.settings.notEnabled}
             </button>
             <Link href="/app/artists" className="text-button">
-              Manage artists manually
+              {t.settings.manual}
             </Link>
           </section>
-          <section className="settings-section connection-panel">
-            <h2>Concert data</h2>
-            <p>{data.providerMessage}</p>
+          <section className="panel settings-section connection-panel" aria-labelledby="concert-data-title">
+            <h2 id="concert-data-title">{t.settings.dataSourceTitle}</h2>
+            <p>{s(data.providerMessage)}</p>
             <label>
-              Experience
+              {t.settings.experience}
               <select
                 value={data.user?.mode}
                 disabled={busy}
-                onChange={(e) => act('mode', { mode: e.target.value }, 'Concert mode changed')}
+                onChange={(e) => act('mode', { mode: e.target.value }, t.settings.modeChanged)}
               >
-                <option value="sample">Sample concerts (fictional)</option>
-                <option value="live">Live Ticketmaster listings</option>
+                <option value="sample">{t.settings.sampleOption}</option>
+                <option value="live">{t.settings.liveOption}</option>
               </select>
             </label>
             {data.user?.mode === 'live' && (
@@ -229,32 +230,27 @@ function SettingsForm({ initial }: { initial: Preferences }) {
                   disabled={syncing || !data.liveAvailable}
                   onClick={sync}
                 >
-                  <RefreshCw size={15} />
-                  {syncing ? 'Checking your artists…' : 'Refresh live concerts'}
+                  <RefreshCw size={15} aria-hidden="true" />
+                  {syncing ? t.settings.checking : t.settings.refresh}
                 </button>
                 <Link href="/app/artists#live-search" className="button secondary full">
-                  Find live artists
+                  {t.settings.findLive}
                 </Link>
                 <p className="fineprint">
-                  {data.automaticChecks
-                    ? 'Automatic checks are on while Encore is running on this computer. New artists are checked within five minutes; existing artists about once an hour. Alerts appear in Your alerts.'
-                    : 'Automatic local checks are off. Use Refresh, or configure a scheduled check.'}
+                  {data.automaticChecks ? t.settings.autoOn : t.settings.autoOff}
                 </p>
                 {data.artistChecks.map((check) => (
                   <p className="fineprint" key={check.artistId}>
                     <strong>{data.artists.find((a) => a.id === check.artistId)?.name}</strong>
                     {' · '}
                     {check.message
-                      ? `Last attempt failed. ${check.message}`
+                      ? t.settings.lastFailed(s(check.message))
                       : check.checkedAt
-                        ? `Checked ${new Date(check.checkedAt).toLocaleString('en-GB')}`
-                        : 'Waiting for first check'}
+                        ? t.settings.checkedAt(f.dateTime(check.checkedAt))
+                        : t.settings.waiting}
                   </p>
                 ))}
-                <p className="fineprint">
-                  Follow artists from live search first. Refresh is cached for an hour; listings are
-                  not real-time inventory.
-                </p>
+                <p className="fineprint">{t.settings.refreshNote}</p>
                 {syncMessage && (
                   <p className="inline-note" role="status">
                     {syncMessage}
@@ -263,34 +259,29 @@ function SettingsForm({ initial }: { initial: Preferences }) {
               </>
             )}
           </section>
-          <section className="settings-section connection-panel">
-            <h2>Help shape the beta</h2>
-            <p>
-              Something confusing, missing or broken? Send it straight to the Encore team. Your
-              feedback is part of your data export and is deleted with your account.
-            </p>
+          <section className="panel settings-section connection-panel" aria-labelledby="beta-title">
+            <h2 id="beta-title">{t.settings.feedbackTitle}</h2>
+            <p>{t.settings.feedbackBody}</p>
             <FeedbackButton className="button secondary full" />
           </section>
-          <Link href="/privacy" className="text-button">
-            Read the privacy notice
-          </Link>
+          <p style={{ marginTop: 14 }}>
+            <Link href="/privacy" className="text-button">
+              {t.settings.privacy}
+            </Link>
+          </p>
         </aside>
       </div>
       {confirmDelete && (
-        <Modal title="Delete your Encore account?" onClose={() => setConfirmDelete(false)}>
-          <p>
-            This permanently deletes your preferences, saved concerts, alerts, music connection,
-            analytics, beta feedback and account from the active database.
-          </p>
+        <Modal title={t.settings.deleteTitle} onClose={() => setConfirmDelete(false)}>
+          <p>{t.settings.deleteBody}</p>
           <form
             onSubmit={async (e) => {
               e.preventDefault();
-              if (await act('account/delete', { password }, 'Account and personal data deleted'))
-                router.push('/');
+              if (await act('account/delete', { password }, t.settings.deleted)) router.push('/');
             }}
           >
             <label>
-              Confirm your current password
+              {t.settings.confirmPassword}
               <input
                 type="password"
                 required
@@ -300,7 +291,7 @@ function SettingsForm({ initial }: { initial: Preferences }) {
               />
             </label>
             <button className="button destructive full" disabled={busy}>
-              Delete my account permanently
+              {t.settings.deleteForever}
             </button>
           </form>
         </Modal>

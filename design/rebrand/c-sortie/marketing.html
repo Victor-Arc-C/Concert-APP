@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#eef2fa" />
+    <title>Sortie · Never miss your favourite artists live</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,400..900;1,62..125,400..900&family=Kalam:wght@300;400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../shared/proto.css" />
+    <style>
+      :root {
+        --desk: #eef2fa;
+        --stock: #f7f9fd;
+        --card: #ffffff;
+        --rule: #cfdff3;
+        --ink: #1d2f96;
+        --ink-soft: #3e4fa8;
+        --pencil: #636a7e;
+        --stripe: #d92b1e;
+        --shell: #1f2230;
+        --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+        --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+        --hand: 'Kalam', 'Marker Felt', cursive;
+        --print: 'Archivo', system-ui, sans-serif;
+        --gutter: clamp(16px, 4.4vw, 64px);
+      }
+      ::selection {
+        background: var(--ink);
+        color: var(--stock);
+      }
+      body {
+        background: var(--desk);
+        color: var(--ink);
+        font-family: var(--print);
+      }
+      a {
+        color: inherit;
+      }
+      :focus-visible {
+        outline: 3px solid var(--ink);
+        outline-offset: 3px;
+        border-radius: 6px;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        height: 76px;
+        padding: 0 var(--gutter);
+      }
+      .wordmark {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        font: italic 900 30px/1 var(--print);
+        font-stretch: 125%;
+        letter-spacing: -0.01em;
+      }
+      .reels {
+        width: 46px;
+        height: 26px;
+        color: var(--stripe);
+      }
+      nav {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 26px;
+        font-weight: 700;
+        font-size: 15px;
+      }
+      nav a {
+        text-decoration: none;
+        text-underline-offset: 5px;
+        text-decoration-thickness: 2px;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        nav a:not(.solid):hover {
+          text-decoration-line: underline;
+        }
+      }
+      .solid {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        height: 48px;
+        padding: 0 20px;
+        border: 0;
+        border-radius: 14px;
+        background: var(--ink);
+        color: var(--stock);
+        font: 800 16px var(--print);
+        text-decoration: none;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: transform 120ms var(--ease-out);
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      .solid:active {
+        transform: scale(0.97);
+      }
+
+      /* The J-card, unfolded: spine, front cover, inside listing. */
+      .jcard {
+        display: grid;
+        grid-template-columns: 112px minmax(0, 0.9fr) minmax(0, 1.1fr);
+        margin: 4px var(--gutter) 0;
+        border-radius: 22px;
+        background: var(--card);
+        box-shadow:
+          0 1px 0 var(--rule),
+          0 40px 60px -40px rgb(29 47 150 / 0.35);
+        overflow: hidden;
+      }
+      .panel {
+        position: relative;
+        padding: 28px;
+      }
+      .panel + .panel {
+        box-shadow: inset 1px 0 0 var(--rule);
+      }
+      /* Folds catch the light a little differently on each panel. */
+      .panel::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(90deg, rgb(29 47 150 / 0.035), transparent 18%);
+      }
+      .spine {
+        display: grid;
+        place-items: center;
+        padding: 24px 0;
+        background: var(--stock);
+      }
+      .spine .vertical {
+        writing-mode: vertical-rl;
+        rotate: 180deg;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        font: italic 900 30px/1 var(--print);
+        font-stretch: 125%;
+        white-space: nowrap;
+      }
+      .spine .vertical small {
+        font: 700 14px/1 var(--print);
+        font-stretch: 100%;
+        font-style: normal;
+        letter-spacing: 0.08em;
+        color: var(--ink-soft);
+      }
+      .spine .bar {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: 18px;
+        width: 10px;
+        background: var(--stripe);
+      }
+      .front {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+      }
+      .cover {
+        position: relative;
+        margin: 0;
+        height: 340px;
+        border-radius: 16px;
+        overflow: hidden;
+        background: var(--shell);
+      }
+      .cover .ph {
+        position: absolute;
+        inset: 0;
+        background: var(--shell);
+        color: var(--stock);
+        transition:
+          opacity 260ms ease,
+          filter 260ms ease,
+          scale 420ms var(--ease-out);
+      }
+      .cover .ph.out {
+        opacity: 0;
+        filter: blur(6px);
+        scale: 1.04;
+      }
+      .cover .ph.is-missing {
+        place-items: start end;
+        padding: 18px 24px;
+        background:
+          repeating-linear-gradient(180deg, transparent 0 35px, rgb(247 249 253 / 0.16) 35px 37px),
+          var(--ink);
+      }
+      .cover .ph-fallback {
+        font: 700 120px/1 var(--hand);
+        rotate: -4deg;
+      }
+      .cover figcaption {
+        position: absolute;
+        left: 14px;
+        bottom: 14px;
+        z-index: 2;
+        padding: 8px 14px 10px;
+        border-radius: 12px;
+        background: var(--card);
+        rotate: -1.5deg;
+        box-shadow: 0 10px 20px -12px rgb(15 20 40 / 0.6);
+      }
+      .cover figcaption span {
+        display: block;
+        font: 400 15px/1 var(--hand);
+        color: var(--pencil);
+      }
+      .cover figcaption b {
+        display: block;
+        margin-top: 3px;
+        font: 700 26px/1.05 var(--hand);
+      }
+      h1 {
+        margin: 0;
+        font: 700 clamp(40px, 3.9vw, 58px)/1.02 var(--hand);
+        rotate: -1deg;
+        transform-origin: 0 50%;
+      }
+      h1 .w {
+        display: block;
+      }
+      .js h1 .w {
+        clip-path: inset(0 100% 0 0);
+      }
+      .js .written h1 .w {
+        clip-path: inset(0 0 0 0);
+        transition: clip-path 620ms var(--ease-in-out);
+        transition-delay: calc(var(--i) * 360ms);
+      }
+      .inside {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+      }
+      .sides {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 26px;
+      }
+      .side-head {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid var(--ink);
+        font: italic 900 15px/1 var(--print);
+        font-stretch: 120%;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .side-head i {
+        display: grid;
+        place-items: center;
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+        background: var(--stripe);
+        color: #fff;
+        font-style: italic;
+      }
+      .tracks {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .track {
+        display: grid;
+        grid-template-columns: 26px minmax(0, 1fr);
+        gap: 8px;
+        padding: 10px 6px;
+        margin: 0 -6px;
+        border-bottom: 1.5px solid var(--rule);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background-color 160ms ease;
+      }
+      .track[aria-current='true'] {
+        background: #eef3ff;
+      }
+      .track .no {
+        font: 700 17px/1.6 var(--hand);
+        color: var(--ink-soft);
+      }
+      .track b {
+        display: block;
+        font: 700 23px/1.1 var(--hand);
+      }
+      .track small {
+        display: block;
+        margin-top: 2px;
+        font-size: 13px;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        color: var(--ink-soft);
+      }
+      .track .pencil {
+        font: 400 15px/1 var(--hand);
+        color: var(--pencil);
+      }
+      .js .track {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      .js .written .track {
+        opacity: 1;
+        transform: none;
+        transition:
+          opacity 300ms var(--ease-out),
+          transform 400ms var(--ease-out);
+        transition-delay: calc(900ms + var(--i) * 70ms);
+      }
+      .ruled {
+        margin-top: auto;
+        padding-top: 16px;
+        border-top: 2px solid var(--ink);
+      }
+      .ruled .lead {
+        margin: 0 0 14px;
+        font-size: 17px;
+        line-height: 1.45;
+        max-width: 46ch;
+      }
+      .ruled form {
+        display: flex;
+        align-items: flex-end;
+        gap: 12px;
+      }
+      .ruled label {
+        flex: 1;
+        display: grid;
+        gap: 2px;
+        font: italic 800 13px/1 var(--print);
+        font-stretch: 115%;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .ruled input {
+        height: 48px;
+        padding: 0 2px;
+        border: 0;
+        border-bottom: 2px solid var(--ink);
+        background: transparent;
+        color: var(--ink);
+        font: 700 24px var(--hand);
+        caret-color: var(--stripe);
+        text-transform: none;
+        letter-spacing: 0;
+      }
+      .ruled input::placeholder {
+        color: var(--pencil);
+        font-weight: 400;
+      }
+      .ruled input:focus {
+        outline: none;
+        border-bottom-color: var(--stripe);
+      }
+      .error {
+        min-height: 18px;
+        margin: 6px 0 0;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--stripe);
+      }
+      .done {
+        display: none;
+        font: 700 24px/1.35 var(--hand);
+      }
+      .ruled.is-done form {
+        display: none;
+      }
+      .ruled.is-done .done {
+        display: block;
+      }
+      .more {
+        margin: 6px 0 0;
+        font-size: 14px;
+        color: var(--pencil);
+      }
+      .more a {
+        color: var(--ink);
+        font-weight: 800;
+        text-underline-offset: 3px;
+      }
+
+      /* Liner notes: the trip, with ink for what a source confirms and pencil for the rest. */
+      .notes {
+        display: grid;
+        grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+        gap: 56px;
+        align-items: start;
+        padding: 110px var(--gutter);
+      }
+      .notes h2 {
+        margin: 0;
+        font: 700 60px/1 var(--hand);
+        rotate: -1deg;
+      }
+      .notes .intro {
+        margin: 18px 0 0;
+        max-width: 42ch;
+        font-size: 18px;
+        line-height: 1.55;
+      }
+      .legend {
+        display: flex;
+        gap: 22px;
+        margin-top: 22px;
+        font-size: 15px;
+        font-weight: 600;
+      }
+      .legend span:last-child {
+        font: 400 18px/1.35 var(--hand);
+        color: var(--pencil);
+      }
+      .liner {
+        padding: 26px 30px;
+        border-radius: 22px;
+        background: var(--card);
+        box-shadow: 0 30px 50px -36px rgb(29 47 150 / 0.4);
+      }
+      .liner .side-head {
+        font-size: 14px;
+      }
+      .liner-title {
+        margin: 12px 0 0;
+        font: 700 30px/1.15 var(--hand);
+      }
+      .legs {
+        list-style: none;
+        margin: 6px 0 0;
+        padding: 0;
+      }
+      .leg {
+        display: grid;
+        grid-template-columns: 30px minmax(0, 1fr) auto;
+        gap: 14px;
+        align-items: baseline;
+        padding: 16px 0;
+        border-bottom: 1.5px solid var(--rule);
+      }
+      .js .notes.armed .leg {
+        clip-path: inset(0 100% 0 0);
+      }
+      .js .notes.armed.built .leg {
+        clip-path: inset(0 0 0 0);
+        transition: clip-path 640ms var(--ease-in-out);
+        transition-delay: calc(var(--i) * 260ms);
+      }
+      .leg .no {
+        font: 700 18px/1 var(--hand);
+        color: var(--ink-soft);
+      }
+      .leg b {
+        display: block;
+        font: 700 25px/1.1 var(--hand);
+      }
+      .leg small {
+        display: block;
+        margin-top: 4px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--ink-soft);
+      }
+      .leg .val {
+        text-align: right;
+        font-weight: 800;
+        font-size: 17px;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .leg .val .pencil {
+        font: 400 19px/1 var(--hand);
+        color: var(--pencil);
+      }
+      .leg .val a {
+        display: block;
+        margin-top: 4px;
+        font-size: 13px;
+        font-weight: 700;
+        text-underline-offset: 3px;
+      }
+      .leg.total {
+        border-bottom: 0;
+      }
+      footer {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 28px;
+        padding: 28px var(--gutter) 40px;
+        border-top: 1.5px solid var(--rule);
+        font-size: 14px;
+        color: var(--ink-soft);
+      }
+      footer .links {
+        margin-left: auto;
+        display: flex;
+        gap: 20px;
+        font-weight: 800;
+        color: var(--ink);
+      }
+      @media (max-width: 1100px) {
+        .jcard {
+          grid-template-columns: 1fr;
+        }
+        .spine {
+          display: none;
+        }
+        .panel + .panel {
+          box-shadow: inset 0 1px 0 var(--rule);
+        }
+        .notes {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 720px) {
+        nav a:not(.solid) {
+          display: none;
+        }
+        .sides {
+          grid-template-columns: 1fr;
+        }
+        .ruled form {
+          flex-wrap: wrap;
+        }
+        .cover {
+          height: 240px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .js h1 .w,
+        .js .written h1 .w,
+        .js .notes.armed .leg {
+          clip-path: none;
+          transition: none;
+        }
+        .js .track {
+          transform: none;
+        }
+        .cover .ph.out {
+          filter: none;
+          scale: 1;
+        }
+      }
+    </style>
+    <script>
+      document.documentElement.classList.add('js');
+    </script>
+  </head>
+  <body>
+    <header>
+      <a class="wordmark" href="#" aria-label="Sortie home"
+        ><svg class="reels" viewBox="0 0 38 22" aria-hidden="true">
+          <g fill="none" stroke="currentColor" stroke-width="3"><circle cx="9" cy="10" r="7" /><circle cx="29" cy="10" r="7" /></g>
+          <g fill="currentColor"><circle cx="9" cy="10" r="2.4" /><circle cx="29" cy="10" r="2.4" /></g>
+          <path d="M9 17 H29" stroke="currentColor" stroke-width="3" stroke-linecap="round" /></svg
+        >sortie</a
+      >
+      <nav aria-label="Main">
+        <a href="#notes">How it works</a>
+        <a href="feed.html">Try the sample</a>
+        <a href="#">Sign in</a>
+        <a class="solid" href="#email">Join the waitlist</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="jcard" id="jcard" aria-labelledby="promise">
+        <div class="panel spine" aria-hidden="true">
+          <span class="vertical">sortie <small>NOV 2026 – FEB 2027</small></span>
+          <span class="bar"></span>
+        </div>
+        <div class="panel front">
+          <figure class="cover" id="cover" aria-live="polite">
+            <span class="slot"></span>
+            <figcaption><span>Up next</span><b id="cover-name"></b></figcaption>
+          </figure>
+          <h1 id="promise">
+            <span class="w" style="--i: 0">Never miss your</span>
+            <span class="w" style="--i: 1">favourite artists</span>
+            <span class="w" style="--i: 2">live.</span>
+          </h1>
+        </div>
+        <div class="panel inside">
+          <div class="sides" id="sides"></div>
+          <div class="ruled" id="ruled">
+            <p class="lead">Sortie lists every date your artists play: your city on side A, the trips worth taking on side B.</p>
+            <form id="waitlist" novalidate>
+              <label for="email">Your email<input id="email" type="email" autocomplete="email" inputmode="email" enterkeyhint="send" placeholder="you@example.com" required /></label>
+              <button class="solid" type="submit">Join the waitlist</button>
+            </form>
+            <p class="error" id="email-error" aria-live="polite"></p>
+            <p class="done" role="status">You’re on the list. We’ll write when your invite is ready.</p>
+            <p class="more">Sample tape, fictional dates. Private beta in France. Invited already? <a href="#">Sign in</a></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="notes" id="notes" aria-labelledby="notes-h">
+        <div>
+          <h2 id="notes-h">Far away? Read the liner notes.</h2>
+          <p class="intro">Train, show and bed for one night, each line with its source. You book on the seller’s site.</p>
+          <div class="legend"><span>Ink: confirmed by the source</span><span>Pencil: unknown, check it</span></div>
+        </div>
+        <div class="liner">
+          <div class="side-head"><i>B</i>Track 01</div>
+          <p class="liner-title">Kendrick Lamar, Amsterdam</p>
+          <ol class="legs">
+            <li class="leg" style="--i: 0"><span class="no">1</span><span><b>Train out, 14:25</b><small>Paris Nord → Amsterdam Centraal · 3h20 · SNCF timetable</small></span><span class="val"><span class="pencil">fare unknown</span><a href="#">Fares on Omio</a></span></li>
+            <li class="leg" style="--i: 1"><span class="no">2</span><span><b>The show, 20:30</b><small>Ziggo Dome · Thu 26 Nov · Ticketmaster, checked today</small></span><span class="val">From €89<a href="#">Open seller</a></span></li>
+            <li class="leg" style="--i: 2"><span class="no">3</span><span><b>Bed near the venue</b><small>Thu 26 → Fri 27 Nov · 1 guest</small></span><span class="val"><span class="pencil">price varies</span><a href="#">Search Booking</a></span></li>
+            <li class="leg total" style="--i: 3"><span class="no"></span><span><b>Total</b><small>Written in once every price is confirmed.</small></span><span class="val"><span class="pencil">not yet</span></span></li>
+          </ol>
+        </div>
+      </section>
+    </main>
+    <footer>
+      <span>Sortie never sells tickets. Listings from Ticketmaster, timetables from SNCF.</span>
+      <span class="links"><a href="#">Privacy</a><a href="#">Beta terms</a></span>
+    </footer>
+
+    <script src="../shared/icons.js"></script>
+    <script src="../shared/data.js"></script>
+    <script src="../shared/proto.js"></script>
+    <script>
+      const { dateParts, money, esc, photo } = P;
+      const shows = PROTO.demo;
+      const a = shows.filter((s) => s.home);
+      const b = shows.filter((s) => !s.home).slice(0, 4);
+      let i = 0;
+      const track = (s, n) => {
+        const p = dateParts(s.date);
+        const price = money(s.price) ? `from ${money(s.price)}` : `<span class="pencil">price not listed</span>`;
+        const travel = s.travel ? ` · ${s.travel.mode === 'flight' ? 'flight' : 'train'} ${s.travel.duration}` : '';
+        return `<li class="track" tabindex="0" style="--i:${i++}" data-id="${s.id}"><span class="no">${String(n + 1).padStart(2, '0')}</span><span><b>${esc(s.artist)}</b><small>${p.dd}.${p.mm} · ${esc(s.city)} · ${price}${travel}</small></span></li>`;
+      };
+      document.getElementById('sides').innerHTML = `
+        <section aria-label="Side A, in Paris"><div class="side-head"><i>A</i>In Paris</div><ol class="tracks">${a.map(track).join('')}</ol></section>
+        <section aria-label="Side B, worth the trip"><div class="side-head"><i>B</i>Worth the trip</div><ol class="tracks">${b.map(track).join('')}</ol></section>`;
+
+      // The cover follows the track you point at, touch or focus: the artist's face next to the name.
+      const cover = document.getElementById('cover');
+      const coverName = document.getElementById('cover-name');
+      let current = null;
+      function showCover(id) {
+        if (id === current) return;
+        current = id;
+        const s = shows.find((x) => x.id === id);
+        const old = cover.querySelector('.ph');
+        const wrap = document.createElement('div');
+        wrap.innerHTML = photo(s);
+        const next = wrap.firstElementChild;
+        next.classList.add('out');
+        cover.prepend(next);
+        requestAnimationFrame(() => requestAnimationFrame(() => next.classList.remove('out')));
+        if (old) {
+          old.classList.add('out');
+          setTimeout(() => old.remove(), 300);
+        }
+        coverName.textContent = s.artist;
+        document.querySelectorAll('.track').forEach((t) => t.setAttribute('aria-current', t.dataset.id === id));
+      }
+      showCover('fred-paris');
+      const sides = document.getElementById('sides');
+      const pick = (e) => {
+        const t = e.target.closest('.track');
+        if (t) showCover(t.dataset.id);
+      };
+      sides.addEventListener('pointerover', pick);
+      sides.addEventListener('focusin', pick);
+      sides.addEventListener('click', pick);
+
+      // Handwriting writes the promise in, then the tracklist appears line by line.
+      let started = false;
+      const write = () => {
+        if (started) return;
+        started = true;
+        requestAnimationFrame(() => document.getElementById('jcard').classList.add('written'));
+      };
+      document.fonts.ready.then(write);
+      setTimeout(write, 450);
+
+      const ruled = document.getElementById('ruled');
+      const email = document.getElementById('email');
+      const error = document.getElementById('email-error');
+      document.getElementById('waitlist').addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (!email.validity.valid) {
+          error.textContent = email.value ? 'That email looks incomplete.' : 'Write your email to join.';
+          email.setAttribute('aria-invalid', 'true');
+          email.setAttribute('aria-describedby', 'email-error');
+          email.focus();
+          return;
+        }
+        ruled.classList.add('is-done');
+      });
+      email.addEventListener('input', () => {
+        error.textContent = '';
+        email.removeAttribute('aria-invalid');
+      });
+
+      const notes = document.getElementById('notes');
+      notes.classList.add('armed');
+      new IntersectionObserver(
+        (entries, io) => {
+          if (entries.some((x) => x.isIntersecting)) {
+            notes.classList.add('built');
+            io.disconnect();
+          }
+        },
+        { threshold: 0.3 },
+      ).observe(notes);
+    </script>
+  </body>
+</html>

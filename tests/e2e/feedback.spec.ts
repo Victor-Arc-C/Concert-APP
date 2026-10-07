@@ -41,7 +41,7 @@ test('beta feedback: send from settings, export it, reject bad input, delete wit
     'true',
   );
   await dialog.getByRole('button', { name: 'Send feedback' }).click();
-  await expect(page.getByText('Thanks! Your feedback was sent to the Encore team.')).toBeVisible();
+  await expect(page.getByText('Thanks. Your feedback reached the Showbound team.')).toBeVisible();
   await expect(dialog).toHaveCount(0);
 
   const exported = await (await page.request.get('/api/export')).json();

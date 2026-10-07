@@ -1,54 +1,71 @@
 'use client';
 import { safeTicketUrl } from '../domain/ticket-links';
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, ViewTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowUpRight,
   ArrowLeft,
+  BedDouble,
+  Bell,
+  Bookmark,
   CalendarDays,
   Check,
-  ChevronDown,
+  Clock,
+  Compass,
+  EyeOff,
   Heart,
   MapPin,
+  Plus,
   Search,
   SlidersHorizontal,
   Sparkles,
   Ticket,
   TrainFront,
-  BedDouble,
-  Bookmark,
-  Compass,
   X,
-  Bell,
-  Music2,
-  Plus,
-  EyeOff,
 } from 'lucide-react';
 import type { Artist, Intent, Preferences } from '@/domain/types';
 import { cities } from '@/domain/catalog';
+import { useI18n } from '@/i18n/client';
 import { useApp, api } from './context';
-import { Avatar, ConcertCard, Empty, Modal, boardDate, dateLabel, money } from './ui';
+import { ArtistPhoto, Avatar, ConcertCard, Empty, Modal, photoName } from './ui';
 import { PreferenceFields } from './onboarding';
+import { gelFor } from './stage/gel';
+import { useCue } from './stage/rig';
+
+/** Alert bodies carry ISO dates; show them the way the reader writes dates. */
+function useAlertText() {
+  const { s, f, alertTitle } = useI18n();
+  return {
+    title: alertTitle,
+    body: (body: string) => s(body).replace(/\b\d{4}-\d{2}-\d{2}\b/g, (iso) => f.dateLong(iso)),
+  };
+}
+
 export function Feed() {
   const { data, act, busy } = useApp();
+  const { t, f, s, city, genre } = useI18n();
+  const alertText = useAlertText();
   const [query, setQuery] = useState(''),
-    [tab, setTab] = useState('all'),
+    [tab, setTab] = useState<'all' | 'local' | 'away'>('all'),
     [month, setMonth] = useState(''),
     [showAll, setShowAll] = useState(false),
     [pageSize, setPageSize] = useState(8),
     [edit, setEdit] = useState(false);
+  useCue(tab === 'local' ? 'home' : tab === 'away' ? 'away' : 'all');
   const followed = data.artists.filter((a) =>
     data.affinities.some((f) => f.artistId === a.id && !f.hidden),
   );
   const home = data.user?.preferences.home ?? 'Paris';
-  const filtered = data.events.filter(
+  const searched = data.events.filter(
     (e) =>
-      (!query || `${e.artist} ${e.city} ${e.venue}`.toLowerCase().includes(query.toLowerCase())) &&
-      (tab !== 'local' || e.city === home) &&
-      (tab !== 'away' || e.city !== home) &&
+      (!query || `${e.artist} ${e.city} ${city(e.city)} ${e.venue}`.toLowerCase().includes(query.toLowerCase())) &&
       (!month || e.date.startsWith(month)),
   );
+  const filtered = searched.filter(
+    (e) => (tab !== 'local' || e.city === home) && (tab !== 'away' || e.city !== home),
+  );
+  const localCount = searched.filter((e) => e.city === home).length;
   // One opportunity per artist in discovery; full tour stays available in the artist/detail views.
   const seen = new Set<string>();
   const shortlist = filtered
@@ -62,44 +79,99 @@ export function Feed() {
   const candidates = expanded ? filtered : shortlist;
   const unique = candidates.slice(0, pageSize);
   const months = [...new Set(data.events.map((e) => e.date.slice(0, 7)))].sort();
+  const scope = data.user?.preferences.scope ?? 'europe';
+  const firstName = data.user ? data.user.name.split(' ')[0] : null;
+  const alerts = expanded ? [] : data.alerts.filter((a) => !a.read_at).slice(0, 3);
+  const cues = [
+    { value: 'all' as const, label: t.feed.forYou, count: searched.length, color: 'var(--rose)' },
+    { value: 'local' as const, label: t.feed.local(city(home)), count: localCount, color: 'var(--amber)' },
+    { value: 'away' as const, label: t.feed.away, count: searched.length - localCount, color: 'var(--cyan)' },
+  ];
   return (
     <>
-      <div className="page-heading feed-heading">
-        <div>
-          <h1>Your next great night.</h1>
-          <p>
-            {data.user
-              ? `Departures for ${data.user.name.split(' ')[0]}: the artists you love, the shows worth the trip.`
-              : 'The artists you love. The shows worth the trip.'}
-          </p>
+      <header className="page-head">
+        <h1>{t.feed.title}</h1>
+        <p className="page-intro">{t.feed.intro(firstName)}</p>
+        <div className="page-actions">
+          <button className="button secondary compact" onClick={() => setEdit(true)}>
+            <SlidersHorizontal size={16} aria-hidden="true" />
+            {t.feed.preferences}
+          </button>
         </div>
-        <button className="button secondary compact" onClick={() => setEdit(true)}>
-          <SlidersHorizontal size={16} />
-          Your preferences
-        </button>
-      </div>
-      <div className="feed-context">
-        <span className="context-live">
-          <span />
-          {data.user?.mode === 'live' ? 'Live discovery' : 'Sample discovery'}
+      </header>
+      <p className="feed-meta">
+        <span className="live-dot" data-sample={data.user?.mode === 'live' ? undefined : ''}>
+          {data.user?.mode === 'live' ? t.feed.live : t.feed.sample}
         </span>
         <span>
-          <MapPin size={13} />
-          {home}{' '}
-          {data.user?.preferences.scope === 'city'
-            ? 'only'
-            : data.user?.preferences.scope === 'country'
-              ? 'and your country'
-              : '& a little further'}
+          {scope === 'city'
+            ? t.feed.scopeCity(city(home))
+            : scope === 'country'
+              ? t.feed.scopeCountry(city(home))
+              : t.feed.scopeEurope(city(home))}
         </span>
-        <span>
-          {filtered.length} matching dates · {showAll ? 'all dates' : 'one pick per artist'}
-        </span>
+      </p>
+      <div className="feed-tools">
+        <div className="cues" role="group" aria-label={t.feed.filters}>
+          {cues.map((cue) => (
+            <button
+              key={cue.value}
+              aria-pressed={tab === cue.value}
+              style={{ '--c': cue.color } as React.CSSProperties}
+              onClick={() => {
+                setTab(cue.value);
+                setPageSize(8);
+              }}
+            >
+              <i aria-hidden="true" />
+              {cue.label}
+              <span>{cue.count}</span>
+            </button>
+          ))}
+        </div>
+        <div className="feed-search">
+          <label className="search-field">
+            <span className="vh">{t.feed.searchLabel}</span>
+            <Search size={17} aria-hidden="true" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setPageSize(8);
+              }}
+              placeholder={t.feed.searchPlaceholder}
+              aria-label={t.feed.searchLabel}
+              enterKeyHint="search"
+            />
+          </label>
+          <label className="month-field">
+            <span className="vh">{t.feed.monthLabel}</span>
+            <select
+              aria-label={t.feed.monthLabel}
+              value={month}
+              onChange={(e) => {
+                setMonth(e.target.value);
+                setPageSize(8);
+              }}
+            >
+              <option value="">{t.feed.anyDate}</option>
+              {months.map((m) => (
+                <option key={m} value={m}>
+                  {f.month(m)}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
       </div>
-      <div className="board-layout">
-        <section className="shortlist">
-          <div className="section-heading">
-            <h2>{query ? 'Search your shortlist' : 'Departures'}</h2>
+      <div className="feed-layout">
+        <section className="shortlist" aria-labelledby="shows-title">
+          <div className="list-head">
+            <h2 id="shows-title">
+              {t.feed.matching(filtered.length)}
+              <span className="list-mode"> · {showAll ? t.feed.allDates : t.feed.onePerArtist}</span>
+            </h2>
             <button
               className="text-button"
               aria-pressed={showAll}
@@ -108,80 +180,12 @@ export function Feed() {
                 setPageSize(8);
               }}
             >
-              {showAll ? 'Show shortlist' : `Show all ${filtered.length} matching dates`}
+              {showAll ? t.feed.showShortlist : t.feed.showAll(filtered.length)}
             </button>
           </div>
-          <div className="feed-controls">
-            <div className="filter-tabs" role="group" aria-label="Concert location">
-              {[
-                ['all', 'For you'],
-                ['local', 'Close to home'],
-                ['away', 'Worth the trip'],
-              ].map(([value, label]) => (
-                <button
-                  key={value}
-                  className={tab === value ? 'selected' : ''}
-                  aria-pressed={tab === value}
-                  onClick={() => {
-                    setTab(value);
-                    setPageSize(8);
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-            <div className="filter-tools">
-              <label className="search-field">
-                <Search size={16} />
-                <input
-                  value={query}
-                  onChange={(e) => {
-                    setQuery(e.target.value);
-                    setPageSize(8);
-                  }}
-                  placeholder="Find an artist or city"
-                  aria-label="Search your concerts"
-                />
-              </label>
-              <label className="date-filter">
-                <CalendarDays size={16} />
-                <select
-                  aria-label="Filter by month"
-                  value={month}
-                  onChange={(e) => {
-                    setMonth(e.target.value);
-                    setPageSize(8);
-                  }}
-                >
-                  <option value="">Any date</option>
-                  {months.map((m) => (
-                    <option key={m} value={m}>
-                      {new Intl.DateTimeFormat('en-GB', {
-                        month: 'short',
-                        year: 'numeric',
-                        timeZone: 'UTC',
-                      }).format(new Date(`${m}-01T12:00:00Z`))}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown size={13} />
-              </label>
-            </div>
-          </div>
           {unique.length === 0 ? (
-            <Empty
-              title={
-                query || month || tab !== 'all'
-                  ? 'No shows match these filters.'
-                  : 'Your next show hasn’t found you yet.'
-              }
-            >
-              <p>
-                {data.user?.mode === 'live'
-                  ? data.providerMessage
-                  : 'Try a different city, follow another artist or restore dismissed shows.'}
-              </p>
+            <Empty title={query || month || tab !== 'all' ? t.feed.emptyFiltered : t.feed.emptyNone}>
+              <p>{data.user?.mode === 'live' ? s(data.providerMessage) : t.feed.emptyHint}</p>
               <div className="button-row">
                 <button
                   className="button secondary"
@@ -192,135 +196,102 @@ export function Feed() {
                     setPageSize(8);
                   }}
                 >
-                  Clear filters
+                  {t.feed.clearFilters}
                 </button>
                 <Link className="button primary" href="/app/artists">
-                  Choose artists
+                  {t.feed.chooseArtists}
                 </Link>
                 {data.user && (
                   <button
                     className="text-button"
                     disabled={busy}
-                    onClick={() => act('feedback/reset', {}, 'Dismissed shows restored')}
+                    onClick={() => act('feedback/reset', {}, t.feed.restored)}
                   >
-                    Restore dismissed shows
+                    {t.feed.restoreDismissed}
                   </button>
                 )}
               </div>
             </Empty>
           ) : (
-            <div className="concert-grid">
-              <div className="board-head" aria-hidden="true">
-                <span>Date</span>
-                <span>Artist · destination</span>
-                <span>Fare · status</span>
-              </div>
-              {!expanded &&
-                data.alerts
-                  .filter((a) => !a.read_at)
-                  .slice(0, 3)
-                  .map((a) => {
-                    const alerted = data.allEvents.find((e) => e.id === a.event_id);
-                    const when = alerted ? boardDate(alerted.date) : null;
-                    return (
-                      <Link
-                        key={a.id}
-                        className="board-alert"
-                        href={`/app/events/${a.event_id}`}
-                        onClick={() => act('alerts/read', { id: a.id })}
-                      >
-                        <span className="board-alert-when">
-                          {when && (
-                            <>
-                              <span className="board-day">{when.day}</span>
-                              <span className="board-month">{when.month}</span>
-                            </>
-                          )}
-                        </span>
-                        <span className="board-alert-what">
-                          <strong>{a.title}</strong>
-                          <small>
-                            {a.body.replace(/\b\d{4}-\d{2}-\d{2}\b/g, (iso) =>
-                              dateLabel(iso, true),
-                            )}
-                          </small>
-                        </span>
-                        <span className="board-status wait">New</span>
-                      </Link>
-                    );
-                  })}
+            <div className="acts">
+              {alerts.length > 0 && (
+                <div className="alert-strip">
+                  {alerts.map((a) => (
+                    <Link
+                      key={a.id}
+                      className="alert-ticket"
+                      href={`/app/events/${a.event_id}`}
+                      onClick={() => act('alerts/read', { id: a.id })}
+                    >
+                      <span className="alert-bulb" aria-hidden="true" />
+                      <span>
+                        <strong>{alertText.title(a.title)}</strong>
+                        <small>{alertText.body(a.body)}</small>
+                      </span>
+                      <span className="chip">{t.feed.newBadge}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
               {unique.map((e, index) => (
                 <ConcertCard
                   key={e.id}
                   event={e}
+                  index={index}
                   featured={!expanded && index === 0}
                   source={query ? 'search' : 'feed'}
                   trackImpression
                 />
               ))}
+              {candidates.length > unique.length && (
+                <button className="button secondary" onClick={() => setPageSize((size) => size + 8)}>
+                  {t.feed.showMore}
+                </button>
+              )}
             </div>
-          )}
-          {candidates.length > unique.length && (
-            <button className="button secondary" onClick={() => setPageSize((size) => size + 8)}>
-              Show more concerts
-            </button>
           )}
         </section>
         {followed.length > 0 && (
-          <aside className="taste-panel">
-            <div className="section-heading">
-              <h2>Your lines</h2>
-              <Music2 size={18} aria-hidden="true" />
-            </div>
-            <p>Every departure on this board starts with an artist you chose.</p>
-            <div className="taste-list">
-              {followed.slice(0, 4).map((a) => (
-                <Link href={`/app/artists/${a.id}`} className="taste-artist" key={a.id}>
-                  <Avatar artist={a} small />
-                  <div>
-                    <strong>{a.name}</strong>
+          <aside className="lineup-panel" aria-labelledby="lineup-title">
+            <h2 id="lineup-title">{t.feed.yourArtists}</h2>
+            <p>{t.feed.yourArtistsNote}</p>
+            <ul className="lineup-list">
+              {followed.slice(0, 5).map((a) => (
+                <li key={a.id}>
+                  <Link href={`/app/artists/${a.id}`}>
+                    <Avatar artist={a} small />
                     <span>
-                      {data.intents.some((i) => i.artistId === a.id)
-                        ? 'On your must-see list'
-                        : a.genre}
+                      <strong>{a.name}</strong>
+                      <small>
+                        {data.intents.some((i) => i.artistId === a.id) ? t.feed.mustSeeNote : genre(a.genre)}
+                      </small>
                     </span>
-                  </div>
-                  <ArrowUpRight size={15} />
-                </Link>
+                  </Link>
+                </li>
               ))}
-            </div>
-            <Link className="taste-link" href="/app/artists">
-              Fine-tune your artists <ArrowUpRight size={16} />
+            </ul>
+            <Link className="text-button" href="/app/artists">
+              {t.feed.fineTune} <ArrowUpRight size={16} aria-hidden="true" />
             </Link>
-            <div className="taste-note">
-              <Sparkles size={15} />
-              <span>
-                Every pick has a reason.
-                <br />
-                Every choice makes it more yours.
-              </span>
-            </div>
           </aside>
         )}
       </div>
-      <div className="quiet-banner">
-        <div className="quiet-icon">
-          <Bell size={19} />
-        </div>
-        <div>
-          <h3>Some artists are non-negotiable.</h3>
-          <p>Add them to your must-see list. Keep their next show on your radar.</p>
-        </div>
-        <Link href="/app/artists" className="text-button">
-          Make your list <ArrowUpRight size={17} />
+      <section className="callout" aria-labelledby="must-see-title">
+        <h2 id="must-see-title">{t.feed.mustSeeTitle}</h2>
+        <p>{t.feed.mustSeeBody}</p>
+        <Link href="/app/artists" className="button">
+          <Heart size={17} aria-hidden="true" />
+          {t.feed.mustSeeCta}
         </Link>
-      </div>
+      </section>
       {edit && <PreferenceModal onClose={() => setEdit(false)} />}
     </>
   );
 }
+
 function PreferenceModal({ onClose }: { onClose: () => void }) {
   const { data, act, busy } = useApp();
+  const { t, locale } = useI18n();
   const [prefs, setPrefs] = useState<Preferences>(
     data.user?.preferences ?? {
       home: 'Paris',
@@ -332,23 +303,25 @@ function PreferenceModal({ onClose }: { onClose: () => void }) {
     },
   );
   return (
-    <Modal title="Follow the music your way" onClose={onClose}>
+    <Modal title={t.prefs.modalTitle} onClose={onClose}>
       <form
         onSubmit={async (e) => {
           e.preventDefault();
-          if (await act('preferences', prefs, 'Travel preferences saved')) onClose();
+          if (await act('preferences', { ...prefs, locale }, t.prefs.savedTravel)) onClose();
         }}
       >
         <PreferenceFields value={prefs} onChange={setPrefs} />
         <button className="button primary full" disabled={busy}>
-          Save preferences
+          {t.prefs.save}
         </button>
       </form>
     </Modal>
   );
 }
+
 export function IntentForm({ artist, onClose }: { artist: Artist; onClose: () => void }) {
   const { data, act, busy } = useApp();
+  const { t, city } = useI18n();
   const existing = data.intents.find((i) => i.artistId === artist.id);
   const [intent, setIntent] = useState<Intent>(
     existing ?? {
@@ -359,49 +332,48 @@ export function IntentForm({ artist, onClose }: { artist: Artist; onClose: () =>
     },
   );
   return (
-    <Modal title={`Make ${artist.name} a must-see`} onClose={onClose}>
-      <p className="intro">
-        Tell us what would make this show work for you. This records your interest; it does not
-        reserve tickets.
-      </p>
+    <Modal title={t.intent.title(artist.name)} onClose={onClose}>
+      <p className="intro">{t.intent.intro}</p>
       <form
         onSubmit={async (e) => {
           e.preventDefault();
-          if (await act('intent', intent, 'Added to your must-see list')) onClose();
+          if (await act('intent', intent, t.intent.added)) onClose();
         }}
       >
         <fieldset>
-          <legend>Cities you’d go to</legend>
+          <legend>{t.intent.cities}</legend>
           <div className="city-chips">
-            {cities.map((c) => (
-              <button
-                type="button"
-                key={c.name}
-                aria-pressed={intent.cities.includes(c.name)}
-                className={`city-chip ${intent.cities.includes(c.name) ? 'selected' : ''}`}
-                onClick={() =>
-                  setIntent({
-                    ...intent,
-                    cities: intent.cities.includes(c.name)
-                      ? intent.cities.filter((n) => n !== c.name)
-                      : [...intent.cities, c.name],
-                  })
-                }
-              >
-                {c.name}
-                {intent.cities.includes(c.name) && <Check size={13} />}
-              </button>
-            ))}
+            {cities.map((c) => {
+              const on = intent.cities.includes(c.name);
+              return (
+                <button
+                  type="button"
+                  key={c.name}
+                  aria-pressed={on}
+                  className="city-chip"
+                  onClick={() =>
+                    setIntent({
+                      ...intent,
+                      cities: on ? intent.cities.filter((n) => n !== c.name) : [...intent.cities, c.name],
+                    })
+                  }
+                >
+                  {city(c.name)}
+                  {on && <Check size={14} aria-hidden="true" />}
+                </button>
+              );
+            })}
           </div>
         </fieldset>
         <div className="two-fields">
           <label>
-            Maximum per ticket (€)
+            {t.intent.maxPrice}
             <input
               type="number"
+              inputMode="numeric"
               min={1}
               max={10000}
-              placeholder="Flexible"
+              placeholder={t.intent.flexible}
               value={intent.maxPrice ?? ''}
               onChange={(e) =>
                 setIntent({ ...intent, maxPrice: e.target.value ? Number(e.target.value) : null })
@@ -409,9 +381,10 @@ export function IntentForm({ artist, onClose }: { artist: Artist; onClose: () =>
             />
           </label>
           <label>
-            Number of tickets
+            {t.intent.tickets}
             <input
               type="number"
+              inputMode="numeric"
               min={1}
               max={8}
               required
@@ -421,30 +394,30 @@ export function IntentForm({ artist, onClose }: { artist: Artist; onClose: () =>
           </label>
         </div>
         <button className="button primary full" disabled={busy || !intent.cities.length}>
-          <Heart size={17} />
-          Save must-see preferences
+          <Heart size={17} aria-hidden="true" />
+          {t.intent.save}
         </button>
         {existing && (
           <button
             className="text-button danger full"
             type="button"
             onClick={async () => {
-              if (
-                await act('intent/delete', { artistId: artist.id }, 'Must-see preference removed')
-              )
-                onClose();
+              if (await act('intent/delete', { artistId: artist.id }, t.intent.removed)) onClose();
             }}
           >
-            Remove from must-see list
+            {t.intent.remove}
           </button>
         )}
       </form>
     </Modal>
   );
 }
+
 export function EventDetail({ id }: { id: string }) {
   const { data, act, busy, toast } = useApp(),
     router = useRouter();
+  const { t, f, s, city } = useI18n();
+  useCue('all');
   const [intent, setIntent] = useState(false);
   const [outbound, setOutbound] = useState(false);
   const opened = useRef('');
@@ -458,15 +431,21 @@ export function EventDetail({ id }: { id: string }) {
   }, [data.user, event]);
   if (!event)
     return (
-      <Empty title="This concert isn’t available in your current mode.">
-        <Link href="/app">Back to your shortlist</Link>
+      <Empty title={t.detail.unavailable}>
+        <Link className="button primary" href="/app">
+          {t.detail.backToShortlist}
+        </Link>
       </Empty>
     );
+  const home = data.user?.preferences.home ?? 'Paris';
   const ticketDestination =
     event.url && safeTicketUrl(event.url) ? new URL(event.url).hostname : null;
   const tours = data.allEvents
     .filter((e) => e.artistIds.some((id) => event.artistIds.includes(id)))
     .sort((a, b) => a.date.localeCompare(b.date) || a.city.localeCompare(b.city));
+  const inactive = ['cancelled', 'postponed'].includes(event.status);
+  const time = f.time(event.localTime);
+  const zone = event.timezone ?? 'Europe/Paris';
   async function ticket() {
     if (!data.user) {
       router.push('/signup');
@@ -484,197 +463,183 @@ export function EventDetail({ id }: { id: string }) {
   }
   return (
     <>
-      <Link className="back-link" href="/app">
-        <ArrowLeft size={16} />
-        Your shortlist
+      <Link className="back-link" href="/app" transitionTypes={['nav-back']}>
+        <ArrowLeft size={16} aria-hidden="true" />
+        {t.detail.backToShortlist}
       </Link>
-      <header className="detail-hero boarding-pass">
-        <div className="pass-main">
+      <header className="show-hero" style={{ '--gel': gelFor(event.artist) } as React.CSSProperties}>
+        <ViewTransition name={photoName(event.id)} share="photo-morph" default="none">
+          <ArtistPhoto name={event.artist} image={artist?.image} className="show-photo" />
+        </ViewTransition>
+        <div className="show-title">
           <h1>{event.artist}</h1>
-          <p>
-            {event.venue}, {event.city}
+          <p className="show-venue">
+            {event.venue}, {city(event.city)}
           </p>
         </div>
-        <dl className="pass-fields">
-          {(data.user?.preferences.home ?? 'Paris') === event.city ? (
+        <dl className="show-facts">
+          {home === event.city ? (
             <div>
-              <dt>Where</dt>
-              <dd>{event.city} · home city</dd>
+              <dt>{t.detail.where}</dt>
+              <dd>
+                <MapPin size={16} aria-hidden="true" />
+                {city(event.city)} · {t.common.homeCity}
+              </dd>
             </div>
           ) : (
             <div>
-              <dt>From → to</dt>
+              <dt>{t.detail.fromTo}</dt>
               <dd>
-                {data.user?.preferences.home ?? 'Paris'} → {event.city}
+                <MapPin size={16} aria-hidden="true" />
+                {city(home)} → {city(event.city)}
               </dd>
             </div>
           )}
           <div>
-            <dt>Why</dt>
-            <dd className="pass-why">
+            <dt>{t.detail.why}</dt>
+            <dd>
               <Sparkles size={16} aria-hidden="true" />
-              {event.tier}
+              {s(event.tier)}
             </dd>
           </div>
           <div>
-            <dt>Date</dt>
+            <dt>{t.detail.date}</dt>
             <dd>
               <CalendarDays size={16} aria-hidden="true" />
-              {dateLabel(event.date, true)}
+              {f.dateLong(event.date)}
             </dd>
           </div>
           <div>
-            <dt>Show</dt>
+            <dt>{t.detail.show}</dt>
             <dd>
-              <MapPin size={16} aria-hidden="true" />
-              {event.localTime
-                ? `${event.localTime.slice(0, 5)} local time`
-                : 'Time to be announced'}
+              <Clock size={16} aria-hidden="true" />
+              {time ? t.detail.localTime(time) : t.detail.timeTba}
             </dd>
           </div>
         </dl>
       </header>
       <div className="detail-layout">
         <div>
-          <section className="detail-section">
-            <h2>A show with your name on it.</h2>
+          <section className="panel" aria-labelledby="reasons-title">
+            <h2 id="reasons-title">{t.detail.reasonsTitle}</h2>
             <ul className="reason-list">
-              {event.reasons.map((r) => (
-                <li key={r}>
-                  <Check size={16} />
-                  {r}
+              {event.reasons.map((r, i) => (
+                <li key={r} style={{ '--i': i } as React.CSSProperties}>
+                  <Check aria-hidden="true" />
+                  {s(r)}
                 </li>
               ))}
             </ul>
-            <p className="fineprint">
-              A relevance ranking based on your choices, not a prediction of whether you’ll enjoy
-              the show.
-            </p>
+            <p className="fineprint">{t.detail.reasonsNote}</p>
             {artist && (
               <Link href={`/app/artists/${artist.id}`} className="text-button">
-                Explore {artist.name} <ArrowUpRight size={16} />
+                {t.detail.explore(artist.name)} <ArrowUpRight size={16} aria-hidden="true" />
               </Link>
             )}
           </section>
-          <section className="detail-section">
-            <div className="section-heading">
-              <h2>Same artist. Other possibilities.</h2>
-              <TrainFront size={19} />
-            </div>
-            <p className="intro">
-              Compare ticket starting prices. Travel and accommodation still need checking.
-            </p>
-            <div className="tour-table">
+          <section className="panel" aria-labelledby="tour-title">
+            <h2 id="tour-title">{t.detail.otherDates}</h2>
+            <p className="subtle">{t.detail.otherDatesNote}</p>
+            <div className="tour-table" style={{ '--gel': gelFor(event.artist) } as React.CSSProperties}>
               <div className="tour-row tour-header">
-                <span>City & date</span>
-                <span>Ticket from</span>
-                <span>Trip total</span>
+                <span>{t.detail.cityAndDate}</span>
+                <span>{t.detail.ticketFrom}</span>
+                <span>{t.detail.tripTotal}</span>
               </div>
-              {tours.map((t) => (
+              {tours.map((tour) => (
                 <Link
-                  className={`tour-row ${t.id === id ? 'current' : ''}`}
-                  key={t.id}
-                  href={`/app/events/${t.id}`}
+                  className={`tour-row ${tour.id === id ? 'current' : ''}`}
+                  aria-current={tour.id === id ? 'page' : undefined}
+                  key={tour.id}
+                  href={`/app/events/${tour.id}`}
                 >
                   <span>
-                    <strong>{t.city}</strong>
+                    <strong>{city(tour.city)}</strong>
                     <small>
-                      {dateLabel(t.date)}
-                      {t.city === data.user?.preferences.home ? ' · home city' : ''}
+                      {f.dateShort(tour.date)}
+                      {tour.city === home ? ` · ${t.common.homeCity}` : ''}
                     </small>
                   </span>
-                  <span>{money(t.price, t.currency)}</span>
-                  <span className="subtle">Unknown</span>
+                  <span>{f.money(tour.price, tour.currency) ?? t.common.priceNotListed}</span>
+                  <span className="subtle">{t.common.unknown}</span>
                 </Link>
               ))}
             </div>
-            <div className="travel-placeholders">
+            <div className="next-steps">
               <div>
-                <TrainFront />
-                <strong>Getting there</strong>
+                <TrainFront aria-hidden="true" />
+                <strong>{t.detail.gettingThere}</strong>
                 <span>
-                  Check route options and timings.{' '}
-                  {!['cancelled', 'postponed'].includes(event.status) && (
+                  {t.detail.gettingThereNote}{' '}
+                  {!inactive && (
                     <Link href={`/app/trips/${event.id}`} className="text-link">
-                      Plan trip
+                      {t.detail.planTrip}
                     </Link>
                   )}
                 </span>
               </div>
               <div>
-                <BedDouble />
-                <strong>A place to stay</strong>
+                <BedDouble aria-hidden="true" />
+                <strong>{t.detail.stay}</strong>
                 <span>
-                  Compare stays close to {event.venue}.{' '}
-                  {!['cancelled', 'postponed'].includes(event.status) && (
+                  {t.detail.stayNote(event.venue)}{' '}
+                  {!inactive && (
                     <Link href={`/app/trips/${event.id}`} className="text-link">
-                      View stays
+                      {t.detail.viewStays}
                     </Link>
                   )}
                 </span>
               </div>
             </div>
-
-            <p className="fineprint">
-              No journey time, hotel availability or total price is confirmed. Check these before
-              buying a ticket.
-            </p>
+            <p className="fineprint">{t.detail.nothingConfirmed}</p>
           </section>
         </div>
-        <aside className="ticket-panel">
-          <span className="subtle">
-            {event.provider === 'sample' ? 'Fictional sample price' : 'Provider price range'}
+        <aside className="ticket-panel" aria-label={t.detail.ticketFrom}>
+          <span className="ticket-label">
+            {event.provider === 'sample' ? t.detail.samplePrice : t.detail.providerPrice}
           </span>
-          <div className="ticket-price">{money(event.price, event.currency)}</div>
+          <div className="ticket-price">
+            {f.money(event.price, event.currency) ?? t.common.priceNotListed}
+          </div>
           {event.provider !== 'sample' && event.price !== null && event.priceObservedAt && (
-            <p className="fineprint">
-              Price observed {new Date(event.priceObservedAt).toLocaleString('en-GB')}
-            </p>
+            <p className="fineprint">{t.detail.priceObserved(f.dateTime(event.priceObservedAt))}</p>
           )}
           {event.provider !== 'sample' && event.price === null && (
-            <p className="fineprint">
-              A current verified price is unavailable for this show. Check official tickets for
-              current prices and availability.
-            </p>
+            <p className="fineprint">{t.detail.priceUnavailable}</p>
           )}
           <p className="ticket-status">
-            <span className={event.status === 'onsale' ? 'status-dot' : ''} />
+            <span
+              className="status-light"
+              data-tone={
+                event.provider === 'sample'
+                  ? undefined
+                  : event.status === 'onsale'
+                    ? 'go'
+                    : inactive
+                      ? 'stop'
+                      : undefined
+              }
+              aria-hidden="true"
+            />
             {event.provider === 'sample'
-              ? 'Sample event'
+              ? t.detail.sampleEvent
               : event.status === 'onsale'
-                ? 'Listed as on sale'
-                : event.status === 'unknown'
-                  ? 'Availability not confirmed'
-                  : event.status}
+                ? t.detail.listedOnSale
+                : (t.detail.statusWord[event.status] ?? t.detail.notConfirmed)}
           </p>
-          {event.saleAt && (
-            <p>
-              Sale:{' '}
-              {new Intl.DateTimeFormat('en-GB', {
-                dateStyle: 'medium',
-                timeStyle: 'short',
-                timeZone: event.timezone ?? 'Europe/Paris',
-              }).format(new Date(event.saleAt))}{' '}
-              ({event.timezone ?? 'Europe/Paris'})
-            </p>
-          )}
+          {event.saleAt && <p>{t.detail.sale(f.dateTime(event.saleAt, zone), zone)}</p>}
           <button
             className="button primary full"
             onClick={ticket}
-            disabled={
-              outbound ||
-              !ticketDestination ||
-              event.provider === 'sample' ||
-              ['cancelled', 'postponed'].includes(event.status)
-            }
+            disabled={outbound || !ticketDestination || event.provider === 'sample' || inactive}
           >
-            <Ticket size={18} />
+            <Ticket size={18} aria-hidden="true" />
             {event.provider === 'sample'
-              ? 'No real tickets in sample mode'
+              ? t.detail.noRealTickets
               : ticketDestination
-                ? `Check tickets on ${ticketDestination}`
-                : 'Ticket link unavailable'}
-            <ArrowUpRight size={16} />
+                ? t.detail.checkTickets(ticketDestination)
+                : t.detail.ticketUnavailable}
+            <ArrowUpRight size={16} aria-hidden="true" />
           </button>
           <button
             className="button secondary full"
@@ -683,32 +648,32 @@ export function EventDetail({ id }: { id: string }) {
               act(
                 'feedback',
                 { eventId: id, action: event.saved ? 'clear' : 'saved', source: 'detail' },
-                event.saved ? 'Removed from saved concerts' : 'Concert saved',
+                event.saved ? t.card.removed : t.card.saved,
               )
             }
           >
-            <Bookmark size={17} fill={event.saved ? 'currentColor' : 'none'} />
-            {event.saved ? 'Saved to your shows' : 'Save this show'}
+            <Bookmark size={17} fill={event.saved ? 'currentColor' : 'none'} aria-hidden="true" />
+            {event.saved ? t.detail.saved : t.detail.save}
           </button>
-          {!['cancelled', 'postponed'].includes(event.status) && (
-            <Link href={`/app/trips/${event.id}`} className="button secondary full">
-              <Compass size={17} />
-              Plan this trip
+          {!inactive && (
+            <Link href={`/app/trips/${event.id}`} className="button secondary full" transitionTypes={['nav-forward']}>
+              <Compass size={17} aria-hidden="true" />
+              {t.detail.plan}
             </Link>
           )}
           {artist && (
             <button className="text-button full" onClick={() => setIntent(true)}>
-              <Heart size={17} />I need to see this artist
+              <Heart size={17} aria-hidden="true" />
+              {t.detail.mustSee}
             </button>
           )}
           <p className="fineprint">
-            {event.provider === 'sample'
-              ? 'All details on this page are fictional.'
-              : 'Source: Ticketmaster. Prices and availability can change; fees may apply. No affiliate commission is active.'}
+            {event.provider === 'sample' ? t.detail.sampleNote : t.detail.sourceNote}
           </p>
           <span className="freshness">
-            {event.provider === 'sample' ? 'Sample created' : 'Last checked'}{' '}
-            {new Date(event.fetchedAt).toLocaleDateString('en-GB')}
+            {event.provider === 'sample'
+              ? t.detail.sampleCreated(f.day(event.fetchedAt))
+              : t.detail.lastChecked(f.day(event.fetchedAt))}
           </span>
           <button
             className="text-button dismiss"
@@ -718,14 +683,14 @@ export function EventDetail({ id }: { id: string }) {
                 await act(
                   'feedback',
                   { eventId: id, action: 'dismissed', source: 'detail' },
-                  'Show dismissed',
+                  t.detail.dismissed,
                 )
               )
                 router.push('/app');
             }}
           >
-            <X size={15} />
-            Not for me
+            <X size={15} aria-hidden="true" />
+            {t.detail.notForMe}
           </button>
         </aside>
       </div>
@@ -733,8 +698,11 @@ export function EventDetail({ id }: { id: string }) {
     </>
   );
 }
+
 export function Artists() {
   const { data, act, busy, reload } = useApp();
+  const { t, city } = useI18n();
+  useCue('artists');
   const [intent, setIntent] = useState<Artist | null>(null),
     [search, setSearch] = useState(''),
     [results, setResults] = useState<Artist[]>([]),
@@ -757,7 +725,7 @@ export function Artists() {
         `artists/search?q=${encodeURIComponent(term)}`,
       );
       setResults(response.artists);
-      if (!response.artists.length) setMessage('No artists found. Try the full artist name.');
+      if (!response.artists.length) setMessage(t.artists.noneFound);
       await reload();
     } catch (error) {
       setMessage((error as Error).message);
@@ -767,86 +735,92 @@ export function Artists() {
   }
   return (
     <>
-      <div className="page-heading">
-        <div>
-          <h1>Keep your favourites close.</h1>
-          <p>Follow an artist. Make the ones you can’t miss a must-see.</p>
-        </div>
-      </div>
-      <section className="detail-section">
-        <div className="section-heading">
-          <h2>
-            Your artists <span className="count">{followed.length}</span>
-          </h2>
-          <Link className="text-button" href="/onboarding">
-            <Plus size={16} />
-            Choose artists
+      <header className="page-head">
+        <h1>{t.artists.title}</h1>
+        <p className="page-intro">{t.artists.intro}</p>
+        <div className="page-actions">
+          <Link className="button primary compact" href="/onboarding">
+            <Plus size={16} aria-hidden="true" />
+            {t.artists.choose}
           </Link>
         </div>
-        <div className="artist-directory">
-          {followed.map((a) => {
-            const must = data.intents.find((i) => i.artistId === a.id);
-            return (
-              <article key={a.id} className="artist-tile">
-                <Link href={`/app/artists/${a.id}`}>
-                  <Avatar artist={a} />
-                  <h3>{a.name}</h3>
-                  <p>
-                    {a.providerId
-                      ? 'Live artist'
-                      : a.spotifyBacked
-                        ? 'No live concerts found yet'
-                        : 'Sample artist'}
-                  </p>
-                </Link>
-                {data.user?.mode === 'live' && !a.providerId && (
-                  <button
-                    className="button small secondary"
-                    disabled={searching || !data.liveAvailable}
-                    onClick={() => {
-                      setSpotifyChoice(null);
-                      setSearch(a.name);
-                      document
-                        .getElementById('live-search')
-                        ?.scrollIntoView({ behavior: 'smooth' });
-                      void searchLive(undefined, a.name);
-                    }}
-                  >
-                    {a.spotifyBacked ? 'Confirm live artist' : 'Find live artist'}
-                  </button>
-                )}
-                <button
-                  className={`button small ${must ? 'intent-active' : 'secondary'}`}
-                  onClick={() => setIntent(a)}
-                >
-                  <Heart size={14} fill={must ? 'currentColor' : 'none'} />
-                  {must ? 'Must see' : 'Make a must-see'}
-                </button>
-                {must && (
-                  <small>
-                    {must.cities.join(', ')}
-                    <br />
-                    {must.tickets} ticket{must.tickets > 1 ? 's' : ''}
-                    {must.maxPrice ? ` · up to €${must.maxPrice} each` : ''}
-                  </small>
-                )}
-              </article>
-            );
-          })}
+      </header>
+      <section className="panel" aria-labelledby="your-artists">
+        <div className="panel-head">
+          <h2 id="your-artists">
+            {t.artists.yours} <span className="count">{followed.length}</span>
+          </h2>
         </div>
+        {followed.length > 0 && (
+          <div className="artist-directory">
+            {followed.map((a) => {
+              const must = data.intents.find((i) => i.artistId === a.id);
+              return (
+                <article key={a.id} className="artist-tile">
+                  <Link href={`/app/artists/${a.id}`}>
+                    <Avatar artist={a} />
+                    <h3>{a.name}</h3>
+                    <p>
+                      {a.providerId
+                        ? t.artists.liveArtist
+                        : a.spotifyBacked
+                          ? t.artists.noLiveYet
+                          : t.artists.sampleArtist}
+                    </p>
+                  </Link>
+                  {data.user?.mode === 'live' && !a.providerId && (
+                    <button
+                      className="button small secondary"
+                      disabled={searching || !data.liveAvailable}
+                      onClick={() => {
+                        setSpotifyChoice(null);
+                        setSearch(a.name);
+                        document
+                          .getElementById('live-search')
+                          ?.scrollIntoView({ behavior: 'smooth' });
+                        void searchLive(undefined, a.name);
+                      }}
+                    >
+                      {a.spotifyBacked ? t.artists.confirmLive : t.artists.findLive}
+                    </button>
+                  )}
+                  <button
+                    className={`button small ${must ? 'intent-active' : 'secondary'}`}
+                    onClick={() => setIntent(a)}
+                  >
+                    <Heart size={14} fill={must ? 'currentColor' : 'none'} aria-hidden="true" />
+                    {must ? t.artists.mustSee : t.artists.makeMustSee}
+                  </button>
+                  {must && (
+                    <small>
+                      {must.cities.map(city).join(', ')}
+                      <br />
+                      {t.artists.tickets(must.tickets)}
+                      {must.maxPrice ? ` · ${t.artists.upTo(must.maxPrice)}` : ''}
+                    </small>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        )}
         {!followed.length && (
-          <Empty title="Who’s on your list?">
-            <p>Choose your favourite artists to start finding shows.</p>
-            <Link href="/onboarding">Choose artists</Link>
+          <Empty title={t.artists.emptyTitle}>
+            <p>{t.artists.emptyBody}</p>
+            <div className="button-row">
+              <Link className="button primary" href="/onboarding">
+                {t.artists.choose}
+              </Link>
+            </div>
           </Empty>
         )}
       </section>
       {data.spotifyConnected && (
-        <section className="settings-section spotify-import" aria-label="Spotify artists">
-          <div className="section-heading">
+        <section className="panel spotify-import" aria-labelledby="spotify-title">
+          <div className="panel-head">
             <div>
-              <h2>Spotify artists</h2>
-              <p>Connected. Choose imported artists without leaving your Artists experience.</p>
+              <h2 id="spotify-title">{t.artists.spotifyTitle}</h2>
+              <p className="subtle">{t.artists.spotifyBody}</p>
             </div>
             <button
               className="button secondary"
@@ -858,13 +832,11 @@ export function Artists() {
                   setImported(result.artists);
                   setMessage('');
                 } catch (e) {
-                  setMessage(
-                    e instanceof Error ? e.message : 'Spotify artists could not be loaded.',
-                  );
+                  setMessage(e instanceof Error ? e.message : t.artists.spotifyFailed);
                 }
               }}
             >
-              {imported.length ? 'Refresh imported artists' : 'Load imported artists'}
+              {imported.length ? t.artists.refreshImported : t.artists.loadImported}
             </button>
           </div>
           {imported.length > 0 && (
@@ -872,11 +844,9 @@ export function Artists() {
               {imported.map((a) => (
                 <article className="artist-tile" key={a.id}>
                   <a href={a.url} target="_blank" rel="noreferrer">
-                    <span className="artist-avatar">
-                      {a.image ? <img src={a.image} alt="" loading="lazy" /> : a.name.slice(0, 2)}
-                    </span>
+                    <ArtistPhoto name={a.name} image={a.image} className="artist-avatar" />
                     <h3>{a.name}</h3>
-                    <p>Imported from Spotify</p>
+                    <p>{t.artists.importedFrom}</p>
                   </a>
                 </article>
               ))}
@@ -884,17 +854,16 @@ export function Artists() {
           )}
         </section>
       )}
-      <section className="settings-section" id="live-search">
-        <h2>Find an artist in the live catalogue</h2>
-        <p>
-          Search Ticketmaster and choose the exact artist. This avoids mixing up artists with the
-          same name.
-        </p>
+      <section className="panel" id="live-search" aria-labelledby="live-title">
+        <h2 id="live-title">{t.artists.liveTitle}</h2>
+        <p className="subtle">{t.artists.liveBody}</p>
         <form className="live-search" onSubmit={(e) => void searchLive(e)}>
           <label className="search-field">
-            <Search size={16} />
+            <span className="vh">{t.artists.liveLabel}</span>
+            <Search size={17} aria-hidden="true" />
             <input
-              aria-label="Search live artists"
+              type="search"
+              aria-label={t.artists.liveLabel}
               value={search}
               minLength={2}
               maxLength={100}
@@ -903,36 +872,27 @@ export function Artists() {
                 setSearch(e.target.value);
                 setSpotifyChoice(null);
               }}
-              placeholder="Artist name"
+              placeholder={t.artists.livePlaceholder}
+              enterKeyHint="search"
             />
           </label>
-          <button
-            className="button secondary"
-            disabled={searching || !data.user || !data.liveAvailable}
-          >
-            {searching ? 'Searching…' : 'Search artists'}
+          <button className="button secondary" disabled={searching || !data.user || !data.liveAvailable}>
+            {searching ? t.artists.searching : t.artists.search}
           </button>
         </form>
-        {!data.liveAvailable && (
-          <p className="fineprint">
-            Live search requires a Ticketmaster API key. The sample artist catalogue works without
-            one.
-          </p>
-        )}
+        {!data.liveAvailable && <p className="fineprint">{t.artists.needsKey}</p>}
         {message && (
           <p className="inline-note" role="status">
             {message}
           </p>
         )}
-        {spotifyChoice && (
-          <p>
-            Confirm which live artist matches {spotifyChoice.name} on Spotify. This saves your
-            choice and follows the artist.
-          </p>
-        )}
+        {spotifyChoice && <p>{t.artists.confirmFor(spotifyChoice.name)}</p>}
         {results.map((a) => (
           <div className="search-result" key={a.id}>
-            <span>{a.name}</span>
+            <span>
+              <Avatar artist={a} small />
+              {a.name}
+            </span>
             <button
               className="button small secondary"
               disabled={busy || (!spotifyChoice && followed.some((artist) => artist.id === a.id))}
@@ -942,15 +902,15 @@ export function Artists() {
                   spotifyChoice
                     ? { spotifyId: spotifyChoice.id, artistId: a.id }
                     : { artistId: a.id, favorite: false, hidden: false },
-                  spotifyChoice ? 'Spotify artist confirmed and followed' : 'Artist followed',
+                  spotifyChoice ? t.artists.confirmed : t.artists.followed,
                 )
               }
             >
               {spotifyChoice
-                ? `Confirm ${a.name}`
+                ? t.artists.confirm(a.name)
                 : followed.some((artist) => artist.id === a.id)
-                  ? 'Following'
-                  : 'Follow artist'}
+                  ? t.artists.following
+                  : t.artists.follow}
             </button>
           </div>
         ))}
@@ -959,33 +919,38 @@ export function Artists() {
     </>
   );
 }
+
 export function ArtistDetail({ id }: { id: string }) {
   const { data, act, busy } = useApp();
+  const { t, genre } = useI18n();
+  useCue('artists');
   const [intent, setIntent] = useState(false);
   const artist = data.artists.find((a) => a.id === id);
   if (!artist)
     return (
-      <Empty title="Artist not found">
-        <Link href="/app/artists">Back to your artists</Link>
+      <Empty title={t.artistDetail.notFound}>
+        <Link className="button primary" href="/app/artists">
+          {t.artistDetail.back}
+        </Link>
       </Empty>
     );
   const affinity = data.affinities.find((a) => a.artistId === id);
   const events = data.allEvents.filter((e) => e.artistIds.includes(id));
   return (
     <>
-      <Link href="/app/artists" className="back-link">
-        <ArrowLeft size={16} />
-        Your artists
+      <Link href="/app/artists" className="back-link" transitionTypes={['nav-back']}>
+        <ArrowLeft size={16} aria-hidden="true" />
+        {t.artistDetail.back}
       </Link>
-      <div className="artist-detail-heading">
-        <Avatar artist={artist} />
+      <header className="artist-hero">
+        <ArtistPhoto name={artist.name} image={artist.image} />
         <div>
-          <p className="subtle">{artist.genre}</p>
+          <p className="subtle">{genre(artist.genre)}</p>
           <h1>{artist.name}</h1>
           <div className="button-row">
             <button className="button primary" onClick={() => setIntent(true)}>
-              <Heart size={17} />
-              Make a must-see
+              <Heart size={17} aria-hidden="true" />
+              {t.artists.makeMustSee}
             </button>
             <button
               className="button secondary"
@@ -994,18 +959,18 @@ export function ArtistDetail({ id }: { id: string }) {
                 act(
                   'affinity',
                   { artistId: id, favorite: !affinity?.favorite, hidden: false },
-                  affinity?.favorite ? 'Favourite removed' : 'Marked as a favourite',
+                  affinity?.favorite ? t.artistDetail.favouriteRemoved : t.artistDetail.favouriteAdded,
                 )
               }
             >
-              <Sparkles size={16} />
-              {affinity?.favorite ? 'Favourite' : 'Mark favourite'}
+              <Sparkles size={16} aria-hidden="true" />
+              {affinity?.favorite ? t.artistDetail.favourite : t.artistDetail.markFavourite}
             </button>
           </div>
         </div>
-      </div>
-      <div className="section-heading">
-        <h2>Chances to be there</h2>
+      </header>
+      <div className="list-head" style={{ marginTop: 26 }}>
+        <h2>{t.artistDetail.chances}</h2>
         <button
           className="text-button"
           disabled={busy}
@@ -1013,111 +978,114 @@ export function ArtistDetail({ id }: { id: string }) {
             act(
               'affinity',
               { artistId: id, favorite: false, hidden: !affinity?.hidden },
-              affinity?.hidden ? 'Artist restored' : 'Artist hidden from your feed',
+              affinity?.hidden ? t.artistDetail.restored : t.artistDetail.hidden,
             )
           }
         >
-          <EyeOff size={15} />
-          {affinity?.hidden ? 'Restore artist' : 'Hide from feed'}
+          <EyeOff size={15} aria-hidden="true" />
+          {affinity?.hidden ? t.artistDetail.restore : t.artistDetail.hide}
         </button>
       </div>
       {events.length ? (
-        <div className="concert-grid">
-          {events.map((e) => (
-            <ConcertCard event={e} key={e.id} />
+        <div className="acts">
+          {events.map((e, index) => (
+            <ConcertCard event={e} key={e.id} index={index} />
           ))}
         </div>
       ) : (
-        <Empty title="No upcoming shows in this catalogue.">
-          <p>
-            Your must-see preference can be saved before a tour exists. Live coverage depends on
-            connected providers.
-          </p>
+        <Empty title={t.artistDetail.emptyTitle}>
+          <p>{t.artistDetail.emptyBody}</p>
         </Empty>
       )}
       {intent && <IntentForm artist={artist} onClose={() => setIntent(false)} />}
     </>
   );
 }
+
 export function Saved() {
   const { data } = useApp();
+  const { t } = useI18n();
+  useCue('saved');
   return (
     <>
-      <div className="page-heading">
-        <div>
-          <h1>Nights to keep.</h1>
-          <p>Your saved shows, all in one place.</p>
+      <header className="page-head">
+        <h1>{t.saved.title}</h1>
+        <p className="page-intro">{t.saved.intro}</p>
+        <div className="page-actions">
+          <span className="chip">{t.saved.count(data.saved.length)}</span>
         </div>
-        <span className="count large">{data.saved.length} saved</span>
-      </div>
+      </header>
       {data.saved.length ? (
-        <div className="concert-grid saved-grid">
-          {data.saved.map((e) => (
-            <ConcertCard event={e} key={e.id} source="saved" />
+        <div className="acts" style={{ marginTop: 18 }}>
+          {data.saved.map((e, index) => (
+            <ConcertCard event={e} key={e.id} index={index} source="saved" />
           ))}
         </div>
       ) : (
-        <Empty title="Leave room for a great night.">
-          <p>Tap the bookmark on a show to keep it here.</p>
-          <Link className="button primary" href="/app">
-            Explore your concerts
-          </Link>
+        <Empty title={t.saved.emptyTitle}>
+          <p>{t.saved.emptyBody}</p>
+          <div className="button-row">
+            <Link className="button primary" href="/app">
+              {t.saved.explore}
+            </Link>
+          </div>
         </Empty>
       )}
     </>
   );
 }
+
 export function Inbox() {
   const { data, act } = useApp();
+  const { t, f } = useI18n();
+  const alertText = useAlertText();
+  useCue('alerts');
   return (
     <>
-      <div className="page-heading">
-        <div>
-          <h1>Your concert radar.</h1>
-          <p>In-app updates for your artists and saved plans.</p>
+      <header className="page-head">
+        <h1>{t.inbox.title}</h1>
+        <p className="page-intro">{t.inbox.intro}</p>
+        <div className="page-actions">
+          <Link href="/app/settings" className="button secondary compact">
+            <Bell size={16} aria-hidden="true" />
+            {t.inbox.preferences}
+          </Link>
         </div>
-        <Link href="/app/settings" className="button secondary">
-          <Bell size={16} />
-          Alert preferences
-        </Link>
-      </div>
+      </header>
       {data.alerts.length ? (
         <div className="alert-list">
           {data.alerts.map((a) => (
             <article className={`alert-row ${!a.read_at ? 'unread' : ''}`} key={a.id}>
-              <span className="alert-icon">
-                <Bell size={20} />
-              </span>
+              <span className="alert-bulb" aria-hidden="true" />
               <div>
-                <h2>{a.title}</h2>
-                <p>{a.body}</p>
-                <small>{new Date(a.created_at).toLocaleDateString('en-GB')}</small>
+                <h2>{alertText.title(a.title)}</h2>
+                <p>{alertText.body(a.body)}</p>
+                <small>{f.day(a.created_at)}</small>
               </div>
               <Link
                 href={`/app/events/${a.event_id}`}
                 className="button small secondary"
                 onClick={() => act('alerts/read', { id: a.id })}
               >
-                View show <ArrowUpRight size={16} />
+                {t.inbox.view} <ArrowUpRight size={16} aria-hidden="true" />
               </Link>
             </article>
           ))}
         </div>
       ) : (
-        <Empty title="Quiet for now.">
+        <Empty title={t.inbox.emptyTitle}>
           <p>
-            {data.user?.preferences.notifications === 'off'
-              ? 'Your alerts are turned off. You can change that in settings.'
-              : 'Add a must-see artist or choose “Everything” in alert preferences. New matches appear here when you open Encore or the scheduler runs.'}
+            {data.user?.preferences.notifications === 'off' ? t.inbox.emptyOff : t.inbox.emptyOn}
           </p>
-          <Link href="/app/artists" className="button secondary">
-            Choose must-see artists
-          </Link>
+          <div className="button-row">
+            <Link href="/app/artists" className="button secondary">
+              {t.inbox.chooseMustSee}
+            </Link>
+          </div>
         </Empty>
       )}
-      <p className="fineprint">
-        Alerts are in-app only. Email, push delivery and continuous availability monitoring are not
-        enabled.
+      <p className="fineprint" style={{ marginTop: 16 }}>
+        {t.inbox.note}
       </p>
     </>
   );

@@ -23,3 +23,20 @@ export function unsupportedLiveArtists(artistIds: string[], providerBackedIds: s
   const backed = new Set(providerBackedIds);
   return [...new Set(artistIds)].filter((id) => !backed.has(id));
 }
+
+export type ArtistCheck = { artistId: string; fresh: boolean; failed: boolean };
+export type OnboardingProgress = { total: number; done: string[]; failed: string[] };
+
+/**
+ * How far the first concert check has got, for the loader shown after choosing artists. An artist
+ * counts as done once its latest check is still inside the window the sync itself respects
+ * (an hour after a success, fifteen minutes after a failure), so the bar only moves for real work.
+ */
+export function onboardingProgress(checks: ArtistCheck[]): OnboardingProgress {
+  const fresh = checks.filter((check) => check.fresh);
+  return {
+    total: checks.length,
+    done: fresh.map((check) => check.artistId),
+    failed: fresh.filter((check) => check.failed).map((check) => check.artistId),
+  };
+}
