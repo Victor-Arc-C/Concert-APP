@@ -1,22 +1,29 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Bus, CarFront, ExternalLink, MapPin, TrainFront } from 'lucide-react';
-import type { FareBand, TransportComparison } from '@/domain/trip-types';
+import { Bus, CarFront, ExternalLink, MapPin, Plane, TrainFront } from 'lucide-react';
+import type { TransportComparison } from '@/domain/trip-types';
 import { directionsUrl } from '@/domain/trip-search';
 import { api } from './context';
 
-const euros = (value: number) =>
-  new Intl.NumberFormat('en-GB', {
-    style: 'currency',
-    currency: 'EUR',
-    maximumFractionDigits: value % 1 ? 2 : 0,
-  }).format(value);
-const band = (fare: FareBand) =>
-  fare.min === fare.max ? euros(fare.min) : `${euros(fare.min)}–${euros(fare.max)}`;
-const monthYear = (iso: string) =>
-  new Date(iso).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+const day = (date: string) =>
+  new Date(`${date}T12:00:00Z`).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    timeZone: 'UTC',
+  });
 
-/** Every way to get to the show, priced from published sources, side by side. */
+function Link({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer" className="external-link">
+      {children} <ExternalLink size={12} />
+    </a>
+  );
+}
+
+/**
+ * The realistic ways to reach the show, best first. Encore shows no estimated price: each link
+ * opens the seller's live search, where the real fares are.
+ */
 export function GettingThere({
   eventId,
   origin,
@@ -46,197 +53,173 @@ export function GettingThere({
     };
   }, [eventId]);
 
-  const train = comparison?.train,
-    car = comparison?.car;
-  // One Omio link per arrival town (two carriers to Metz share one route page).
-  const omioRoutes =
-    train?.status === 'priced'
-      ? [
-          ...new Map(
-            train.fares
-              .filter((fare) => fare.bookingUrl && fare.stationCity)
-              .map((fare) => [
-                fare.stationCity,
-                { city: fare.stationCity!, url: fare.bookingUrl! },
-              ]),
-          ).values(),
-        ]
-      : [];
-  const cheapestTrain =
-    train?.status === 'priced'
-      ? Math.min(...train.fares.map((fare) => fare.standard?.min ?? Infinity))
-      : Infinity;
-  return (
-    <section className="getting-there" aria-labelledby="getting-there-title">
-      <div className="getting-there-head">
-        <h2 id="getting-there-title">Getting there</h2>
-        <span>
-          {origin} → {city} · one way, per person
-        </span>
-      </div>
-      {state === 'loading' && <p className="getting-there-status">Checking published fares…</p>}
-      {state === 'failed' && (
-        <p className="getting-there-status">
-          Fares could not be loaded. The links below still open each seller.
-        </p>
-      )}
-      <ul className="mode-list">
-        <li className="mode-row">
+  const flight = comparison?.flight ?? null,
+    train = comparison?.train ?? null,
+    road = comparison?.road ?? null;
+  // Without an answer, still offer the searches that work for any distance.
+  const showRoad = comparison ? !!road : state === 'failed';
+  const best = (mode: TransportComparison['recommended']) =>
+    comparison?.recommended === mode && <span className="mode-tag">Best way</span>;
+
+  const rows: { mode: string; order: number; node: React.ReactNode }[] = [];
+  if (flight)
+    rows.push({
+      mode: 'flight',
+      order: comparison?.recommended === 'flight' ? 0 : 2,
+      node: (
+        <>
+          <span className="mode-icon" aria-hidden>
+            <Plane size={20} />
+          </span>
+          <div className="mode-body">
+            <div className="mode-head">
+              <strong>Plane</strong>
+              {best('flight')}
+            </div>
+            <p className="mode-note">
+              {flight.from} → {flight.to} on {day(flight.date)}.
+              {flight.landBy
+                ? ` Pick a flight landing by ${flight.landBy} local time to make the show, or fly the day before.`
+                : ' Fly the day before if the show starts early.'}
+            </p>
+            <div className="mode-links">
+              <Link href={flight.searchUrl}>Live flight prices on Google Flights</Link>
+              {flight.omioUrl && <Link href={flight.omioUrl}>Compare flights on Omio</Link>}
+            </div>
+          </div>
+        </>
+      ),
+    });
+  if (train)
+    rows.push({
+      mode: 'train',
+      order: comparison?.recommended === 'train' ? 0 : 1,
+      node: (
+        <>
           <span className="mode-icon" aria-hidden>
             <TrainFront size={20} />
           </span>
           <div className="mode-body">
             <div className="mode-head">
               <strong>Train</strong>
-              {Number.isFinite(cheapestTrain) && (
-                <span className="mode-price">from {euros(cheapestTrain)}</span>
-              )}
+              {best('train')}
             </div>
-            {train?.status === 'priced' ? (
+            {train.status === 'served' ? (
               <>
-                <table className="fare-table">
-                  <thead>
-                    <tr>
-                      <th scope="col">Train</th>
-                      <th scope="col">Standard</th>
-                      <th scope="col">Avantage card</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {train.fares.map((fare) => (
-                      <tr key={`${fare.carrier}-${fare.station}`}>
-                        <th scope="row">
-                          {fare.carrier}
-                          <small>
-                            to {fare.station} · {fare.lastMileKm} km from the venue
-                          </small>
-                        </th>
-                        <td>{fare.standard ? band(fare.standard) : '—'}</td>
-                        <td>{fare.avantage ? band(fare.avantage) : '—'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <p className="mode-note">
-                  Price range SNCF publishes for this route, 2nd class. The exact fare depends on
-                  the date and how full the train is.
-                  {train.dataUpdatedAt && ` Fare table updated ${monthYear(train.dataUpdatedAt)}.`}
-                </p>
+                <ul className="route-list">
+                  {train.routes.map((route) => (
+                    <li key={route.station}>
+                      <span>
+                        {route.carriers.join(', ')} to <strong>{route.station}</strong>
+                      </span>
+                      <small>{route.lastMileKm} km from the venue</small>
+                      {route.bookingUrl && route.stationCity && (
+                        <Link href={route.bookingUrl}>
+                          Live times and prices {origin} → {route.stationCity} on Omio
+                        </Link>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+                <Link href="https://www.sncf-connect.com/">Or book on SNCF Connect</Link>
               </>
             ) : (
-              train && <p className="mode-note">{train.reason}</p>
+              <p className="mode-note">{train.reason}</p>
             )}
-            <div className="mode-links">
-              {omioRoutes.map((route) => (
-                <a
-                  key={route.url}
-                  href={route.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="external-link"
-                >
-                  Times and tickets {origin} → {route.city} on Omio <ExternalLink size={12} />
-                </a>
-              ))}
-              <a
-                href="https://www.sncf-connect.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="external-link"
-              >
-                Exact fares on SNCF Connect <ExternalLink size={12} />
-              </a>
-            </div>
           </div>
-        </li>
-        <li className="mode-row">
+        </>
+      ),
+    });
+  if (showRoad) {
+    rows.push({
+      mode: 'car',
+      order: comparison?.recommended === 'road' ? 0 : 3,
+      node: (
+        <>
           <span className="mode-icon" aria-hidden>
             <CarFront size={20} />
           </span>
           <div className="mode-body">
             <div className="mode-head">
               <strong>Car</strong>
-              {car?.status === 'estimated' && (
-                <span className="mode-price">≈ {euros(car.fuelCost)} fuel</span>
-              )}
+              {best('road')}
             </div>
-            {car?.status === 'estimated' ? (
-              <p className="mode-note">
-                About {car.roadKm} km, {car.litres} L at {car.consumptionPer100Km} L/100 km and{' '}
-                {euros(car.pricePerLitre)}/L (today&apos;s national E10 average). Tolls and parking
-                not included. Split it if you drive together.
-              </p>
-            ) : (
-              car && <p className="mode-note">{car.reason}</p>
-            )}
-            <a
-              href={directionsUrl(origin, city, venue, 'driving')}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="external-link"
-            >
-              Driving route and tolls <ExternalLink size={12} />
-            </a>
+            <Link href={directionsUrl(origin, city, venue, 'driving')}>
+              Driving time, route and tolls on Google Maps
+            </Link>
           </div>
-        </li>
-        <li className="mode-row">
-          <span className="mode-icon" aria-hidden>
-            <Bus size={20} />
-          </span>
-          <div className="mode-body">
-            <div className="mode-head">
-              <strong>Coach</strong>
-              <span className="mode-price muted">Live fares on Omio</span>
+        </>
+      ),
+    });
+    if (road?.coachUrl)
+      rows.push({
+        mode: 'coach',
+        order: 4,
+        node: (
+          <>
+            <span className="mode-icon" aria-hidden>
+              <Bus size={20} />
+            </span>
+            <div className="mode-body">
+              <div className="mode-head">
+                <strong>Coach</strong>
+              </div>
+              <Link href={road.coachUrl}>
+                Live coach times and prices {road.coachRoute} on Omio
+              </Link>
             </div>
-            <p className="mode-note">
-              {comparison?.coach.reason ??
-                'Coach fares change with every departure; Omio compares them live.'}
-            </p>
-            {comparison?.coach.bookingUrl ? (
-              <a
-                href={comparison.coach.bookingUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="external-link"
-              >
-                Coaches {comparison.coach.route} on Omio <ExternalLink size={12} />
-              </a>
-            ) : (
-              <a
-                href="https://www.flixbus.fr/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="external-link"
-              >
-                Fares on FlixBus <ExternalLink size={12} />
-              </a>
-            )}
+          </>
+        ),
+      });
+  }
+  rows.push({
+    mode: 'venue',
+    order: 9,
+    node: (
+      <>
+        <span className="mode-icon" aria-hidden>
+          <MapPin size={20} />
+        </span>
+        <div className="mode-body">
+          <div className="mode-head">
+            <strong>To the venue</strong>
           </div>
-        </li>
-        <li className="mode-row">
-          <span className="mode-icon" aria-hidden>
-            <MapPin size={20} />
-          </span>
-          <div className="mode-body">
-            <div className="mode-head">
-              <strong>To the venue</strong>
-            </div>
-            <a
-              href={directionsUrl(origin, city, venue, 'transit')}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="external-link"
-            >
-              Public transport to {venue} <ExternalLink size={12} />
-            </a>
-          </div>
-        </li>
-      </ul>
-      {comparison && (
-        <p className="getting-there-sources">
-          Sources: SNCF Voyageurs open data (ODbL), French government fuel price feed.
+          <Link href={directionsUrl(origin, city, venue, 'transit')}>
+            Public transport to {venue}
+          </Link>
+        </div>
+      </>
+    ),
+  });
+
+  return (
+    <section className="getting-there" aria-labelledby="getting-there-title">
+      <div className="getting-there-head">
+        <h2 id="getting-there-title">Getting there</h2>
+        <span>
+          {origin} → {city}
+          {comparison && ` · ${comparison.distanceKm.toLocaleString('en-GB')} km`}
+        </span>
+      </div>
+      {state === 'loading' && <p className="getting-there-status">Finding the best ways there…</p>}
+      {state === 'failed' && (
+        <p className="getting-there-status">
+          Routes could not be loaded. The links below still open each live search.
         </p>
       )}
+      <ul className="mode-list">
+        {rows
+          .sort((a, b) => a.order - b.order)
+          .map((row) => (
+            <li key={row.mode} className="mode-row" data-mode={row.mode}>
+              {row.node}
+            </li>
+          ))}
+      </ul>
+      <p className="getting-there-sources">
+        Prices come from each seller&apos;s live search; Encore never estimates them. Train routes:
+        SNCF Voyageurs open data (ODbL).
+      </p>
     </section>
   );
 }

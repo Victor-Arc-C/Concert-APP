@@ -21,7 +21,7 @@ export function omioSlug(city: string) {
  * station's town, not the venue's.
  */
 export function omioRouteUrl(
-  mode: 'trains' | 'bus',
+  mode: 'trains' | 'bus' | 'vols',
   from: string,
   to: string,
   affiliate = env().OMIO_AFFILIATE_URL ?? null,

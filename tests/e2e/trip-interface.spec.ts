@@ -134,49 +134,34 @@ async function tripFixture(
             ? null
             : {
                 origin: 'Paris',
+                distanceKm: 280,
+                recommended: 'train',
+                flight: null,
                 train: {
-                  status: 'priced',
-                  fares: [
+                  status: 'served',
+                  routes: [
                     {
-                      carrier: 'OUIGO',
-                      station: 'Metz Ville',
-                      stationCity: 'Metz',
-                      bookingUrl:
-                        'https://omio.sjv.io/c/7922007/409973/7385?u=https%3A%2F%2Fwww.omio.fr%2Ftrains%2Fparis%2Fmetz&subId1=encore-trip&subId2=trains',
-                      lastMileKm: 18.4,
-                      standard: { min: 16, max: 79 },
-                      avantage: null,
-                    },
-                    {
-                      carrier: 'TGV INOUI',
                       station: 'Thionville',
                       stationCity: 'Thionville',
+                      carriers: ['TGV INOUI'],
+                      lastMileKm: 11.4,
                       bookingUrl:
                         'https://omio.sjv.io/c/7922007/409973/7385?u=https%3A%2F%2Fwww.omio.fr%2Ftrains%2Fparis%2Fthionville&subId1=encore-trip&subId2=trains',
-                      lastMileKm: 11.4,
-                      standard: { min: 20.5, max: 95 },
-                      avantage: { min: 14.3, max: 66 },
+                    },
+                    {
+                      station: 'Metz',
+                      stationCity: 'Metz',
+                      carriers: ['OUIGO', 'TGV INOUI'],
+                      lastMileKm: 17.5,
+                      bookingUrl:
+                        'https://omio.sjv.io/c/7922007/409973/7385?u=https%3A%2F%2Fwww.omio.fr%2Ftrains%2Fparis%2Fmetz&subId1=encore-trip&subId2=trains',
                     },
                   ],
-                  source: 'SNCF Voyageurs open data (ODbL)',
-                  dataUpdatedAt: '2026-03-17T09:50:01.000Z',
                 },
-                car: {
-                  status: 'estimated',
-                  roadKm: 360,
-                  litres: 23.4,
-                  pricePerLitre: 2.159,
-                  fuelCost: 51,
-                  consumptionPer100Km: 6.5,
-                  priceObservedAt: now,
-                  source: 'Prix des carburants',
-                },
-                coach: {
-                  status: 'unpriced',
-                  reason: 'Coach fares change with every departure; Omio compares them live.',
-                  bookingUrl:
+                road: {
+                  coachUrl:
                     'https://omio.sjv.io/c/7922007/409973/7385?u=https%3A%2F%2Fwww.omio.fr%2Fbus%2Fparis%2Fmetz&subId1=encore-trip&subId2=bus',
-                  route: 'Paris → Metz',
+                  coachRoute: 'Paris → Metz',
                 },
               },
       },
@@ -186,7 +171,7 @@ async function tripFixture(
   await expect(page.getByRole('heading', { name: 'Ninho in Amneville Les Thermes' })).toBeVisible();
 }
 
-test('compares published fares for every way to travel, with the seller links', async ({
+test('lists the real ways there, best first, each linked to a live search and no estimate', async ({
   page,
 }) => {
   await tripFixture(page);
@@ -194,38 +179,37 @@ test('compares published fares for every way to travel, with the seller links', 
     page.getByText('SNCF publishes exact train times 23 days ahead', { exact: false }),
   ).toBeVisible();
   const getThere = page.getByRole('region', { name: 'Getting there' });
-  await expect(getThere.getByText('from €16')).toBeVisible();
-  await expect(getThere.getByRole('row', { name: /OUIGO.*Metz Ville.*€16–€79/ })).toBeVisible();
+  await expect(getThere.getByText('Paris → Amneville Les Thermes · 280 km')).toBeVisible();
+  // Train first (best way), then car, coach, venue. No plane for 280 km.
+  expect(
+    await getThere
+      .locator('.mode-row')
+      .evaluateAll((rows) => rows.map((r) => r.getAttribute('data-mode'))),
+  ).toEqual(['train', 'car', 'coach', 'venue']);
+  await expect(getThere.locator('[data-mode=train] .mode-tag')).toHaveText('Best way');
+  await expect(getThere.getByText('OUIGO, TGV INOUI to Metz')).toBeVisible();
+  // Nothing in the panel is an estimated price.
+  await expect(getThere).not.toContainText('€');
+  await expect(getThere).not.toContainText('fuel');
   await expect(
-    getThere.getByRole('row', { name: /TGV INOUI.*Thionville.*€20\.50–€95.*€14\.30–€66/ }),
-  ).toBeVisible();
-  await expect(getThere.getByText('≈ €51 fuel')).toBeVisible();
-  await expect(getThere.getByText('Live fares on Omio')).toBeVisible();
-  await expect(
-    getThere.getByRole('link', { name: 'Times and tickets Paris → Metz on Omio' }),
+    getThere.getByRole('link', { name: 'Live times and prices Paris → Metz on Omio' }),
   ).toHaveAttribute(
     'href',
     'https://omio.sjv.io/c/7922007/409973/7385?u=https%3A%2F%2Fwww.omio.fr%2Ftrains%2Fparis%2Fmetz&subId1=encore-trip&subId2=trains',
   );
   await expect(
-    getThere.getByRole('link', { name: 'Times and tickets Paris → Thionville on Omio' }),
-  ).toHaveAttribute(
-    'href',
-    'https://omio.sjv.io/c/7922007/409973/7385?u=https%3A%2F%2Fwww.omio.fr%2Ftrains%2Fparis%2Fthionville&subId1=encore-trip&subId2=trains',
-  );
-  await expect(
-    getThere.getByRole('link', { name: 'Coaches Paris → Metz on Omio' }),
+    getThere.getByRole('link', { name: 'Live coach times and prices Paris → Metz on Omio' }),
   ).toHaveAttribute(
     'href',
     'https://omio.sjv.io/c/7922007/409973/7385?u=https%3A%2F%2Fwww.omio.fr%2Fbus%2Fparis%2Fmetz&subId1=encore-trip&subId2=bus',
   );
-  await expect(getThere.getByRole('link', { name: 'Exact fares on SNCF Connect' })).toHaveAttribute(
+  await expect(getThere.getByRole('link', { name: 'Or book on SNCF Connect' })).toHaveAttribute(
     'href',
     'https://www.sncf-connect.com/',
   );
   const driving = new URL(
     (await getThere
-      .getByRole('link', { name: 'Driving route and tolls' })
+      .getByRole('link', { name: 'Driving time, route and tolls on Google Maps' })
       .getAttribute('href')) as string,
   );
   expect(driving.searchParams.get('destination')).toBe('GALAXIE, Amneville Les Thermes');
@@ -270,7 +254,7 @@ test('uses the configured direct hotel booking URL ahead of external search', as
 test('a provider error offers retry and external searches, then recovers', async ({ page }) => {
   await tripFixture(page, { failed: true });
   await expect(page.getByText('Could not load travel options.', { exact: false })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Exact fares on SNCF Connect' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Or book on SNCF Connect' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Search hotels on Booking.com' })).toBeVisible();
   await page.route('**/api/trips?eventId=*', (route) => route.fulfill({ json: { options: [] } }));
   await page.getByRole('button', { name: 'Check again' }).click();
@@ -296,4 +280,53 @@ test('sample and cancelled concerts offer no real travel or hotel search', async
       name: /SNCF Connect|FlixBus|Omio|Driving route|Public transport|Booking.com/,
     }),
   ).toHaveCount(0);
+});
+
+test('a far-away show offers the plane first, with the landing deadline, and no car or coach', async ({
+  page,
+}) => {
+  await tripFixture(page);
+  await page.route('**/api/trips/compare?*', (route) =>
+    route.fulfill({
+      json: {
+        comparison: {
+          origin: 'Paris',
+          distanceKm: 2100,
+          recommended: 'flight',
+          flight: {
+            from: 'Paris',
+            to: 'Athens',
+            searchUrl:
+              'https://www.google.com/travel/flights?q=Flights+from+PAR+to+ATH+on+2027-01-20+one+way&hl=en&curr=EUR',
+            omioUrl:
+              'https://omio.sjv.io/c/7922007/409973/7385?u=https%3A%2F%2Fwww.omio.fr%2Fvols%2Fparis%2Fathenes&subId1=encore-trip&subId2=vols',
+            date: '2027-01-20',
+            landBy: '17:00',
+          },
+          train: null,
+          road: null,
+        },
+      },
+    }),
+  );
+  await page.reload();
+  const getThere = page.getByRole('region', { name: 'Getting there' });
+  await expect(getThere.getByText('Plane')).toBeVisible();
+  expect(
+    await getThere
+      .locator('.mode-row')
+      .evaluateAll((rows) => rows.map((r) => r.getAttribute('data-mode'))),
+  ).toEqual(['flight', 'venue']);
+  await expect(
+    getThere.getByText('Paris → Athens on 20 January. Pick a flight landing by 17:00', {
+      exact: false,
+    }),
+  ).toBeVisible();
+  await expect(
+    getThere.getByRole('link', { name: 'Live flight prices on Google Flights' }),
+  ).toHaveAttribute('href', /google\.com\/travel\/flights\?q=Flights\+from\+PAR\+to\+ATH/);
+  await expect(getThere.getByRole('link', { name: 'Compare flights on Omio' })).toBeVisible();
+  await expect(getThere.getByText('Car')).toHaveCount(0);
+  await expect(getThere.getByText('Coach')).toHaveCount(0);
+  await getThere.screenshot({ path: 'test-results/getting-there-far.png' });
 });

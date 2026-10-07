@@ -143,42 +143,37 @@ export interface AccommodationProvider extends TripProviderDefinition {
   ): Promise<AccommodationOption[]>;
 }
 
-/** Published price band for one carrier on a route (SNCF open data), never a live quote. */
-export type FareBand = { min: number; max: number };
-export type TrainFare = {
-  carrier: string;
-  /** Arrival station on the concert side, and its straight-line distance to the venue. */
+/** A long-distance train route to a station near the venue (which trains run, not a price). */
+export type TrainRoute = {
   station: string;
   /** Town the station is in, used for route links ("Lyon Part Dieu" → "Lyon"). */
   stationCity: string | null;
-  /** Where to see times and book this route (Omio route page through the affiliate link). */
-  bookingUrl: string | null;
+  carriers: string[];
+  /** Straight-line distance from the arrival station to the venue. */
   lastMileKm: number;
-  standard: FareBand | null;
-  /** With an Avantage railcard (Jeune, Adulte, Senior…). */
-  avantage: FareBand | null;
+  /** Omio route page (live times and prices) through the affiliate link. */
+  bookingUrl: string | null;
 };
+/**
+ * Ways to reach a concert. No figure here is an estimate: prices come only from the seller's
+ * live search behind each link. Modes appear by distance (far shows fly, near shows drive).
+ */
 export type TransportComparison = {
   origin: string;
-  train:
-    | {
-        status: 'priced';
-        fares: TrainFare[];
-        source: string;
-        dataUpdatedAt: string | null;
-      }
-    | { status: 'unpriced'; reason: string };
-  car:
-    | {
-        status: 'estimated';
-        roadKm: number;
-        litres: number;
-        pricePerLitre: number;
-        fuelCost: number;
-        consumptionPer100Km: number;
-        priceObservedAt: string;
-        source: string;
-      }
-    | { status: 'unavailable'; reason: string };
-  coach: { status: 'unpriced'; reason: string; bookingUrl: string | null; route: string | null };
+  /** Straight-line distance home → venue, rounded to 10 km. */
+  distanceKm: number;
+  recommended: 'flight' | 'train' | 'road';
+  flight: {
+    from: string;
+    to: string;
+    /** Live flight search for the concert day (Google Flights). */
+    searchUrl: string;
+    /** Omio's route page through the affiliate link, when Omio has one. */
+    omioUrl: string | null;
+    date: string;
+    /** Latest sensible landing time, local to the concert, when the show time is known. */
+    landBy: string | null;
+  } | null;
+  train: { status: 'served'; routes: TrainRoute[] } | { status: 'none'; reason: string } | null;
+  road: { coachUrl: string | null; coachRoute: string | null } | null;
 };

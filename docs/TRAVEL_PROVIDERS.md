@@ -36,19 +36,23 @@ The SNCF timetable adapter skips requests when the concert-day outbound or next-
 
 Hotel quotes keep the configured LiteAPI white-label hotel link when available ([documented deep links](https://docs.liteapi.travel/docs/deeplinking-to-whitelabel)). Without that link, the UI offers a Booking.com search for the selected hotel's name, city, dates and guests; the price and availability there may differ. No LiteAPI rate is represented as bookable through Booking.com. Sample, cancelled and postponed concerts have no external search actions.
 
-## Getting there: published fares for every mode
+## Getting there: the real ways to the show
 
-The trip page opens with a **Getting there** panel (`src/components/getting-there.tsx`, `GET /api/trips/compare`) that prices each way to travel side by side, independently of the 23-day timetable window. Every figure comes from an official open dataset, read server-side and cached (`src/server/providers/fares.ts`); nothing is invented.
+The trip page opens with a **Getting there** panel (`src/components/getting-there.tsx`, `GET /api/trips/compare`, `src/server/transport-comparison.ts`). It shows **no estimated price**: every figure a user sees comes from the seller's live search behind a link. (An earlier version showed SNCF's yearly price bands and a fuel estimate; Victor found them misleading and they were removed.)
 
-| Mode | What is shown | Source | Limits |
-| --- | --- | --- | --- |
-| Train | Per carrier (TGV INOUI, OUIGO, Intercités), the published one-way 2nd-class price band, standard and with an Avantage railcard, to the station nearest the venue (and any other within 15 km of it) | SNCF Voyageurs open data, ODbL: `tarifs-tgv-inoui-ouigo`, `tarifs-intercites`, station positions from `gares-de-voyageurs` | A band, not a live fare: the exact price depends on date and demand and is confirmed on SNCF Connect. TER regional fares are not covered. France only. "Tarif Réglementé" and school-subscription profiles are not shown. |
-| Car | Fuel cost estimate: straight-line distance × 1.3 road factor, 6.5 L/100 km, today's national average E10 price | Ministère de l'Économie, "Prix des carburants – flux instantané" | Estimate, labelled as such. Tolls and parking are excluded; the Google Maps link shows the real route and tolls. |
-| Coach | No price shown: fares change per departure. Link to the Omio coach page for the route to the arrival station's town | Omio (affiliate) | Omio gives links, not a price feed. |
+Modes appear by straight-line distance from the home city to the venue, best first:
 
-Fare queries use digits-only station codes and fixed field names; the cache keeps station lookups for 24 hours, fare bands for 12 hours and the fuel average for 6 hours. Sample, cancelled and postponed concerts get no comparison. Tests: `tests/fares.test.ts` (fixtures only).
+| Distance | Shown | Recommended |
+| --- | --- | --- |
+| < 500 km | Train, car, coach | Train when a TGV/OUIGO/Intercités route exists, else car |
+| 500–1,000 km | Train, plane, car, coach | Train when served, else plane |
+| ≥ 1,000 km | Plane (train only if a French route exists below 1,500 km) | Plane |
 
-ODbL attribution: the panel names "SNCF Voyageurs open data (ODbL)" as its source.
+- **Plane**: nearest airport city to home and to the venue (`src/domain/airport-cities.ts`, within 120 km). The main link is a Google Flights search for the concert day (`Flights from PAR to ATH on <date> one way`), which shows live flights and prices; the panel says to land three hours before the show (or fly the day before for shows before 09:00). Omio's flight page is added when it exists (`omio` slug, checked on omio.fr on 7 October 2026; Vienna, Prague, Dublin and others have none).
+- **Train**: `src/server/providers/rail.ts` finds stations near home (15 km) and the venue (40 km) and uses the SNCF fare tables only to know which carriers run the route (no prices are read). One Omio route link per arrival town, plus SNCF Connect.
+- **Car**: Google Maps driving directions (time, route, tolls). **Coach**: Omio's coach page to the arrival station's town.
+
+Real fares inside Encore (cheapest train or flight arriving before the show) need a live fare API: Omio Meta Search API (requested through the Omio partnership) or a flight API. Until then, the links open live searches.
 
 ## Omio affiliate links
 

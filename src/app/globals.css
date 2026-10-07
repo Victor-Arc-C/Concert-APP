@@ -2130,17 +2130,6 @@ a.tour-row:hover {
   font-size: 1.375rem;
   line-height: 1;
 }
-.mode-price {
-  font-family: var(--font-data);
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--accent);
-  font-variant-numeric: tabular-nums;
-}
-.mode-price.muted {
-  font-size: 0.8125rem;
-  color: var(--faint);
-}
 .mode-note {
   max-width: 70ch;
   margin: 0;
@@ -2148,44 +2137,42 @@ a.tour-row:hover {
   line-height: 1.55;
   color: var(--dim);
 }
+.mode-tag {
+  padding: 3px 8px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-data);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.route-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.route-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.9375rem;
+}
+.route-list li:first-child {
+  padding-top: 0;
+}
+.route-list small {
+  color: var(--dim);
+  font-size: 0.8125rem;
+}
 .mode-links {
   display: flex;
   flex-direction: column;
   gap: 2px;
-}
-.fare-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.875rem;
-}
-.fare-table th,
-.fare-table td {
-  padding: 8px 10px 8px 0;
-  border-bottom: 1px solid var(--line);
-  text-align: left;
-  vertical-align: top;
-}
-.fare-table thead th {
-  font-family: var(--font-data);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--faint);
-}
-.fare-table tbody th {
-  font-weight: 700;
-}
-.fare-table tbody th small {
-  display: block;
-  margin-top: 2px;
-  font-weight: 500;
-  color: var(--dim);
-}
-.fare-table td {
-  font-family: var(--font-data);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
 }
 @media (max-width: 520px) {
   .getting-there-head,
@@ -2203,9 +2190,6 @@ a.tour-row:hover {
   .mode-icon svg {
     width: 16px;
     height: 16px;
-  }
-  .fare-table td {
-    white-space: normal;
   }
 }
 .trip-title-row {
