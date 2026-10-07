@@ -15,6 +15,9 @@ import { recordNormalizationReview, resolveArtistIdentity } from '../identity';
 export interface EventProvider {
   events(artist: Artist): Promise<{ event: Concert; raw: unknown }[]>;
 }
+// Reviewed provider IDs, not a name-based alias rule. See docs/ARTIST_RECORDS.md.
+const verifiedAttractionFamilies = [['K8vZ917KBrV', 'K8vZ917pPdf']];
+const maxArtistRequests = 5;
 const responseSchema = z.object({
   _embedded: z
     .object({
@@ -194,22 +197,48 @@ export class TicketmasterProvider implements EventProvider {
         422,
         `Choose ${artist.name} from the live artist search to confirm its identity.`,
       );
-    const results: { event: Concert; raw: unknown }[] = [];
-    for (let page = 0; page < 5; page++) {
-      if (page) await new Promise((resolve) => setTimeout(resolve, 1100));
-      const data = await request('events', {
-        attractionId: artist.providerId,
-        size: '100',
-        page: String(page),
-        sort: 'date,asc',
-      });
-      for (const raw of data._embedded?.events ?? []) {
-        const event = normalizeTicketmaster(raw, artist.id, artist.providerId, artist.name);
-        if (event) results.push({ event, raw });
+    const mapped = await query<{ external_id: string }>(
+      'SELECT external_id FROM artist_provider_records WHERE provider=$1 AND artist_id=$2 ORDER BY external_id',
+      ['ticketmaster', artist.id],
+    );
+    const attractionIds = [
+      ...new Set(
+        [artist.providerId, ...mapped.map((row) => row.external_id)].flatMap(
+          (id) => verifiedAttractionFamilies.find((family) => family.includes(id)) ?? [id],
+        ),
+      ),
+    ];
+    if (attractionIds.length > maxArtistRequests)
+      throw new HttpError(
+        422,
+        'This artist has too many linked records for this pilot. Contact support.',
+      );
+
+    const results = new Map<string, { event: Concert; raw: unknown }>();
+    let activeIds = attractionIds;
+    let requests = 0;
+    // Read each regional record once before spending the remaining shared budget on paging.
+    for (let page = 0; activeIds.length && requests < maxArtistRequests; page++) {
+      const nextIds: string[] = [];
+      for (const attractionId of activeIds) {
+        if (requests >= maxArtistRequests) break;
+        if (requests) await new Promise((resolve) => setTimeout(resolve, 1100));
+        const data = await request('events', {
+          attractionId,
+          size: '100',
+          page: String(page),
+          sort: 'date,asc',
+        });
+        requests++;
+        for (const raw of data._embedded?.events ?? []) {
+          const event = normalizeTicketmaster(raw, artist.id, attractionId, artist.name);
+          if (event) results.set(event.externalId, { event, raw });
+        }
+        if (page + 1 < (data.page?.totalPages ?? 1)) nextIds.push(attractionId);
       }
-      if (page + 1 >= (data.page?.totalPages ?? 1)) break;
+      activeIds = nextIds;
     }
-    return results;
+    return [...results.values()];
   }
 }
 export async function storeEvent(event: Concert, raw: unknown) {

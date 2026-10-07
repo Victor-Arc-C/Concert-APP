@@ -44,7 +44,9 @@ it('skips sample artists while respecting the cache for live artists', async () 
 });
 it('requests all locales so French-only concerts are included', async () => {
   vi.stubEnv('TICKETMASTER_API_KEY', 'test-key');
-  db.mockResolvedValue([{ count: 1 }]);
+  db.mockImplementation(async (sql) =>
+    sql.includes('INSERT INTO rate_limits') ? [{ count: 1 }] : [],
+  );
   const fetcher = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
     new Response(
       JSON.stringify({
