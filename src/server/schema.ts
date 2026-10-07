@@ -172,5 +172,19 @@ CREATE INDEX rate_limits_window ON rate_limits(window_at);
     );
   `,
   },
+  {
+    version: 11,
+    sql: `
+    -- Web Push: one row per device that opted in. Removed with the account through the user FK.
+    CREATE TABLE push_subscriptions (
+      endpoint TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      p256dh TEXT NOT NULL,
+      auth TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      last_sent_at TIMESTAMPTZ
+    );
+    CREATE INDEX push_subscriptions_user ON push_subscriptions(user_id);
+  `,
+  },
 ];
-

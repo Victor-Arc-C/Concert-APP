@@ -85,6 +85,8 @@ export type AppData = {
   alerts: Alert[];
   spotifyConnected: boolean;
   spotifyAvailable: boolean;
+  /** VAPID public key when Web Push is configured on the server. */
+  pushPublicKey?: string | null;
   liveAvailable: boolean;
   /** True when signup needs a private-beta invite code (BETA_INVITE_CODES is set). */
   inviteRequired?: boolean;

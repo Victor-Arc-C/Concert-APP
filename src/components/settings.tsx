@@ -7,6 +7,7 @@ import { useApp, api } from './context';
 import { Empty, Modal } from './ui';
 import { PreferenceFields } from './onboarding';
 import { FeedbackButton } from './feedback';
+import { PushSettings } from './push';
 import type { Preferences } from '@/domain/types';
 export function SettingsPage() {
   const { data } = useApp();
@@ -66,8 +67,8 @@ function SettingsForm({ initial }: { initial: Preferences }) {
                 <Bell size={20} />A little less noise
               </h2>
               <p>
-                Choose what appears in your in-app inbox. Email and push are not connected in this
-                pilot.
+                Choose which alerts you get. They always appear in your inbox, and as notifications
+                on devices where you turn them on.
               </p>
               <div className="radio-options">
                 {[
@@ -98,6 +99,7 @@ function SettingsForm({ initial }: { initial: Preferences }) {
                   </label>
                 ))}
               </div>
+              <PushSettings />
             </section>
             <section className="settings-section">
               <h2>

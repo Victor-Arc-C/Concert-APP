@@ -42,6 +42,12 @@ import { generateTripOptions } from './trips';
 import { savedTripsForUser, saveTrip, tripEvent } from './saved-trips';
 import { exportBetaFeedback, saveBetaFeedback } from './beta-feedback';
 import { joinWaitlist, publicGigs, waitlistSchema } from './marketing';
+import {
+  deletePushSubscription,
+  pushSubscriptionSchema,
+  savePushSubscription,
+  sendTestPush,
+} from './push';
 
 function onboardingSpotifyState(state: string) {
   try {
@@ -182,6 +188,11 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
             betaFeedback: await exportBetaFeedback(user.id),
             savedTrips: await query(
               'SELECT id,event_id,trip_option_id,origin_city,destination_city,event_date,trip_data,created_at,updated_at FROM saved_trips WHERE user_id=$1',
+              [user.id],
+            ),
+            // Endpoints identify a device for the browser vendor; export only that one exists.
+            pushDevices: await query(
+              'SELECT created_at,last_sent_at FROM push_subscriptions WHERE user_id=$1',
               [user.id],
             ),
             spotifyChoices: await query(
@@ -407,6 +418,21 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
       await query('UPDATE alerts SET read_at=NOW() WHERE id=$1 AND user_id=$2', [id, user.id]);
       await recordAnalytics(user, 'notification_opened', { alertId: id });
       return ok();
+    }
+    if (key === 'push/subscribe') {
+      await rateLimit(`push:${user.id}`, 20, 3600);
+      await savePushSubscription(user.id, pushSubscriptionSchema.parse(await body(request)));
+      await recordAnalytics(user, 'notification_enabled', { channel: 'push' });
+      return ok();
+    }
+    if (key === 'push/unsubscribe') {
+      const { endpoint } = z.object({ endpoint: z.string().max(1000) }).parse(await body(request));
+      await deletePushSubscription(user.id, endpoint);
+      return ok();
+    }
+    if (key === 'push/test') {
+      await rateLimit(`push-test:${user.id}`, 5, 3600);
+      return ok({ delivered: await sendTestPush(user.id) });
     }
     if (key === 'spotify/confirm') {
       const input = z

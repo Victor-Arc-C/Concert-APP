@@ -746,6 +746,11 @@ export function Privacy() {
           Artists you follow or mark as must-see, concerts you save or dismiss, ticket links you
           open, your in-app alerts and the trip plans you save.
         </li>
+        <li>
+          If you turn on notifications on a device: the push address and encryption keys your
+          browser gives us for that device. Alert titles are sent through your browser vendor&apos;s
+          push service (Apple, Google, Mozilla or Microsoft) to reach it.
+        </li>
         <li>Feedback you choose to send, with the screen you sent it from.</li>
         <li>Optional usage analytics, only if you turn them on.</li>
         <li>If you connect Spotify: encrypted access tokens and the artists you confirm.</li>
@@ -776,6 +781,10 @@ export function Privacy() {
         <li>
           Account data, settings, artists, must-see choices, saves, ticket-link records, alerts,
           trips and feedback: until you delete your account.
+        </li>
+        <li>
+          Notification devices: until you turn them off, the browser withdraws permission, or you
+          delete your account.
         </li>
         <li>Sign-in sessions: 7 days.</li>
         <li>Usage analytics: 30 days, or immediately when you turn them off.</li>
