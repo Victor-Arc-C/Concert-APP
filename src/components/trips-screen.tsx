@@ -14,13 +14,58 @@ import {
   AlertCircle,
   Bus,
   Plane,
+  CarFront,
 } from 'lucide-react';
 import type { SavedTrip, TripOption } from '@/domain/trip-types';
 import { currentTripView, scheduleOnly } from '@/domain/trip-safety';
 import { tripSourceLabel } from '@/domain/trip-sources';
 import { assignTripLabels } from '@/domain/trip-scoring';
+import { directionsUrl, hotelSearchUrl, withinSncfTimetableWindow } from '@/domain/trip-search';
 import { api, useApp } from './context';
 import { money, dateLabel } from './ui';
+
+function TransportSearch({ origin, city, venue }: { origin: string; city: string; venue: string }) {
+  return (
+    <div className="trip-search-actions" role="group" aria-label="Search transport options">
+      <a
+        href="https://www.sncf-connect.com/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="button secondary compact"
+      >
+        <TrainFront size={16} /> Search trains <ExternalLink size={12} />
+      </a>
+      <a
+        href="https://www.flixbus.fr/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="button secondary compact"
+      >
+        <Bus size={16} /> Search buses <ExternalLink size={12} />
+      </a>
+      <a
+        href={directionsUrl(origin, city, venue, 'driving')}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="button secondary compact"
+      >
+        <CarFront size={16} /> Driving route <ExternalLink size={12} />
+      </a>
+      <a
+        href={directionsUrl(origin, city, venue, 'transit')}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="external-link"
+      >
+        Public transport to the venue <ExternalLink size={12} />
+      </a>
+      <p className="trip-search-note">
+        Search on SNCF Connect or FlixBus using your travel dates. Prices and availability are
+        confirmed by the seller.
+      </p>
+    </div>
+  );
+}
 
 export function TripPlanner({ eventId }: { eventId: string }) {
   const { data, act, busy } = useApp();
@@ -42,7 +87,7 @@ export function TripPlanner({ eventId }: { eventId: string }) {
     let active = true;
     fetch(`/api/trips?eventId=${encodeURIComponent(eventId)}`)
       .then((res) => {
-        if (!res.ok) throw new Error('Could not calculate trip options for this show.');
+        if (!res.ok) throw new Error('Could not load travel options. Check again to retry.');
         return res.json();
       })
       .then((result) => {
@@ -84,6 +129,17 @@ export function TripPlanner({ eventId }: { eventId: string }) {
   const selectedTrip = visibleOptions.find((o) => o.id === selectedOptionId) || visibleOptions[0];
   const travelExpired = selectedTrip?.transportState === 'stale';
   const stayExpired = selectedTrip?.accommodationState === 'stale';
+  const externalSearchAllowed =
+    event.provider !== 'sample' &&
+    !['cancelled', 'postponed'].includes(event.status) &&
+    event.date >= clock.toISOString().slice(0, 10);
+  const origin = data?.user?.preferences.home ?? 'Paris';
+  const travelMessage =
+    origin.trim().toLowerCase() === event.city.trim().toLowerCase()
+      ? 'This show is in your home city. Check public transport or a driving route to the venue.'
+      : !withinSncfTimetableWindow(event.date, clock)
+        ? 'SNCF timetables cover the next 23 days. This overnight trip is outside that window; you can still search with the sellers.'
+        : 'No verified round-trip timetable is available. Search trains, buses or a driving route below.';
   const checkAgain = () => {
     setLoading(true);
     setError(null);
@@ -152,7 +208,23 @@ export function TripPlanner({ eventId }: { eventId: string }) {
         </div>
       )}
 
-      {!loading && !error && options.length === 0 && (
+      {!loading && (error || options.length === 0) && externalSearchAllowed && (
+        <div className="trip-empty">
+          <h2>Find your travel and stay</h2>
+          <p>{travelMessage}</p>
+          <TransportSearch origin={origin} city={event.city} venue={event.venue} />
+          <a
+            href={hotelSearchUrl(event.city, event.date)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="external-link"
+          >
+            Search hotels on Booking.com <ExternalLink size={12} />
+          </a>
+        </div>
+      )}
+
+      {!loading && !error && options.length === 0 && !externalSearchAllowed && (
         <div className="trip-empty">
           <p>
             {['cancelled', 'postponed'].includes(event.status)
@@ -166,13 +238,16 @@ export function TripPlanner({ eventId }: { eventId: string }) {
         <div className="trip-layout">
           {/* Left / Top: Option selection selector pills */}
           <div className="trip-options-selector">
-            <span className="section-label">Select itinerary</span>
+            <span className="section-label">
+              {visibleOptions.length === 1 ? 'Available plan' : 'Compare travel and stays'}
+            </span>
             <div className="option-pill-group">
               {visibleOptions.map((opt) => (
                 <button
                   key={opt.id}
                   type="button"
                   onClick={() => setSelectedOptionId(opt.id)}
+                  aria-pressed={opt.id === selectedTrip.id}
                   className={`option-pill ${opt.id === selectedTrip.id ? 'active' : ''}`}
                 >
                   <div className="pill-top">
@@ -196,7 +271,10 @@ export function TripPlanner({ eventId }: { eventId: string }) {
                     <strong>
                       {opt.estimatedTotal !== null
                         ? money(opt.estimatedTotal, opt.totalCurrency)
-                        : 'Est. total pending'}
+                        : opt.accommodation?.price !== null &&
+                            opt.accommodation?.price !== undefined
+                          ? `${money(opt.accommodation.price, opt.accommodation.currency)} stay`
+                          : 'Travel prices unavailable'}
                     </strong>
                     <small>
                       {opt.transport && (
@@ -335,18 +413,28 @@ export function TripPlanner({ eventId }: { eventId: string }) {
                           <ExternalLink size={12} />
                         </a>
                       )}
+                      {externalSearchAllowed && (
+                        <TransportSearch origin={origin} city={event.city} venue={event.venue} />
+                      )}
                     </div>
                   </div>
                 ) : (
                   <div className="trip-step">
-                    <Compass size={20} />
+                    <div className="step-icon">
+                      <Compass size={20} />
+                    </div>
                     <div className="step-content">
-                      <strong>Travel options unavailable</strong>
-                      <p>
-                        {travelExpired || selectedTrip.transportState === 'stale'
-                          ? 'Price no longer current'
-                          : 'Check again when travel options are available.'}
+                      <div className="step-header">
+                        <strong>Transport options</strong>
+                      </div>
+                      <p className="step-details">
+                        {travelExpired
+                          ? 'The previous timetable has expired. Check again for current options.'
+                          : travelMessage}
                       </p>
+                      {externalSearchAllowed && (
+                        <TransportSearch origin={origin} city={event.city} venue={event.venue} />
+                      )}
                     </div>
                   </div>
                 )}
@@ -384,7 +472,7 @@ export function TripPlanner({ eventId }: { eventId: string }) {
                         Source: {tripSourceLabel(selectedTrip.accommodation.provider)} · Check-in:{' '}
                         {new Date(selectedTrip.accommodation.checkIn).toLocaleDateString('en-GB')}
                       </span>
-                      {selectedTrip.accommodation.bookingUrl && (
+                      {selectedTrip.accommodation.bookingUrl ? (
                         <a
                           href={selectedTrip.accommodation.bookingUrl}
                           target="_blank"
@@ -393,7 +481,26 @@ export function TripPlanner({ eventId }: { eventId: string }) {
                         >
                           Check accommodation booking <ExternalLink size={12} />
                         </a>
-                      )}
+                      ) : externalSearchAllowed ? (
+                        <>
+                          <a
+                            href={hotelSearchUrl(
+                              event.city,
+                              event.date,
+                              selectedTrip.accommodation,
+                            )}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="external-link"
+                          >
+                            Find this hotel on Booking.com <ExternalLink size={12} />
+                          </a>
+                          <p className="trip-search-note">
+                            Search for this hotel with your dates. Booking.com prices may differ
+                            from the LiteAPI quote above.
+                          </p>
+                        </>
+                      ) : null}
                     </div>
                   </div>
                 ) : (
@@ -404,8 +511,18 @@ export function TripPlanner({ eventId }: { eventId: string }) {
                       <p>
                         {stayExpired || selectedTrip.accommodationState === 'stale'
                           ? 'Price no longer current'
-                          : 'Check again when stay options are available.'}
+                          : 'No current hotel quote is available for these dates.'}
                       </p>
+                      {externalSearchAllowed && (
+                        <a
+                          href={hotelSearchUrl(event.city, event.date)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="external-link"
+                        >
+                          Search hotels on Booking.com <ExternalLink size={12} />
+                        </a>
+                      )}
                     </div>
                   </div>
                 )}
@@ -421,7 +538,7 @@ export function TripPlanner({ eventId }: { eventId: string }) {
                   <div className="total-price">
                     {selectedTrip.estimatedTotal !== null
                       ? money(selectedTrip.estimatedTotal, selectedTrip.totalCurrency)
-                      : 'Total unavailable — components missing or no longer current'}
+                      : 'Total not yet available'}
                   </div>
                   <span className="total-fineprint">
                     {selectedTrip.mode === 'sample'
@@ -445,11 +562,20 @@ export function TripPlanner({ eventId }: { eventId: string }) {
                   </span>
                   <span>
                     Overall{' '}
-                    {selectedTrip.scores.overallScore === null || travelExpired || stayExpired
+                    {selectedTrip.scores.overallScore === null ||
+                    selectedTrip.estimatedTotal === null ||
+                    travelExpired ||
+                    stayExpired
                       ? 'unavailable'
                       : `${selectedTrip.scores.overallScore}/100`}
                   </span>
                 </p>
+                {selectedTrip.estimatedTotal === null && (
+                  <p className="trip-search-note">
+                    A total needs current ticket, transport and hotel prices. Convenience needs a
+                    route and a stay; value and overall ranking need a complete total.
+                  </p>
+                )}
               </div>
             </div>
           </div>
