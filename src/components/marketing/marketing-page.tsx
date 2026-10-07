@@ -41,7 +41,7 @@ export function MarketingPage() {
               <h1 id="hero-title" className={styles.heroTitle}>
                 <span>
                   <span>Every show</span>
-                </span>
+                </span>{' '}
                 <span>
                   <span>
                     worth the <em>trip.</em>
