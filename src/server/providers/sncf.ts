@@ -7,13 +7,13 @@ import type {
 } from '../../domain/trip-types';
 import { providerJson } from './http';
 import { rateLimit } from '../security';
+import { QuoteCache } from './quote-cache';
 
 // SNCF open API (Navitia engine): real train/coach timetables in France and nearby Europe.
 // It has no fares, seat inventory or checkout, so results are schedule-only (price null,
 // availability 'unknown') and point to SNCF Connect for prices. Docs: https://numerique.sncf.com/startup/api/
 const API = 'https://api.sncf.com/v1/coverage/sncf/journeys';
 const COVERAGE_TIMEZONE = 'Europe/Paris';
-const CACHE_MS = 4 * 60 * 1000;
 export const SNCF_BOOKING_URL = 'https://www.sncf-connect.com/';
 
 type NavitiaSection = {
@@ -84,7 +84,11 @@ function modeOf(sections: NavitiaSection[]): TransportMode {
     : 'train';
 }
 
-const cache = new Map<string, { at: number; value: NavitiaJourney[] }>();
+const cache = new QuoteCache<NavitiaJourney[]>();
+const nextDay = (date: string) =>
+  new Date(Date.parse(`${date}T00:00:00Z`) + 86400000).toISOString().slice(0, 10);
+/** Latest acceptable arrival: 30 minutes before the show starts. */
+export const ARRIVAL_MARGIN_MS = 30 * 60000;
 
 export class SncfTransportProvider implements TransportProvider {
   kind = 'live' as const;
@@ -102,7 +106,7 @@ export class SncfTransportProvider implements TransportProvider {
     datetime: string,
     represents: 'arrival' | 'departure',
     now: Date,
-  ): Promise<NavitiaJourney[]> {
+  ): Promise<{ at: number; value: NavitiaJourney[] }> {
     const url = new URL(API);
     url.searchParams.set('from', `${from.longitude};${from.latitude}`);
     url.searchParams.set('to', `${to.longitude};${to.latitude}`);
@@ -110,8 +114,8 @@ export class SncfTransportProvider implements TransportProvider {
     url.searchParams.set('datetime_represents', represents);
     url.searchParams.set('count', '3');
     const key = url.toString();
-    const hit = cache.get(key);
-    if (hit && now.getTime() - hit.at < CACHE_MS) return hit.value;
+    const hit = cache.get(key, now.getTime());
+    if (hit) return hit;
     // The free token allows 5,000 requests a day; keep a margin for retries.
     await rateLimit('sncf-api-day', 4500, 86400);
     const data = (await providerJson(
@@ -122,8 +126,7 @@ export class SncfTransportProvider implements TransportProvider {
     const value = (data.journeys ?? []).filter((journey) =>
       (journey.sections ?? []).some((section) => section.type === 'public_transport'),
     );
-    cache.set(key, { at: now.getTime(), value });
-    return value;
+    return cache.set(key, value, now.getTime());
   }
 
   async getOptions(
@@ -158,23 +161,28 @@ export class SncfTransportProvider implements TransportProvider {
       this.journeys(
         context.venue,
         context.origin,
-        instantToNavitia(wallToInstant(eventDate, '09:00:00', COVERAGE_TIMEZONE) + 86400000),
+        instantToNavitia(wallToInstant(nextDay(eventDate), '09:00:00', COVERAGE_TIMEZONE)),
         'departure',
         now,
       ),
     ]);
-    const back = inbound
+    const back = inbound.value
       .map((journey) => navitiaToIso(journey.departure_date_time ?? ''))
       .filter((value): value is string => !!value)
       .sort()[0];
     if (!back) return [];
-    const observedAt = now.toISOString();
+    // Stamp the time the timetable was actually fetched, never the cache read time.
+    const observedAt = new Date(Math.min(outbound.at, inbound.at)).toISOString();
     const options: TransportOption[] = [];
-    for (const journey of outbound) {
+    for (const journey of outbound.value) {
       const departureAt = navitiaToIso(journey.departure_date_time ?? '');
       const arrivalAt = navitiaToIso(journey.arrival_date_time ?? '');
       if (!departureAt || !arrivalAt || !journey.duration || journey.duration <= 0) continue;
-      if (departureAt.slice(0, 10) !== eventDate || Date.parse(arrivalAt) > show) continue;
+      if (
+        departureAt.slice(0, 10) !== eventDate ||
+        Date.parse(arrivalAt) > show - ARRIVAL_MARGIN_MS
+      )
+        continue;
       const sections = (journey.sections ?? []).filter((s) => s.type === 'public_transport');
       const operators = [
         ...new Set(

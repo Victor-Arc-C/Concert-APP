@@ -6,12 +6,12 @@ import type {
 } from '../../domain/trip-types';
 import { providerJson } from './http';
 import { rateLimit } from '../security';
+import { QuoteCache } from './quote-cache';
 
 // Nuitée LiteAPI: hotel catalog near the venue plus current bookable rates.
 // Docs: https://docs.liteapi.travel/reference/post_hotels-rates and /reference/get_data-hotels
 const API = 'https://api.liteapi.travel/v3.0';
 const SEARCH_RADIUS_METERS = 3000;
-const CACHE_MS = 4 * 60 * 1000;
 
 type LiteHotel = { id?: string; name?: string; latitude?: number; longitude?: number };
 type LiteMoney = { amount?: number; currency?: string };
@@ -21,6 +21,10 @@ type LiteHotelRates = { hotelId?: string; roomTypes?: LiteRoomType[] };
 
 export function isSandboxKey(key: string) {
   return key.startsWith('sand_');
+}
+/** Production accepts only keys that identify themselves as production keys. */
+export function isProductionKey(key: string) {
+  return key.startsWith('prod_');
 }
 export function distanceKm(a: Coordinates, b: Coordinates) {
   const rad = (degrees: number) => (degrees * Math.PI) / 180;
@@ -34,7 +38,7 @@ export function distanceKm(a: Coordinates, b: Coordinates) {
 const nextDay = (date: string) =>
   new Date(Date.parse(`${date}T00:00:00Z`) + 86400000).toISOString().slice(0, 10);
 
-const cache = new Map<string, { at: number; value: unknown }>();
+const cache = new QuoteCache<unknown>();
 
 export class LiteApiAccommodationProvider implements AccommodationProvider {
   kind = 'live' as const;
@@ -56,8 +60,8 @@ export class LiteApiAccommodationProvider implements AccommodationProvider {
 
   private async call(path: string, init: RequestInit, now: Date) {
     const key = `${path}|${init.body ?? ''}`;
-    const hit = cache.get(key);
-    if (hit && now.getTime() - hit.at < CACHE_MS) return hit.value;
+    const hit = cache.get(key, now.getTime());
+    if (hit) return hit;
     await rateLimit('liteapi-second', 4, 1);
     const value = await providerJson(
       `${API}${path}`,
@@ -71,8 +75,7 @@ export class LiteApiAccommodationProvider implements AccommodationProvider {
       },
       this.fetcher,
     );
-    cache.set(key, { at: now.getTime(), value });
-    return value;
+    return cache.set(key, value, now.getTime());
   }
 
   async getOptions(
@@ -86,18 +89,20 @@ export class LiteApiAccommodationProvider implements AccommodationProvider {
     const venue = context?.venue;
     if (!venue) return [];
     const checkout = nextDay(eventDate);
-    const found = (await this.call(
-      `/data/hotels?latitude=${venue.latitude}&longitude=${venue.longitude}&radius=${SEARCH_RADIUS_METERS}&limit=25`,
-      { method: 'GET' },
-      now,
-    )) as { data?: LiteHotel[] };
+    const found = (
+      await this.call(
+        `/data/hotels?latitude=${venue.latitude}&longitude=${venue.longitude}&radius=${SEARCH_RADIUS_METERS}&limit=25`,
+        { method: 'GET' },
+        now,
+      )
+    ).value as { data?: LiteHotel[] };
     const hotels = new Map(
       (found.data ?? [])
         .filter((hotel) => hotel.id && hotel.name)
         .map((hotel) => [hotel.id as string, hotel]),
     );
     if (!hotels.size) return [];
-    const rates = (await this.call(
+    const ratesCall = await this.call(
       '/hotels/rates',
       {
         method: 'POST',
@@ -112,8 +117,10 @@ export class LiteApiAccommodationProvider implements AccommodationProvider {
         }),
       },
       now,
-    )) as { data?: LiteHotelRates[] };
-    const observedAt = now.toISOString();
+    );
+    const rates = ratesCall.value as { data?: LiteHotelRates[] };
+    // The time LiteAPI actually answered, not the time a cached answer is read.
+    const observedAt = new Date(ratesCall.at).toISOString();
     const options: AccommodationOption[] = [];
     for (const entry of rates.data ?? []) {
       const hotel = entry.hotelId ? hotels.get(entry.hotelId) : undefined;
@@ -131,13 +138,21 @@ export class LiteApiAccommodationProvider implements AccommodationProvider {
       const priceComplete = (cheapest.rates ?? []).every((rate) =>
         (rate.retailRate?.taxesAndFees ?? []).every((fee) => fee.included !== false),
       );
+      // Without the real venue position (city-centre fallback) no venue distance is shown.
       const located =
-        typeof hotel.latitude === 'number' && typeof hotel.longitude === 'number'
+        context?.venueExact &&
+        typeof hotel.latitude === 'number' &&
+        typeof hotel.longitude === 'number'
           ? Math.round(
               distanceKm(venue, { latitude: hotel.latitude, longitude: hotel.longitude }) * 10,
             ) / 10
           : null;
-      const params = new URLSearchParams({ checkin: eventDate, checkout, adults: String(guests) });
+      // White-label deep link as documented by LiteAPI: occupancies is base64-encoded JSON.
+      const params = new URLSearchParams({
+        checkin: eventDate,
+        checkout,
+        occupancies: Buffer.from(JSON.stringify([{ adults: guests }])).toString('base64'),
+      });
       options.push({
         kind: 'live',
         availability: 'available',
@@ -155,7 +170,7 @@ export class LiteApiAccommodationProvider implements AccommodationProvider {
         observedAt,
         expiresAt: null,
         bookingUrl: this.whitelabelUrl
-          ? `${this.whitelabelUrl.replace(/\/$/, '')}/hotels/${encodeURIComponent(entry.hotelId!)}?${params}`
+          ? `${new URL(this.whitelabelUrl).origin}/hotels/${encodeURIComponent(entry.hotelId!)}?${params}`
           : null,
       });
     }

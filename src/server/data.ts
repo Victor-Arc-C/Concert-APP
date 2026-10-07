@@ -180,7 +180,8 @@ export async function getAppData(): Promise<AppData> {
     ),
     allEvents: all,
     saved: all.filter((e) => e.saved),
-    savedTrips: user ? await savedTripsForUser(user) : [],
+    // State is polled every minute: never call live travel providers from here.
+    savedTrips: user ? await savedTripsForUser(user, new Date(), { liveLookups: false }) : [],
 
     alerts,
 

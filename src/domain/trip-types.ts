@@ -99,7 +99,8 @@ export type SavedTrip = {
   tripData: TripOption;
   createdAt: string;
   updatedAt: string;
-  revalidationStatus: 'current' | 'unavailable' | 'legacy';
+  /** 'unchecked': live travel was not re-queried on this read (app-state polling). */
+  revalidationStatus: 'current' | 'unavailable' | 'legacy' | 'unchecked';
 };
 
 export type Coordinates = { latitude: number; longitude: number };
@@ -107,6 +108,8 @@ export type Coordinates = { latitude: number; longitude: number };
 export type TripSearchContext = {
   origin: Coordinates | null;
   venue: Coordinates | null;
+  /** False when the venue position is only the city centre: no venue distance may be shown. */
+  venueExact?: boolean;
   eventTimezone?: string | null;
 };
 

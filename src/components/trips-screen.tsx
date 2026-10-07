@@ -15,11 +15,11 @@ import {
   Bus,
   Plane,
 } from 'lucide-react';
-import type { TripOption } from '@/domain/trip-types';
+import type { SavedTrip, TripOption } from '@/domain/trip-types';
 import { currentTripView, scheduleOnly } from '@/domain/trip-safety';
 import { tripSourceLabel } from '@/domain/trip-sources';
 import { assignTripLabels } from '@/domain/trip-scoring';
-import { useApp } from './context';
+import { api, useApp } from './context';
 import { money, dateLabel } from './ui';
 
 export function TripPlanner({ eventId }: { eventId: string }) {
@@ -463,7 +463,23 @@ export function TripPlanner({ eventId }: { eventId: string }) {
 
 export function TripsList() {
   const { data, act, busy } = useApp();
-  const savedTrips = data?.savedTrips ?? [];
+  // App state never re-queries live travel; this page checks saved plans once on open.
+  const [checked, setChecked] = useState<SavedTrip[] | null>(null);
+  const hasUnchecked = (data?.savedTrips ?? []).some((t) => t.revalidationStatus === 'unchecked');
+  const checking = hasUnchecked && checked === null;
+  useEffect(() => {
+    if (!hasUnchecked) return;
+    let active = true;
+    api<{ savedTrips: SavedTrip[] }>('trips/saved')
+      .then((result) => {
+        if (active) setChecked(result.savedTrips);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [hasUnchecked]);
+  const savedTrips = checked ?? data?.savedTrips ?? [];
   const [clock, setClock] = useState(() => new Date());
   useEffect(() => {
     const timer = setInterval(() => setClock(new Date()), 1000);
@@ -511,6 +527,13 @@ export function TripsList() {
                 {trip.planStatus !== 'active' && (
                   <p>Plan inactive: {trip.planStatus.replaceAll('_', ' ')}</p>
                 )}
+                {saved.revalidationStatus === 'unchecked' && (
+                  <p>
+                    {checking
+                      ? 'Checking current travel options…'
+                      : 'Open the itinerary to check current travel options.'}
+                  </p>
+                )}
                 {saved.revalidationStatus === 'legacy' && (
                   <p>Saved plan retained. Previous quote removed; check again.</p>
                 )}
@@ -533,8 +556,10 @@ export function TripsList() {
                   <div>
                     <small>Stay</small>
                     <span>
-                      {trip.accommodation?.distanceKmToVenue != null
-                        ? `${trip.accommodation.distanceKmToVenue}km to venue`
+                      {trip.accommodation
+                        ? trip.accommodation.distanceKmToVenue != null
+                          ? `${trip.accommodation.distanceKmToVenue}km to venue`
+                          : trip.accommodation.name
                         : 'Stay options unavailable'}
                     </span>
                   </div>

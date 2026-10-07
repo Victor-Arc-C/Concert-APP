@@ -18,7 +18,12 @@ import type { Concert } from '../src/domain/types';
 const now = new Date('2026-11-01T10:00:00Z');
 const lyonVenue = { latitude: 45.7656, longitude: 4.9822 }; // LDLC Arena, Décines
 const paris = { latitude: 48.8566, longitude: 2.3522 };
-const context = { origin: paris, venue: lyonVenue, eventTimezone: 'Europe/Paris' };
+const context = {
+  origin: paris,
+  venue: lyonVenue,
+  venueExact: true,
+  eventTimezone: 'Europe/Paris',
+};
 const event: Concert = {
   id: 'tm-ninho-lyon',
   artistIds: ['ninho'],
@@ -187,7 +192,7 @@ describe('SNCF timetable provider', () => {
   it('reuses recent answers and stays empty without places or for a home-city show', async () => {
     const fetcher = sncfFetcher();
     const provider = new SncfTransportProvider('test-token', fetcher as unknown as typeof fetch);
-    const later = new Date(now.getTime() + 60_000);
+    const later = new Date(now.getTime() + 30_000);
     await provider.getOptions('Paris', 'Lyon', '2026-11-14', '20:00:00', now, context);
     await provider.getOptions('Paris', 'Lyon', '2026-11-14', '20:00:00', later, context);
     expect(fetcher).toHaveBeenCalledTimes(2); // outbound + return, once
@@ -288,8 +293,8 @@ describe('LiteAPI hotel provider', () => {
       availability: 'available',
       currency: 'EUR',
       city: 'Lyon',
-      bookingUrl:
-        'https://stays.encore.test/hotels/h1?checkin=2026-11-07&checkout=2026-11-08&adults=1',
+      // LiteAPI white-label deep link: occupancies is base64 JSON.
+      bookingUrl: `https://stays.encore.test/hotels/h1?checkin=2026-11-07&checkout=2026-11-08&occupancies=${encodeURIComponent(Buffer.from('[{"adults":1}]').toString('base64'))}`,
     });
     expect(provider.bookingHosts).toEqual(['stays.encore.test']);
     expect(bodies.at(-1)).toMatchObject({
@@ -359,10 +364,10 @@ describe('trip plans with live providers', () => {
     expect(await tripSearchContext(event, 'Paris')).toEqual(context);
     vi.mocked(query).mockResolvedValue([]);
     expect((await tripSearchContext(event, 'Nowhere')).origin).toBeNull();
-    expect((await tripSearchContext(event, 'Paris')).venue).toEqual({
-      latitude: 45.764,
-      longitude: 4.8357,
-    });
+    const fallback = await tripSearchContext(event, 'Paris');
+    expect(fallback.venue).toEqual({ latitude: 45.764, longitude: 4.8357 });
+    // City centre is not the venue: hotels then get no venue distance (see below).
+    expect(fallback.venueExact).toBe(false);
   });
 
   it('shows train timetables and hotel prices without inventing a total or a badge', async () => {
@@ -394,5 +399,151 @@ describe('trip plans with live providers', () => {
     }
     expect(options[0].transport?.bookingUrl).toBe(SNCF_BOOKING_URL);
     expect(options[0].accommodation?.bookingUrl).toContain('https://stays.encore.test/hotels/');
+  });
+});
+
+describe('review fixes: freshness, honesty and quota', () => {
+  it('never shows a venue distance when only the city centre is known', async () => {
+    const provider = new LiteApiAccommodationProvider(
+      'prod_key',
+      null,
+      liteFetcher() as unknown as typeof fetch,
+    );
+    const options = await provider.getOptions('Lyon', 'LDLC Arena', '2026-12-12', 1, now, {
+      ...context,
+      venueExact: false,
+    });
+    expect(options.length).toBeGreaterThan(0);
+    expect(options.every((o) => o.distanceKmToVenue === null)).toBe(true);
+  });
+
+  it('keeps the original fetch time on cached answers instead of re-stamping them', async () => {
+    const fetcher = liteFetcher();
+    const provider = new LiteApiAccommodationProvider(
+      'prod_key',
+      null,
+      fetcher as unknown as typeof fetch,
+    );
+    const first = await provider.getOptions('Lyon', 'Arena', '2026-12-19', 1, now, context);
+    const calls = fetcher.mock.calls.length;
+    const later = new Date(now.getTime() + 40_000);
+    const second = await provider.getOptions('Lyon', 'Arena', '2026-12-19', 1, later, context);
+    expect(fetcher.mock.calls.length).toBe(calls); // served from the cache
+    expect(second[0].observedAt).toBe(first[0].observedAt);
+    expect(second[0].observedAt).toBe(now.toISOString());
+  });
+
+  it('asks for the return at 09:00 Paris time the next day, also across a DST change', async () => {
+    const fetcher = sncfFetcher();
+    const provider = new SncfTransportProvider('t', fetcher as unknown as typeof fetch);
+    await provider.getOptions('Paris', 'Lyon', '2026-10-24', '20:00:00', now, context);
+    const returns = fetcher.mock.calls
+      .map(([url]) => new URL(String(url)))
+      .filter((url) => url.searchParams.get('datetime_represents') === 'departure');
+    expect(returns[0].searchParams.get('datetime')).toBe('20261025T090000');
+  });
+
+  it('requires arriving at least 30 minutes before the show', async () => {
+    const fetcher = vi.fn(async (input: RequestInfo | URL) =>
+      new URL(String(input)).searchParams.get('datetime_represents') === 'arrival'
+        ? json({
+            journeys: [
+              {
+                departure_date_time: '20261205T170000',
+                arrival_date_time: '20261205T194500',
+                duration: 9900,
+                nb_transfers: 0,
+                sections: [pt('TGV INOUI')],
+              },
+            ],
+          })
+        : json({
+            journeys: [
+              {
+                departure_date_time: '20261206T093000',
+                arrival_date_time: '20261206T113000',
+                duration: 7200,
+                nb_transfers: 0,
+                sections: [pt('TGV INOUI')],
+              },
+            ],
+          }),
+    );
+    const provider = new SncfTransportProvider('t', fetcher as unknown as typeof fetch);
+    expect(
+      await provider.getOptions('Paris', 'Lyon', '2026-12-05', '20:00:00', now, context),
+    ).toEqual([]);
+  });
+
+  it('never offers real trains or hotels for a fictional concert, even in production', async () => {
+    vi.stubEnv('VERCEL_ENV', 'production');
+    try {
+      const fetcher = sncfFetcher();
+      const options = await generateTripOptions(
+        { ...event, id: 'sample-x', provider: 'sample' },
+        { ...user, mode: 'sample' },
+        {
+          transport: new SncfTransportProvider('t', fetcher as unknown as typeof fetch),
+          accommodation: new LiteApiAccommodationProvider(
+            'prod_key',
+            'https://stays.encore.test',
+            liteFetcher() as unknown as typeof fetch,
+          ),
+        },
+        now,
+        'Paris',
+      );
+      expect(fetcher).not.toHaveBeenCalled();
+      for (const option of options) {
+        expect(option.transport).toBeNull();
+        expect(option.accommodation).toBeNull();
+      }
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
+  it('accepts only a LiteAPI production key in production', () => {
+    const production = (key: string) =>
+      parseEnvironment({
+        APP_ENV: 'production',
+        APP_URL: 'https://encore.test',
+        DATABASE_URL: 'postgres://u:p@db.test/encore',
+        LITEAPI_API_KEY: key,
+      });
+    expect(selectTripProviders('live', production('prod_key')).accommodation).toBeDefined();
+    expect(selectTripProviders('live', production('sand_key')).accommodation).toBeUndefined();
+    expect(selectTripProviders('live', production('unknown_key')).accommodation).toBeUndefined();
+  });
+
+  it('never accepts a schedule-only (no price, unknown availability) hotel quote', async () => {
+    const stay = {
+      name: 'Bad adapter',
+      kind: 'live' as const,
+      sourceIds: ['bad'],
+      bookingHosts: [],
+      getOptions: async () => [
+        {
+          kind: 'live' as const,
+          availability: 'unknown' as const,
+          priceComplete: false,
+          id: 'x',
+          provider: 'bad',
+          name: 'Hotel X',
+          city: 'Lyon',
+          checkIn: '2026-11-07T15:00:00Z',
+          checkOut: '2026-11-08T11:00:00Z',
+          guests: 1,
+          price: null,
+          currency: null,
+          distanceKmToVenue: null,
+          observedAt: now.toISOString(),
+          bookingUrl: null,
+        },
+      ],
+    };
+    const [option] = await generateTripOptions(event, user, { accommodation: stay }, now, 'Paris');
+    expect(option.accommodation).toBeNull();
+    expect(option.accommodationState).toBe('invalid');
   });
 });

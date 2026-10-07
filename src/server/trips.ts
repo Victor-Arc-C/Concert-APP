@@ -16,6 +16,7 @@ import {
   accommodationOptionSchema,
   currentQuote,
   recognizedQuote,
+  scheduleOnly,
   samplesAllowed,
   safeTravelUrl,
   transportOptionSchema,
@@ -31,7 +32,8 @@ import {
 } from '../domain/trip-scoring';
 import { SampleAccommodationProvider, SampleTransportProvider } from './providers/travel-sample';
 import { SncfTransportProvider } from './providers/sncf';
-import { isSandboxKey, LiteApiAccommodationProvider } from './providers/liteapi';
+import { isProductionKey, LiteApiAccommodationProvider } from './providers/liteapi';
+import { reportError } from './monitoring';
 import { query } from './db';
 import { env } from './env';
 
@@ -57,6 +59,7 @@ export function tripProviderMode(
 export function productionDeployment(settings = env()) {
   return (
     settings.APP_ENV === 'production' ||
+    settings.VERCEL_ENV === 'production' ||
     process.env.VERCEL_ENV === 'production' ||
     (process.env.NODE_ENV === 'production' && !process.env.APP_ENV)
   );
@@ -69,10 +72,10 @@ export function selectTripProviders(mode: TripProviderMode, settings = env()): T
       accommodation: new SampleAccommodationProvider(),
     };
   // Live registry: only providers whose credentials are configured on the server.
-  // A LiteAPI sandbox key returns test prices, so it is never used by a production deployment.
+  // Production accepts only a LiteAPI production key (sandbox keys return test prices).
   const hotelKey =
     settings.LITEAPI_API_KEY &&
-    !(isSandboxKey(settings.LITEAPI_API_KEY) && productionDeployment(settings))
+    (!productionDeployment(settings) || isProductionKey(settings.LITEAPI_API_KEY))
       ? settings.LITEAPI_API_KEY
       : null;
   return {
@@ -97,6 +100,7 @@ export async function tripSearchContext(
 ): Promise<TripSearchContext> {
   const home = cities.find((city) => city.name.toLowerCase() === originCity.toLowerCase());
   let venue: TripSearchContext['venue'] = null;
+  let venueExact = false;
   if (event.provider !== 'sample') {
     const [row] = await query<{ location: { latitude?: unknown; longitude?: unknown } | null }>(
       `SELECT raw->'_embedded'->'venues'->0->'location' AS location
@@ -105,7 +109,10 @@ export async function tripSearchContext(
     );
     const latitude = coordinate(row?.location?.latitude, -90, 90);
     const longitude = coordinate(row?.location?.longitude, -180, 180);
-    if (latitude !== null && longitude !== null) venue = { latitude, longitude };
+    if (latitude !== null && longitude !== null) {
+      venue = { latitude, longitude };
+      venueExact = true;
+    }
   }
   if (!venue) {
     const city = cities.find(
@@ -116,6 +123,7 @@ export async function tripSearchContext(
   return {
     origin: home ? { latitude: home.latitude, longitude: home.longitude } : null,
     venue,
+    venueExact,
     eventTimezone: event.timezone,
   };
 }
@@ -185,6 +193,8 @@ async function transportOptions(
     }
     return { options, state: options.length ? 'ready' : state };
   } catch {
+    // Bad key, exhausted quota and outages all fail closed; the founder sees them in the logs.
+    if (mode === 'live') reportError('provider_failed');
     return { options: [], state: 'unavailable' };
   }
 }
@@ -210,6 +220,10 @@ async function stayOptions(
         continue;
       }
       const option = parsed.data;
+      if (scheduleOnly(option)) {
+        state = 'invalid';
+        continue;
+      }
       if (
         option.city !== event.city ||
         option.checkIn.slice(0, 10) !== event.date ||
@@ -239,6 +253,8 @@ async function stayOptions(
     }
     return { options, state: options.length ? 'ready' : state };
   } catch {
+    // Bad key, exhausted quota and outages all fail closed; the founder sees them in the logs.
+    if (mode === 'live') reportError('provider_failed');
     return { options: [], state: 'unavailable' };
   }
 }
@@ -291,7 +307,9 @@ export async function generateTripOptions(
 ): Promise<TripOption[]> {
   if (eventPlanStatus(event, now) !== 'active') return [];
   const mode = tripProviderMode(event, user);
-  const selected = providers ?? selectTripProviders(mode);
+  // A fictional concert never gets real trains, hotels or booking links, whatever the mode.
+  const selected =
+    mode === 'live' && event.provider === 'sample' ? {} : (providers ?? selectTripProviders(mode));
   const [affinities, intents] = user
     ? await Promise.all([
         query<{ artist_id: string; favorite: boolean; hidden: boolean }>(
