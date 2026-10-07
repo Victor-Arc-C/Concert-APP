@@ -4,21 +4,22 @@
 // docs/coverage-audit-fr.results.md. Needs TICKETMASTER_API_KEY in .env.local. Read-only:
 // it calls the official API (no scraping) and never prints the key.
 import { readFileSync, writeFileSync } from 'node:fs';
+import { matchesAuditArtist } from '../src/domain/coverage-audit.ts';
 
 type Show = { date: string; city: string; venue: string };
-type Artist = { name: string; genre: string; source: string; shows: Show[] };
+type Artist = {
+  name: string;
+  genre: string;
+  source: string;
+  ticketmasterNames?: string[];
+  shows: Show[];
+};
 type Dataset = { window: { from: string; to: string }; checkedOn: string; artists: Artist[] };
 type TmEvent = { date: string; city: string; venue: string };
 
 const API = 'https://app.ticketmaster.com/discovery/v2';
 const key = process.env.TICKETMASTER_API_KEY;
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-const normalize = (value: string) =>
-  value
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '');
 
 async function get(path: string, params: Record<string, string>) {
   const url = new URL(`${API}${path}`);
@@ -26,8 +27,8 @@ async function get(path: string, params: Record<string, string>) {
   url.searchParams.set('apikey', key!);
   for (let attempt = 0; attempt < 4; attempt++) {
     const response = await fetch(url, { signal: AbortSignal.timeout(15_000) });
-    // The shared key allows 5 requests per second; stay well below it.
-    await sleep(300);
+    // Share the credential conservatively with the running app.
+    await sleep(600);
     if (response.status === 429) {
       await sleep(2000);
       continue;
@@ -38,18 +39,18 @@ async function get(path: string, params: Record<string, string>) {
   throw new Error(`Ticketmaster kept rate-limiting ${path}`);
 }
 
-/** All French events of every attraction whose name matches exactly (accents and case ignored). */
-async function ticketmasterShows(name: string, window: Dataset['window']) {
+/** All French events of exactly named attractions, including explicit reviewed aliases. */
+async function ticketmasterShows(artist: Artist, window: Dataset['window']) {
   // Same filter as the app's artist search (src/server/providers/ticketmaster.ts).
   const found = await get('/attractions.json', {
-    keyword: name,
+    keyword: artist.name,
     locale: '*',
     size: '20',
     classificationName: 'music',
   });
   const attractions = (
     (found._embedded as { attractions?: { id: string; name: string }[] })?.attractions ?? []
-  ).filter((attraction) => normalize(attraction.name) === normalize(name));
+  ).filter((attraction) => matchesAuditArtist(attraction.name, artist));
   const events: TmEvent[] = [];
   for (const attraction of attractions) {
     const page = await get('/events.json', {
@@ -63,7 +64,9 @@ async function ticketmasterShows(name: string, window: Dataset['window']) {
     });
     const total = (page.page as { totalElements?: number } | undefined)?.totalElements ?? 0;
     if (total > 200)
-      console.error(`Warning: ${name} has ${total} French events; only the first 200 were read.`);
+      console.error(
+        `Warning: ${artist.name} has ${total} French events; only the first 200 were read.`,
+      );
     const list =
       (
         page._embedded as {
@@ -97,7 +100,7 @@ async function main() {
   let announced = 0,
     covered = 0;
   for (const artist of data.artists) {
-    const tm = await ticketmasterShows(artist.name, data.window);
+    const tm = await ticketmasterShows(artist, data.window);
     // One artist rarely plays two French shows on the same day, so the date identifies the show.
     const tmDates = new Set(tm.events.map((event) => event.date));
     const publicDates = new Set(artist.shows.map((show) => show.date));
@@ -127,6 +130,7 @@ async function main() {
     ...rows,
     '',
     'Matching rule: same artist and same local date. "TM-only dates" are Ticketmaster dates that the public list does not have (new dates, extra shows or packages); they do not change the coverage figure.',
+    'This is date presence in the selected reference panel, not France-wide or application coverage. Cities, venue identity, cancellation status and the exact attraction followed by a user are not validated by this comparison. Explicit reviewed aliases are included; see COVERAGE_AUDIT_FR.md for reference corrections.',
     '',
   ].join('\n');
   writeFileSync(new URL('../docs/coverage-audit-fr.results.md', import.meta.url), report);
