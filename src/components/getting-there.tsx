@@ -48,6 +48,20 @@ export function GettingThere({
 
   const train = comparison?.train,
     car = comparison?.car;
+  // One Omio link per arrival town (two carriers to Metz share one route page).
+  const omioRoutes =
+    train?.status === 'priced'
+      ? [
+          ...new Map(
+            train.fares
+              .filter((fare) => fare.bookingUrl && fare.stationCity)
+              .map((fare) => [
+                fare.stationCity,
+                { city: fare.stationCity!, url: fare.bookingUrl! },
+              ]),
+          ).values(),
+        ]
+      : [];
   const cheapestTrain =
     train?.status === 'priced'
       ? Math.min(...train.fares.map((fare) => fare.standard?.min ?? Infinity))
@@ -112,14 +126,27 @@ export function GettingThere({
             ) : (
               train && <p className="mode-note">{train.reason}</p>
             )}
-            <a
-              href="https://www.sncf-connect.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="external-link"
-            >
-              Exact fares on SNCF Connect <ExternalLink size={12} />
-            </a>
+            <div className="mode-links">
+              {omioRoutes.map((route) => (
+                <a
+                  key={route.url}
+                  href={route.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="external-link"
+                >
+                  Times and tickets {origin} → {route.city} on Omio <ExternalLink size={12} />
+                </a>
+              ))}
+              <a
+                href="https://www.sncf-connect.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="external-link"
+              >
+                Exact fares on SNCF Connect <ExternalLink size={12} />
+              </a>
+            </div>
           </div>
         </li>
         <li className="mode-row">
@@ -159,20 +186,31 @@ export function GettingThere({
           <div className="mode-body">
             <div className="mode-head">
               <strong>Coach</strong>
-              <span className="mode-price muted">No published fares</span>
+              <span className="mode-price muted">Live fares on Omio</span>
             </div>
             <p className="mode-note">
               {comparison?.coach.reason ??
-                "Coach operators don't publish fares Encore can show yet."}
+                'Coach fares change with every departure; Omio compares them live.'}
             </p>
-            <a
-              href="https://www.flixbus.fr/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="external-link"
-            >
-              Fares on FlixBus <ExternalLink size={12} />
-            </a>
+            {comparison?.coach.bookingUrl ? (
+              <a
+                href={comparison.coach.bookingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="external-link"
+              >
+                Coaches {comparison.coach.route} on Omio <ExternalLink size={12} />
+              </a>
+            ) : (
+              <a
+                href="https://www.flixbus.fr/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="external-link"
+              >
+                Fares on FlixBus <ExternalLink size={12} />
+              </a>
+            )}
           </div>
         </li>
         <li className="mode-row">

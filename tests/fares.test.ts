@@ -15,19 +15,22 @@ function fetcher(handler: Handler) {
   }) as typeof fetch;
   return { fn, calls };
 }
-const station = (nom: string, uic: string, lat: number, lon: number) => ({
+const station = (nom: string, uic: string, lat: number, lon: number, codeinsee?: string) => ({
   nom,
   codes_uic: uic,
+  codeinsee,
   position_geographique: { lat, lon },
 });
 function sncf(url: URL) {
+  if (url.hostname === 'geo.api.gouv.fr')
+    return { nom: { '57463': 'Metz', '57672': 'Thionville' }[url.pathname.split('/').pop()!] };
   if (url.pathname.endsWith('/gares-de-voyageurs/records'))
     return url.searchParams.get('where')!.includes('2.3522')
       ? { results: [station('Paris Est', '87113001', 48.876, 2.359)] }
       : {
           results: [
-            station('Thionville', '87191007', 49.3539, 6.1695),
-            station('Metz', '87192039', 49.1095, 6.1766),
+            station('Thionville', '87191007', 49.3539, 6.1695, '57672'),
+            station('Metz', '87192039', 49.1095, 6.1766, '57463'),
             station('Hagondange', '87191114', 49.2535, 6.1645),
           ],
         };
@@ -92,6 +95,8 @@ it('prices the train to each nearby station, both published directions, without 
       {
         carrier: 'OUIGO',
         station: 'Metz',
+        stationCity: 'Metz',
+        bookingUrl: null,
         lastMileKm: 17.5,
         standard: { min: 16, max: 79 },
         avantage: null,
@@ -99,6 +104,8 @@ it('prices the train to each nearby station, both published directions, without 
       {
         carrier: 'TGV INOUI',
         station: 'Thionville',
+        stationCity: 'Thionville',
+        bookingUrl: null,
         lastMileKm: 11.4,
         standard: { min: 20.5, max: 95 },
         avantage: { min: 14.3, max: 66 },
@@ -161,4 +168,14 @@ it('never prices travel for fictional, cancelled or postponed concerts', async (
   ])
     expect(await transportComparison(event as never, 'Paris', fn)).toBeNull();
   expect(calls).toHaveLength(0);
+});
+
+it('names the town of a station, folding city arrondissements into the city', async () => {
+  const { communeName } = await import('../src/server/providers/fares');
+  const { fn } = fetcher((url) => ({
+    nom: url.pathname.endsWith('69383') ? 'Lyon 3e Arrondissement' : 'Paris 1er Arrondissement',
+  }));
+  expect(await communeName('69383', fn)).toBe('Lyon');
+  expect(await communeName('75101', fn)).toBe('Paris');
+  expect(await communeName(null, fn)).toBeNull();
 });

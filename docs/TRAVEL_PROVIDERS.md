@@ -44,8 +44,16 @@ The trip page opens with a **Getting there** panel (`src/components/getting-ther
 | --- | --- | --- | --- |
 | Train | Per carrier (TGV INOUI, OUIGO, Intercités), the published one-way 2nd-class price band, standard and with an Avantage railcard, to the station nearest the venue (and any other within 15 km of it) | SNCF Voyageurs open data, ODbL: `tarifs-tgv-inoui-ouigo`, `tarifs-intercites`, station positions from `gares-de-voyageurs` | A band, not a live fare: the exact price depends on date and demand and is confirmed on SNCF Connect. TER regional fares are not covered. France only. "Tarif Réglementé" and school-subscription profiles are not shown. |
 | Car | Fuel cost estimate: straight-line distance × 1.3 road factor, 6.5 L/100 km, today's national average E10 price | Ministère de l'Économie, "Prix des carburants – flux instantané" | Estimate, labelled as such. Tolls and parking are excluded; the Google Maps link shows the real route and tolls. |
-| Coach | No price: no operator publishes fares we may display | — | Real coach prices need a partner feed (FlixBus affiliation or Omio, both pending). |
+| Coach | No price shown: fares change per departure. Link to the Omio coach page for the route to the arrival station's town | Omio (affiliate) | Omio gives links, not a price feed. |
 
 Fare queries use digits-only station codes and fixed field names; the cache keeps station lookups for 24 hours, fare bands for 12 hours and the fuel average for 6 hours. Sample, cancelled and postponed concerts get no comparison. Tests: `tests/fares.test.ts` (fixtures only).
 
 ODbL attribution: the panel names "SNCF Voyageurs open data (ODbL)" as its source.
+
+## Omio affiliate links
+
+Omio approved Encore on Impact ("Omio Travel Partner Program", campaign 7385; online sales earn 2–10 %, 30-day referral). The programme provides tracking links, banners, coupons and widgets, **not an API or price feed**, so Encore cannot show Omio prices; it sends people to Omio's route page, where Omio shows live times and prices.
+
+- Link builder: `src/server/providers/omio.ts`. Route pages are `https://www.omio.fr/{trains|bus}/{from}/{to}` with Omio's slugs (lower case, no accents, `-`). They exist for towns with a station or coach stop (Metz, Thionville, Saint-Étienne…), not for small venue towns (Amnéville returns 410), so links use the **town of the arrival station** from the fare comparison, resolved from the station's INSEE code through geo.api.gouv.fr (arrondissements fold into Paris, Lyon, Marseille).
+- Tracking: `OMIO_AFFILIATE_URL` is the long Impact link without query, e.g. `https://omio.sjv.io/c/<partner>/<ad>/<campaign>` (Impact → link icon → "Create and share link" gives a short `omio.sjv.io/…` link; its redirect reveals the long form). Encore adds `u=<route page>`, `subId1=encore-trip`, `subId2=<trains|bus>`; no personal data. Without the variable, links go to omio.fr unattributed.
+- Checked by hand on 7 October 2026: the long link lands on `/trains/paris/metz` with Impact's click ID.

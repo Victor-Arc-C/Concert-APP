@@ -143,6 +143,10 @@ export type TrainFare = {
   carrier: string;
   /** Arrival station on the concert side, and its straight-line distance to the venue. */
   station: string;
+  /** Town the station is in, used for route links ("Lyon Part Dieu" → "Lyon"). */
+  stationCity: string | null;
+  /** Where to see times and book this route (Omio route page through the affiliate link). */
+  bookingUrl: string | null;
   lastMileKm: number;
   standard: FareBand | null;
   /** With an Avantage railcard (Jeune, Adulte, Senior…). */
@@ -170,5 +174,5 @@ export type TransportComparison = {
         source: string;
       }
     | { status: 'unavailable'; reason: string };
-  coach: { status: 'unpriced'; reason: string };
+  coach: { status: 'unpriced'; reason: string; bookingUrl: string | null; route: string | null };
 };

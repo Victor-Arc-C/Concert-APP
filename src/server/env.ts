@@ -33,6 +33,19 @@ const schema = z
       z.url({ protocol: /^https$/ }).optional(),
     ),
     BETA_INVITE_CODES: optionalString,
+    // Omio affiliate tracking link from Impact ("Create and share link", long form without
+    // query): https://omio.sjv.io/c/<partner>/<ad>/<campaign>. Without it, links go straight
+    // to omio.fr with no attribution.
+    OMIO_AFFILIATE_URL: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      z
+        .url({ protocol: /^https$/ })
+        .refine(
+          (value) => new URL(value).hostname === 'omio.sjv.io' && !new URL(value).search,
+          'Use the long Impact link: https://omio.sjv.io/c/<partner>/<ad>/<campaign>',
+        )
+        .optional(),
+    ),
     // Web Push (VAPID). Generate once with `npx web-push generate-vapid-keys`; without both keys
     // the app keeps alerts in the in-app inbox only.
     VAPID_PUBLIC_KEY: optionalString,
