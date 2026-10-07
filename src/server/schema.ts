@@ -162,5 +162,15 @@ CREATE INDEX rate_limits_window ON rate_limits(window_at);
     CREATE INDEX beta_feedback_user ON beta_feedback(user_id);
   `,
   },
+  {
+    version: 10,
+    sql: `
+    CREATE TABLE waitlist (
+      email TEXT PRIMARY KEY,
+      home_city TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `,
+  },
 ];
 
