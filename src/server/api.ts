@@ -132,6 +132,8 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
           sources: await ticketSources(await ownEvent(url.searchParams.get('eventId') ?? '', user)),
         });
       if (key === 'trips') {
+        // Each plan can call live travel providers with shared daily quotas.
+        await rateLimit(`trips:${user.id}`, 20, 60);
         const eventId = url.searchParams.get('eventId') ?? '';
         await ownEvent(eventId, user);
         const event = await tripEvent(eventId);

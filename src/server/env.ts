@@ -25,6 +25,13 @@ const schema = z
     SPOTIFY_CLIENT_SECRET: optionalString,
     TOKEN_ENCRYPTION_KEY: optionalString,
     CRON_SECRET: optionalString,
+    // Trip Intelligence live providers (optional; nothing is shown without them).
+    SNCF_API_KEY: optionalString,
+    LITEAPI_API_KEY: optionalString,
+    LITEAPI_WHITELABEL_URL: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      z.url({ protocol: /^https$/ }).optional(),
+    ),
     BETA_INVITE_CODES: optionalString,
     // Shown on the privacy page: who is responsible for the data and how to reach them.
     PRIVACY_CONTROLLER: optionalString,
@@ -61,6 +68,8 @@ const schema = z
       (settings.AUTO_CONCERT_CHECKS === 'true' ||
         settings.DATABASE_URL ||
         settings.TICKETMASTER_API_KEY ||
+        settings.SNCF_API_KEY ||
+        settings.LITEAPI_API_KEY ||
         settings.SPOTIFY_APPROVED === 'true')
     )
       issue(

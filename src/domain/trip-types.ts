@@ -102,6 +102,14 @@ export type SavedTrip = {
   revalidationStatus: 'current' | 'unavailable' | 'legacy';
 };
 
+export type Coordinates = { latitude: number; longitude: number };
+/** Server-derived places for live searches: home city centre and the concert venue. */
+export type TripSearchContext = {
+  origin: Coordinates | null;
+  venue: Coordinates | null;
+  eventTimezone?: string | null;
+};
+
 export interface TransportProvider extends TripProviderDefinition {
   name: string;
   getOptions(
@@ -110,6 +118,7 @@ export interface TransportProvider extends TripProviderDefinition {
     eventDate: string,
     eventLocalTime: string | null,
     now?: Date,
+    context?: TripSearchContext,
   ): Promise<TransportOption[]>;
 }
 
@@ -121,5 +130,6 @@ export interface AccommodationProvider extends TripProviderDefinition {
     eventDate: string,
     guests?: number,
     now?: Date,
+    context?: TripSearchContext,
   ): Promise<AccommodationOption[]>;
 }
