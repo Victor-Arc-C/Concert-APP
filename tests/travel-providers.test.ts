@@ -11,7 +11,11 @@ import {
   SncfTransportProvider,
   wallToInstant,
 } from '../src/server/providers/sncf';
-import { LiteApiAccommodationProvider } from '../src/server/providers/liteapi';
+import {
+  clearVerifiedOffers,
+  LiteApiAccommodationProvider,
+  pickStays,
+} from '../src/server/providers/liteapi';
 import { parseEnvironment } from '../src/server/env';
 import type { Concert } from '../src/domain/types';
 
@@ -60,8 +64,8 @@ const pt = (commercial: string, physical = 'Train grande vitesse') => ({
   type: 'public_transport',
   display_informations: { commercial_mode: commercial, physical_mode: physical },
 });
-const json = (body: unknown) =>
-  new Response(JSON.stringify(body), { headers: { 'content-type': 'application/json' } });
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
 
 function sncfFetcher() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -132,6 +136,8 @@ function sncfFetcher() {
 }
 
 beforeEach(() => {
+  clearVerifiedOffers();
+  prebooks.length = 0;
   vi.mocked(query).mockReset();
   vi.mocked(query).mockImplementation(async (sql: string) => {
     if (sql.includes('rate_limits')) return [{ count: 1 }] as never[];
@@ -209,9 +215,13 @@ describe('SNCF timetable provider', () => {
   it('skips API calls when either leg falls beyond the published timetable window', async () => {
     const fetcher = sncfFetcher();
     const provider = new SncfTransportProvider('t', fetcher as unknown as typeof fetch);
-    expect(await provider.getOptions('Paris', 'Lyon', '2027-01-20', '20:00:00', now, context)).toEqual([]);
+    expect(
+      await provider.getOptions('Paris', 'Lyon', '2027-01-20', '20:00:00', now, context),
+    ).toEqual([]);
     // Outbound fits N+23, but the next-day return does not.
-    expect(await provider.getOptions('Paris', 'Lyon', '2026-11-24', '20:00:00', now, context)).toEqual([]);
+    expect(
+      await provider.getOptions('Paris', 'Lyon', '2026-11-24', '20:00:00', now, context),
+    ).toEqual([]);
     expect(fetcher).not.toHaveBeenCalled();
   });
 
@@ -239,9 +249,24 @@ describe('SNCF timetable provider', () => {
 });
 
 const bodies: unknown[] = [];
-function liteFetcher(taxes: { included: boolean }[] = []) {
+const prebooks: string[] = [];
+function liteFetcher(
+  taxes: { included: boolean }[] = [],
+  prebook: { gone?: string[]; failing?: string[]; repriced?: Record<string, number> } = {},
+) {
   return vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
+    if (url.includes('/rates/prebook')) {
+      const { offerId } = JSON.parse(String(init?.body));
+      prebooks.push(offerId);
+      if (prebook.gone?.includes(offerId))
+        return json({ error: { code: 4040, description: 'outdated offerId' } }, 408);
+      if (prebook.failing?.includes(offerId)) return json({ error: 'upstream' }, 503);
+      const listed: Record<string, number> = { 'o-cheap': 92.5, o2: 118, o3: 64, o4: 71 };
+      return json({
+        data: { offerId, price: prebook.repriced?.[offerId] ?? listed[offerId], currency: 'EUR' },
+      });
+    }
     if (url.includes('/data/hotels'))
       return json({
         data: [
@@ -316,6 +341,8 @@ describe('LiteAPI hotel provider', () => {
     });
     const headers = (fetcher.mock.calls[0][1] as RequestInit).headers as Record<string, string>;
     expect(headers['X-API-Key']).toBe('prod_key');
+    // Hotels up to 10 km away, so cheaper stays a short ride from the venue are compared too.
+    expect(String(fetcher.mock.calls[0][0])).toContain('radius=10000&limit=100');
   });
 
   it('marks quotes with taxes paid at the hotel as partial and has no link without a white-label', async () => {
@@ -330,6 +357,45 @@ describe('LiteAPI hotel provider', () => {
     expect(arena.provider).toBe('liteapi-sandbox');
     expect(options.every((o) => o.bookingUrl === null)).toBe(true);
     expect(provider.bookingHosts).toEqual([]);
+  });
+
+  it('only shows offers the provider confirms are still bookable, at the confirmed price', async () => {
+    const fetcher = liteFetcher([], { gone: ['o-cheap'], repriced: { o2: 121 } });
+    const provider = new LiteApiAccommodationProvider(
+      'prod_key',
+      null,
+      fetcher as unknown as typeof fetch,
+    );
+    const options = await provider.getOptions('Lyon', 'LDLC Arena', '2026-11-14', 1, now, context);
+    // The sold-out Hôtel Arena offer is dropped; Grand Hôtel shows the repriced total.
+    expect(options.map((o) => [o.name, o.price])).toEqual([['Grand Hôtel Lyon', 121]]);
+    expect(options[0].verifiedAt).toBe(now.toISOString());
+    expect(prebooks.sort()).toEqual(['o-cheap', 'o2']);
+    // Asked for the cheapest room per hotel, over a wider area.
+    expect(bodies.at(-1)).toMatchObject({ maxRatesPerHotel: 1 });
+  });
+
+  it('hides offers it could not check rather than guessing they are available', async () => {
+    const provider = new LiteApiAccommodationProvider(
+      'prod_key',
+      null,
+      liteFetcher([], { failing: ['o-cheap', 'o2'] }) as unknown as typeof fetch,
+    );
+    expect(await provider.getOptions('Lyon', 'LDLC Arena', '2026-11-21', 1, now, context)).toEqual(
+      [],
+    );
+  });
+
+  it('keeps the cheapest stays and the cheapest walkable one', () => {
+    const stay = (price: number, km: number | null) => ({ price, km, priceComplete: true });
+    const far = [stay(40, 6), stay(45, 7), stay(50, 8), stay(55, 9)];
+    const near = stay(120, 0.6);
+    expect(pickStays([near, ...far])).toEqual([far[0], far[1], far[2], near]);
+    // No walkable hotel: simply the four cheapest.
+    expect(pickStays(far)).toEqual(far);
+    // Complete prices first: a partial quote is not "cheaper" because taxes are missing.
+    const partial = { price: 10, km: 5, priceComplete: false };
+    expect(pickStays([partial, ...far])[0]).toBe(far[0]);
   });
 });
 
@@ -446,7 +512,14 @@ describe('review fixes: freshness, honesty and quota', () => {
   it('asks for the return at 09:00 Paris time the next day, also across a DST change', async () => {
     const fetcher = sncfFetcher();
     const provider = new SncfTransportProvider('t', fetcher as unknown as typeof fetch);
-    await provider.getOptions('Paris', 'Lyon', '2026-10-24', '20:00:00', new Date('2026-10-10T10:00:00Z'), context);
+    await provider.getOptions(
+      'Paris',
+      'Lyon',
+      '2026-10-24',
+      '20:00:00',
+      new Date('2026-10-10T10:00:00Z'),
+      context,
+    );
     const returns = fetcher.mock.calls
       .map(([url]) => new URL(String(url)))
       .filter((url) => url.searchParams.get('datetime_represents') === 'departure');
