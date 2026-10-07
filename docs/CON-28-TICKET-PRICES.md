@@ -12,6 +12,8 @@ Start with **Fnac Spectacles / France Billet through Awin**, programme **12494**
 
 The product priority is now “Never miss your favourite artists live.” Judge the source on matching French concerts and useful tariffs, rather than travel features or nominal commission rates.
 
+**Geographic boundary:** Fnac Spectacles is complementary for France, Belgium and Switzerland; it must not replace Ticketmaster's international listings or imply tariff coverage elsewhere. Seller markets do not determine artist nationality: Fnac also lists international artists performing locally, such as [Tame Impala in Paris](https://www.fnacspectacles.com/artist/tame-impala/). The full feed's proportion of French versus international artists has not been measured. Evaluate both groups after access is approved, retain explicit unknown prices outside verified coverage, and scope any Fnac import to its confirmed markets.
+
 ## Ranked feasibility
 
 “Partial” means a relevant official route exists but access, coverage or pricing must still be verified. “No” means no verified route for this pilot today, not that a private commercial integration cannot exist. Coverage assessments are hypotheses; no authenticated comparison has been completed.
