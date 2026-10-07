@@ -8,6 +8,7 @@ import type {
 import { providerJson } from './http';
 import { rateLimit } from '../security';
 import { QuoteCache } from './quote-cache';
+import { withinSncfTimetableWindow } from '../../domain/trip-search';
 
 // SNCF open API (Navitia engine): real train/coach timetables in France and nearby Europe.
 // It has no fares, seat inventory or checkout, so results are schedule-only (price null,
@@ -138,6 +139,8 @@ export class SncfTransportProvider implements TransportProvider {
     context?: TripSearchContext,
   ): Promise<TransportOption[]> {
     if (!context?.origin || !context.venue) return [];
+    // Dates beyond the published timetable cannot yield either leg; don't consume the quota.
+    if (!withinSncfTimetableWindow(eventDate, now)) return [];
     if (origin.trim().toLowerCase() === destinationCity.trim().toLowerCase()) return [];
     // Arrive one hour before the show (19:00 when the start time is unknown); come back the
     // next morning from 09:00. Times are the coverage's local time (Europe/Paris).

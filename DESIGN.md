@@ -333,7 +333,7 @@ The detail header is a pass: Panel ground, Hairline Strong frame, 4px amber top 
 Saved shows reuse board rows framed individually on Panel, with the date block torn off as a coupon by a dashed vertical rule.
 
 ### Itinerary (trips)
-Option strip of joined panels (selected fills amber), then the trip as a timeline: square bordered step icons on a dotted spine, Title-sized step names, amber mono prices at the right edge, and an amber estimated total.
+Option strip of joined panels (selected fills amber), then the trip as a timeline: square bordered step icons on a dotted spine, Title-sized step names, amber mono prices at the right edge, and an amber estimated total. When the total is incomplete, the option strip shows the stay price explicitly. Transport searches sit within the travel step as wrapping secondary controls; hotel searches use underlined external links with dates prefilled. External searches are distinct from provider quotes and appear only for active real concerts.
 
 ### Toast
 Amber fill, Amber Ink text, square, Toast lift shadow, rises 12px into place over 260ms.

@@ -2294,6 +2294,33 @@ a.tour-row:hover {
   text-decoration: underline;
   text-underline-offset: 4px;
 }
+.trip-search-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+.trip-search-actions > .external-link,
+.trip-search-actions > p {
+  flex-basis: 100%;
+}
+.trip-search-note {
+  max-width: 70ch;
+  font-size: 0.875rem;
+  color: var(--dim);
+  line-height: 1.6;
+  margin: 0;
+}
+.trip-search-actions .button {
+  min-height: 44px;
+}
+.trip-search-actions .external-link {
+  min-height: 44px;
+}
+.step-header strong {
+  overflow-wrap: anywhere;
+}
 .trip-footer {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
