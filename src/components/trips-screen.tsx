@@ -479,7 +479,11 @@ export function TripsList() {
       active = false;
     };
   }, [hasUnchecked]);
-  const savedTrips = checked ?? data?.savedTrips ?? [];
+  // Re-checked rows, but only for plans that still exist (a removed trip disappears at once).
+  const current = data?.savedTrips ?? [];
+  const savedTrips = checked
+    ? checked.filter((trip) => current.some((row) => row.id === trip.id))
+    : current;
   const [clock, setClock] = useState(() => new Date());
   useEffect(() => {
     const timer = setInterval(() => setClock(new Date()), 1000);

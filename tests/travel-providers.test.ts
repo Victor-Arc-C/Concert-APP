@@ -4,6 +4,7 @@ import { query } from '../src/server/db';
 import { defaults } from '../src/domain/catalog';
 import { currentQuote, scheduleOnly } from '../src/domain/trip-safety';
 import { generateTripOptions, selectTripProviders, tripSearchContext } from '../src/server/trips';
+import { revalidateSavedTrip } from '../src/server/saved-trips';
 import {
   navitiaToIso,
   SNCF_BOOKING_URL,
@@ -545,5 +546,34 @@ describe('review fixes: freshness, honesty and quota', () => {
     const [option] = await generateTripOptions(event, user, { accommodation: stay }, now, 'Paris');
     expect(option.accommodation).toBeNull();
     expect(option.accommodationState).toBe('invalid');
+  });
+});
+
+describe('saved plans and app-state polling', () => {
+  it('never calls live providers when revalidating for the app-state poll', async () => {
+    const fetcher = sncfFetcher();
+    const row = {
+      id: 'saved-1',
+      userId: user.id,
+      eventId: event.id,
+      tripOptionId: 'trip-x',
+      originCity: 'Paris',
+      destinationCity: event.city,
+      eventDate: event.date,
+      tripData: { version: 1, transport: { id: 'sncf:a', provider: 'sncf' }, accommodation: null },
+      createdAt: now.toISOString(),
+      updatedAt: now.toISOString(),
+    };
+    const saved = await revalidateSavedTrip(
+      row,
+      event,
+      user,
+      now,
+      { transport: new SncfTransportProvider('t', fetcher as unknown as typeof fetch) },
+      false,
+    );
+    expect(saved.revalidationStatus).toBe('unchecked');
+    expect(saved.tripData.transport).toBeNull();
+    expect(fetcher).not.toHaveBeenCalled();
   });
 });

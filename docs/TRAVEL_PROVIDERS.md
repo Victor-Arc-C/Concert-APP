@@ -24,7 +24,7 @@ Priced multimodal transport (train + coach + flight with fares and checkout) nee
 - `src/server/providers/sncf.ts`: two journey searches (arrive one hour before the show, keeping only journeys arriving at least 30 minutes before; return from 09:00 Paris time the next morning, DST-safe), local Paris times converted to ISO offsets, walking-only journeys dropped, shared rolling 24-hour limit of 4,500 requests.
 - `src/server/providers/liteapi.ts`: hotel catalog search around the venue, then one rates call; cheapest offer per hotel; 4 requests/second limit. A venue distance is shown only when the real venue position is known (never from the city-centre fallback).
 - Both adapters reuse an answer for at most 60 seconds (bounded in-memory cache) and keep its original fetch time, so a cached quote is never presented as newer than it is.
-- Live travel is never queried by the app-state poll. Saved plans are re-checked when the Trips page opens (at most five per request; the rest show as not yet checked). Provider failures are logged as `provider_failed` and shown as unavailable.
+- Live travel is never queried by the app-state poll. Saved plans are re-checked when the Trips page opens (at most three per request; the rest show as not yet checked). Provider failures are logged as `provider_failed` and shown as unavailable.
 - A fictional sample concert never receives live trains or hotels.
 - Timetables are "schedule-only" quotes (`scheduleOnly` in `src/domain/trip-safety.ts`): no price, never totalled, never badged Cheapest/Fastest/Best value.
 - Planning a trip and re-checking saved plans share a limit of 20 requests per minute per user.

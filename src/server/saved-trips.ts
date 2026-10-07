@@ -225,7 +225,7 @@ export async function revalidateSavedTrip(
 }
 
 /** Live lookups per request are capped; the rest stay 'unchecked' rather than waiting minutes. */
-export const MAX_LIVE_REVALIDATIONS = 5;
+export const MAX_LIVE_REVALIDATIONS = 3;
 export async function savedTripsForUser(
   user: User,
   now = new Date(),
