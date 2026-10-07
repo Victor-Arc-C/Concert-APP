@@ -522,7 +522,7 @@ test('trip intelligence flow: concert -> plan trip -> compare itineraries -> sav
   await expect(page.locator('.option-pill-group button').first()).toBeVisible();
 
   await expect(page.getByText('Sample trip — all travel, stays, prices and distances are fictional.')).toBeVisible();
-  await expect(page.getByRole('link', { name: /Check transport booking|Check accommodation booking/ })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: /Check transport booking|Book this hotel at this price/ })).toHaveCount(0);
 
   // Check 3 steps: Ticket, Transport, Stay
   await expect(page.getByText('Concert Ticket')).toBeVisible();

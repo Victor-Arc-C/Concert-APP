@@ -14,58 +14,15 @@ import {
   AlertCircle,
   Bus,
   Plane,
-  CarFront,
 } from 'lucide-react';
 import type { SavedTrip, TripOption } from '@/domain/trip-types';
 import { currentTripView, scheduleOnly } from '@/domain/trip-safety';
 import { tripSourceLabel } from '@/domain/trip-sources';
 import { assignTripLabels } from '@/domain/trip-scoring';
-import { directionsUrl, hotelSearchUrl, withinSncfTimetableWindow } from '@/domain/trip-search';
+import { hotelSearchUrl, withinSncfTimetableWindow } from '@/domain/trip-search';
 import { api, useApp } from './context';
+import { GettingThere } from './getting-there';
 import { money, dateLabel } from './ui';
-
-function TransportSearch({ origin, city, venue }: { origin: string; city: string; venue: string }) {
-  return (
-    <div className="trip-search-actions" role="group" aria-label="Search transport options">
-      <a
-        href="https://www.sncf-connect.com/"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="button secondary compact"
-      >
-        <TrainFront size={16} /> Search trains <ExternalLink size={12} />
-      </a>
-      <a
-        href="https://www.flixbus.fr/"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="button secondary compact"
-      >
-        <Bus size={16} /> Search buses <ExternalLink size={12} />
-      </a>
-      <a
-        href={directionsUrl(origin, city, venue, 'driving')}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="button secondary compact"
-      >
-        <CarFront size={16} /> Driving route <ExternalLink size={12} />
-      </a>
-      <a
-        href={directionsUrl(origin, city, venue, 'transit')}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="external-link"
-      >
-        Public transport to the venue <ExternalLink size={12} />
-      </a>
-      <p className="trip-search-note">
-        Search on SNCF Connect or FlixBus using your travel dates. Prices and availability are
-        confirmed by the seller.
-      </p>
-    </div>
-  );
-}
 
 export function TripPlanner({ eventId }: { eventId: string }) {
   const { data, act, busy } = useApp();
@@ -138,8 +95,8 @@ export function TripPlanner({ eventId }: { eventId: string }) {
     origin.trim().toLowerCase() === event.city.trim().toLowerCase()
       ? 'This show is in your home city. Check public transport or a driving route to the venue.'
       : !withinSncfTimetableWindow(event.date, clock)
-        ? 'SNCF timetables cover the next 23 days. This overnight trip is outside that window; you can still search with the sellers.'
-        : 'No verified round-trip timetable is available. Search trains, buses or a driving route below.';
+        ? 'SNCF publishes exact train times 23 days ahead, so times for this date are not out yet. The fares for each way to travel are compared above.'
+        : 'No verified round-trip timetable is available. The fares for each way to travel are compared above.';
   const checkAgain = () => {
     setLoading(true);
     setError(null);
@@ -191,6 +148,10 @@ export function TripPlanner({ eventId }: { eventId: string }) {
         </div>
       </div>
 
+      {externalSearchAllowed && origin.trim().toLowerCase() !== event.city.trim().toLowerCase() && (
+        <GettingThere eventId={event.id} origin={origin} city={event.city} venue={event.venue} />
+      )}
+
       {loading && (
         <div className="trip-loading">
           <Sparkles className="spin-slow" size={24} />
@@ -212,7 +173,6 @@ export function TripPlanner({ eventId }: { eventId: string }) {
         <div className="trip-empty">
           <h2>Find your travel and stay</h2>
           <p>{travelMessage}</p>
-          <TransportSearch origin={origin} city={event.city} venue={event.venue} />
           <a
             href={hotelSearchUrl(event.city, event.date)}
             target="_blank"
@@ -413,9 +373,6 @@ export function TripPlanner({ eventId }: { eventId: string }) {
                           <ExternalLink size={12} />
                         </a>
                       )}
-                      {externalSearchAllowed && (
-                        <TransportSearch origin={origin} city={event.city} venue={event.venue} />
-                      )}
                     </div>
                   </div>
                 ) : (
@@ -432,9 +389,6 @@ export function TripPlanner({ eventId }: { eventId: string }) {
                           ? 'The previous timetable has expired. Check again for current options.'
                           : travelMessage}
                       </p>
-                      {externalSearchAllowed && (
-                        <TransportSearch origin={origin} city={event.city} venue={event.venue} />
-                      )}
                     </div>
                   </div>
                 )}
@@ -479,7 +433,7 @@ export function TripPlanner({ eventId }: { eventId: string }) {
                           rel="noopener noreferrer"
                           className="external-link"
                         >
-                          Check accommodation booking <ExternalLink size={12} />
+                          Book this hotel at this price <ExternalLink size={12} />
                         </a>
                       ) : externalSearchAllowed ? (
                         <>

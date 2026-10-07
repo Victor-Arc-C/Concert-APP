@@ -39,6 +39,7 @@ import { unsupportedLiveArtists } from '../domain/onboarding';
 import { inviteCodes, inviteValid } from './invite';
 import { ticketSources, selectTicketSource } from './tickets';
 import { generateTripOptions } from './trips';
+import { transportComparison } from './transport-comparison';
 import { savedTripsForUser, saveTrip, tripEvent } from './saved-trips';
 import { exportBetaFeedback, saveBetaFeedback } from './beta-feedback';
 import { joinWaitlist, publicGigs, waitlistSchema } from './marketing';
@@ -141,6 +142,15 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
         return ok({
           sources: await ticketSources(await ownEvent(url.searchParams.get('eventId') ?? '', user)),
         });
+      if (key === 'trips/compare') {
+        // Official open-data reads, cached server-side for hours.
+        await rateLimit(`trips-compare:${user.id}`, 30, 60);
+        const eventId = url.searchParams.get('eventId') ?? '';
+        const event = await ownEvent(eventId, user);
+        return ok({
+          comparison: await transportComparison(event, user.preferences.home || 'Paris'),
+        });
+      }
       if (key === 'trips') {
         // Each plan can call live travel providers with shared daily quotas.
         await rateLimit(`trips:${user.id}`, 20, 60);

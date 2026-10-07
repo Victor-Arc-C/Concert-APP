@@ -2046,6 +2046,163 @@ a.tour-row:hover {
   padding-bottom: 22px;
   border-bottom: 1px solid var(--line);
 }
+/* Getting there: every way to travel, priced side by side. */
+.getting-there {
+  margin-top: 22px;
+  border: 1px solid var(--line-strong);
+  background: var(--panel);
+}
+.getting-there-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.getting-there-head h2 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: var(--step-2);
+  line-height: 1;
+}
+.getting-there-head span,
+.getting-there-sources,
+.getting-there-status {
+  font-family: var(--font-data);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.getting-there-status {
+  padding: 12px 20px 0;
+}
+.getting-there-sources {
+  padding: 12px 20px 16px;
+  border-top: 1px solid var(--line);
+  text-transform: none;
+  letter-spacing: 0;
+}
+.mode-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 20px;
+}
+.mode-row {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+.mode-row:last-child {
+  border-bottom: 0;
+}
+.mode-icon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+  border: 1px solid var(--line-strong);
+  color: var(--accent);
+}
+.mode-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.mode-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+.mode-head strong {
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 1.375rem;
+  line-height: 1;
+}
+.mode-price {
+  font-family: var(--font-data);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.mode-price.muted {
+  font-size: 0.8125rem;
+  color: var(--faint);
+}
+.mode-note {
+  max-width: 70ch;
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--dim);
+}
+.fare-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.fare-table th,
+.fare-table td {
+  padding: 8px 10px 8px 0;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+.fare-table thead th {
+  font-family: var(--font-data);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.fare-table tbody th {
+  font-weight: 700;
+}
+.fare-table tbody th small {
+  display: block;
+  margin-top: 2px;
+  font-weight: 500;
+  color: var(--dim);
+}
+.fare-table td {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+@media (max-width: 520px) {
+  .getting-there-head,
+  .mode-list {
+    padding-inline: 14px;
+  }
+  .mode-row {
+    grid-template-columns: 32px minmax(0, 1fr);
+    gap: 12px;
+  }
+  .mode-icon {
+    width: 32px;
+    height: 32px;
+  }
+  .mode-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+  .fare-table td {
+    white-space: normal;
+  }
+}
 .trip-title-row {
   display: flex;
   justify-content: space-between;

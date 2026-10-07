@@ -15,7 +15,7 @@ Priced multimodal transport (train + coach + flight with fares and checkout) nee
 2. **LiteAPI**: create a free account at <https://dashboard.liteapi.travel/>, then **Developers → API Keys**.
    - A **sandbox** key (`sand_…`) returns test prices. It works in local and development profiles, is labeled "LiteAPI sandbox — test prices, not bookable", and is **ignored by production deployments** (including Vercel previews built in production mode).
    - A **production** key returns live rates. Production accepts only a key starting with `prod_`; if your production key looks different, it will be ignored (fail safe) and the code needs a one-line change. LiteAPI asks for a card and payout details before issuing it; that is a business decision.
-   - Optional: configure the LiteAPI white-label booking site and set its HTTPS address as `LITEAPI_WHITELABEL_URL`. Hotels then get a "Check accommodation booking" link to that host only. Verify one link by hand after setup: the deep-link format (`/hotels/{hotelId}?checkin&checkout&occupancies=<base64 JSON>`, per LiteAPI's white-label deep-linking guide) has not been tested with a real account. The displayed price is LiteAPI's `offerRetailRate`; confirm with LiteAPI that it matches your white-label checkout price and may be shown publicly.
+   - Optional: configure the LiteAPI white-label booking site and set its HTTPS address as `LITEAPI_WHITELABEL_URL`. Hotels then get a "Book this hotel at this price" link to that exact hotel, dates and guests, on that host only. Every LiteAPI account comes with a white-label site: copy its address from the LiteAPI dashboard. Verify one link by hand after setup: the deep-link format (`/hotels/{hotelId}?checkin&checkout&occupancies=<base64 JSON>`, per LiteAPI's white-label deep-linking guide) has not been tested with a real account. The displayed price is LiteAPI's `offerRetailRate`; confirm with LiteAPI that it matches your white-label checkout price and may be shown publicly.
 3. Add the variables in Vercel → Settings → Environment Variables (Production), then redeploy.
 
 ## How it works
@@ -35,3 +35,17 @@ Priced multimodal transport (train + coach + flight with fares and checkout) nee
 The SNCF timetable adapter skips requests when the concert-day outbound or next-day return falls outside the published N+23 window, using the Europe/Paris calendar day. The UI explains that limit and offers train and bus seller searches plus venue directions by car or public transport, including when provider loading fails. These links are searches, not live inventory or quotes.
 
 Hotel quotes keep the configured LiteAPI white-label hotel link when available ([documented deep links](https://docs.liteapi.travel/docs/deeplinking-to-whitelabel)). Without that link, the UI offers a Booking.com search for the selected hotel's name, city, dates and guests; the price and availability there may differ. No LiteAPI rate is represented as bookable through Booking.com. Sample, cancelled and postponed concerts have no external search actions.
+
+## Getting there: published fares for every mode
+
+The trip page opens with a **Getting there** panel (`src/components/getting-there.tsx`, `GET /api/trips/compare`) that prices each way to travel side by side, independently of the 23-day timetable window. Every figure comes from an official open dataset, read server-side and cached (`src/server/providers/fares.ts`); nothing is invented.
+
+| Mode | What is shown | Source | Limits |
+| --- | --- | --- | --- |
+| Train | Per carrier (TGV INOUI, OUIGO, Intercités), the published one-way 2nd-class price band, standard and with an Avantage railcard, to the station nearest the venue (and any other within 15 km of it) | SNCF Voyageurs open data, ODbL: `tarifs-tgv-inoui-ouigo`, `tarifs-intercites`, station positions from `gares-de-voyageurs` | A band, not a live fare: the exact price depends on date and demand and is confirmed on SNCF Connect. TER regional fares are not covered. France only. "Tarif Réglementé" and school-subscription profiles are not shown. |
+| Car | Fuel cost estimate: straight-line distance × 1.3 road factor, 6.5 L/100 km, today's national average E10 price | Ministère de l'Économie, "Prix des carburants – flux instantané" | Estimate, labelled as such. Tolls and parking are excluded; the Google Maps link shows the real route and tolls. |
+| Coach | No price: no operator publishes fares we may display | — | Real coach prices need a partner feed (FlixBus affiliation or Omio, both pending). |
+
+Fare queries use digits-only station codes and fixed field names; the cache keeps station lookups for 24 hours, fare bands for 12 hours and the fuel average for 6 hours. Sample, cancelled and postponed concerts get no comparison. Tests: `tests/fares.test.ts` (fixtures only).
+
+ODbL attribution: the panel names "SNCF Voyageurs open data (ODbL)" as its source.
