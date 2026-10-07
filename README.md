@@ -81,7 +81,7 @@ Database credentials, OAuth tokens and provider keys stay on the server. Do not 
 
 ## Private beta invite codes (CON-35)
 
-Set `BETA_INVITE_CODES` (comma-separated, case-sensitive) to require one of those codes at signup. Leave it empty for open signup. Codes are compared server-side in constant time, checked before any account lookup, rate-limited, and never logged or returned. Sign-in for existing accounts is not affected. To rotate a code, change the variable and redeploy.
+Set `BETA_INVITE_CODES` (separated by commas, semicolons or new lines; surrounding quotes are ignored) to require one of those codes at signup. Matching ignores case, spaces, quotes and dash variants, so phone auto-capitalisation and copy-paste do not reject a genuine code; the dash itself still counts. Leave it empty for open signup. Codes are compared server-side in constant time, checked before any account lookup, rate-limited, and never logged or returned. Sign-in for existing accounts is not affected. To rotate a code, change the variable and redeploy.
 
 ## Public-launch gates
 
