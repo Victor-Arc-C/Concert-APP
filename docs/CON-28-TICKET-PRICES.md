@@ -1,6 +1,8 @@
 # French ticket-price sources (CON-28)
 
-Research checked on 7 October 2026. **The missing-price problem remains open.** No new provider has been enabled and no new tariff has been imported. Victor confirms that Encore has no partner or affiliate account. The only configured local ticket credential is Ticketmaster Discovery.
+Research checked on 7 October 2026. **The missing-price problem remains open.** No new provider has been enabled and no new tariff has been imported. The only configured local ticket credential is Ticketmaster Discovery.
+
+**Access update, 7 October:** Victor's Awin publisher account is activated and authenticated dashboard access was verified. Fnac Spectacles programme 12494 is still **Pending Approval**. Its profile displays 108,719 total products and an update today, but the France/French advertiser search in Create-a-Feed has no selectable Fnac result. This establishes catalogue metadata, not download permission or usable session-level prices. No feed or credential was exported. Wait for advertiser approval, then validate the actual permitted sample before implementation; do not submit the same programme application again.
 
 ## Recommendation
 

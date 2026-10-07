@@ -4,7 +4,7 @@ Prepared on 7 October 2026. These are drafts for Victor to review and submit; no
 
 ## Fnac Spectacles / France Billet — first request
 
-Start from [programme 12494 on Awin](https://ui.awin.com/publisher-signup/fr/awin?advertiser=12494). After obtaining access, use the programme's business contact to confirm the feed specification. The [France Billet affiliate page](https://www.francebillet.com/campaign/affiliation-partenaire) confirms XML catalogue tools; it does not guarantee exact-session tariffs.
+Victor's Awin publisher account is active; [programme 12494](https://ui.awin.com/merchant-profile/12494) remains Pending Approval as verified on 7 October. Do not repeat the application. After obtaining access, use the programme's business contact to confirm the feed specification. The [France Billet affiliate page](https://www.francebillet.com/campaign/affiliation-partenaire) confirms XML catalogue tools; it does not guarantee exact-session tariffs.
 
 **Objet : Encore — accès au flux Fnac Spectacles et tarifs des concerts**
 
@@ -12,7 +12,7 @@ Bonjour,
 
 Je développe Encore, une application qui permet de suivre ses artistes favoris, de retrouver leurs concerts et d’accéder à la billetterie. Le projet est en phase pilote en France : https://concert-app-drab.vercel.app.
 
-Je souhaite rejoindre le programme Fnac Spectacles 12494 et utiliser votre flux catalogue officiel. Pourriez-vous me confirmer :
+Ma demande pour rejoindre le programme Fnac Spectacles 12494 est en attente de validation. Je souhaite utiliser votre flux catalogue officiel. Pourriez-vous me confirmer :
 
 - si le flux donne un tarif et une devise pour chaque séance, avec sa date, sa salle et son identifiant ;
 - si ce tarif correspond à une offre publique disponible, quels frais sont inclus et comment sont signalés les tarifs réservés aux adhérents ;
