@@ -131,15 +131,19 @@ export function Auth({ signup }: { signup: boolean }) {
   return (
     <div className="auth-layout">
       <aside className="auth-art">
-        <img src="/images/crowd.jpg" alt="" />
         <Brand />
+        <div className="auth-board" aria-hidden="true">
+          {['Departures', 'Your artists', 'Every city', 'Tonight'].map((word) => (
+            <span key={word}>{word}</span>
+          ))}
+        </div>
         <div>
           <h2>
             Be there
             <br />
             when it happens.
           </h2>
-          <p>Your next favourite memory starts with a show.</p>
+          <p>Every show worth the trip, from the artists you choose.</p>
         </div>
       </aside>
       <main className="auth-main">
@@ -148,7 +152,6 @@ export function Auth({ signup }: { signup: boolean }) {
           Back to Encore
         </Link>
         <div className="auth-form">
-          <Music2 className="amber" size={30} />
           <h1>{signup ? 'Good music. Better plans.' : 'Welcome back.'}</h1>
           <p>
             {signup
@@ -430,9 +433,6 @@ export function Onboarding() {
           <i className="complete" />
           <i className={step === 2 ? 'complete' : ''} />
         </div>
-        <span className="subtle">
-          {step === 1 ? 'Make the experience yours' : 'Start with your kind of music'}
-        </span>
         <h1>{step === 1 ? 'Where should the music take you?' : 'Who would you love to see?'}</h1>
         <p className="intro">
           {step === 1

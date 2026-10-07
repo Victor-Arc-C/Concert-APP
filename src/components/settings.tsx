@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Bell, Download, RefreshCw, ShieldCheck, Music2, Trash2 } from 'lucide-react';
+import { Bell, Download, RefreshCw, ShieldCheck, Trash2 } from 'lucide-react';
 import { useApp, api } from './context';
 import { Empty, Modal } from './ui';
 import { PreferenceFields } from './onboarding';
@@ -45,7 +45,6 @@ function SettingsForm({ initial }: { initial: Preferences }) {
     <>
       <div className="page-heading">
         <div>
-          <p className="greeting">Keep it personal</p>
           <h1>Your way to be there.</h1>
           <p>Your travel plans, your alerts, your data.</p>
         </div>
@@ -160,7 +159,6 @@ function SettingsForm({ initial }: { initial: Preferences }) {
         </div>
         <aside>
           <section className="settings-section connection-panel">
-            <Music2 size={26} className="amber" />
             <h2>Your music connection</h2>
             <p>
               {data.spotifyConnected

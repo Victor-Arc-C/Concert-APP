@@ -118,19 +118,19 @@ export function TripPlanner({ eventId }: { eventId: string }) {
         </Link>
         <div className="trip-title-row">
           <div>
-            <span className="trip-badge">Trip Intelligence</span>
+            <h1>
+              {event.artist} in {event.city}
+            </h1>
+            <p className="trip-subtitle">
+              <span className="trip-badge">Trip Intelligence</span>
+              {event.venue} · {dateLabel(event.date, true)} · From{' '}
+              {data?.user?.preferences.home ?? 'Paris'}
+            </p>
             {selectedTrip?.mode === 'sample' && (
               <p className="step-source">
                 Sample trip — all travel, stays, prices and distances are fictional.
               </p>
             )}
-            <h1>
-              {event.artist} in {event.city}
-            </h1>
-            <p className="trip-subtitle">
-              {event.venue} · {dateLabel(event.date, true)} · From{' '}
-              {data?.user?.preferences.home ?? 'Paris'}
-            </p>
           </div>
         </div>
       </div>
@@ -186,8 +186,9 @@ export function TripPlanner({ eventId }: { eventId: string }) {
                       ) : (
                         <Bus size={16} />
                       )}
-                      {opt.transport ? opt.transport.mode.toUpperCase() : 'CONCERT PLAN'}
-                      {opt.accommodation ? ' + STAY' : ''}
+                      <span className="pill-label">
+                        {opt.accommodation ? opt.accommodation.name : 'Concert plan'}
+                      </span>
                     </span>
                     {opt.label && <span className="pill-tag">{opt.label}</span>}
                   </div>
@@ -218,11 +219,13 @@ export function TripPlanner({ eventId }: { eventId: string }) {
             {/* Main Itinerary summary card */}
             <div className="trip-breakdown-card">
               <div className="breakdown-header">
-                <div>
-                  <div className="match-tag">
-                    <Sparkles size={14} />
-                    <span>{selectedTrip.scores.musicFit}% music match</span>
-                  </div>
+                <div className="breakdown-route">
+                  <span>
+                    {selectedTrip.originCity === selectedTrip.destinationCity
+                      ? `${selectedTrip.destinationCity} · home city`
+                      : `${selectedTrip.originCity} → ${selectedTrip.destinationCity}`}
+                  </span>
+                  <span>{dateLabel(selectedTrip.eventDate, true)}</span>
                   {selectedTrip.label && (
                     <span className="highlight-tag">{selectedTrip.label}</span>
                   )}
@@ -426,32 +429,27 @@ export function TripPlanner({ eventId }: { eventId: string }) {
                       : 'A saved plan is not a reservation. Check current prices and availability with the provider.'}
                   </span>
                 </div>
-                <div className="trip-scores-bar">
-                  <div className="score-item">
-                    <small>Convenience</small>
-                    <strong>
-                      {selectedTrip.scores.convenienceScore === null || travelExpired || stayExpired
-                        ? 'Unavailable'
-                        : `${selectedTrip.scores.convenienceScore}/100`}
-                    </strong>
-                  </div>
-                  <div className="score-item">
-                    <small>Trip Value</small>
-                    <strong>
-                      {selectedTrip.estimatedTotal === null
-                        ? 'Unavailable'
-                        : `${selectedTrip.scores.costScore}/100`}
-                    </strong>
-                  </div>
-                  <div className="score-item">
-                    <small>Overall</small>
-                    <strong className="overall-highlight">
-                      {selectedTrip.scores.overallScore === null || travelExpired || stayExpired
-                        ? 'Unavailable'
-                        : `${selectedTrip.scores.overallScore}/100`}
-                    </strong>
-                  </div>
-                </div>
+                <p className="trip-scores-line">
+                  <span>{selectedTrip.scores.musicFit}% music match</span>
+                  <span>
+                    Convenience{' '}
+                    {selectedTrip.scores.convenienceScore === null || travelExpired || stayExpired
+                      ? 'unavailable'
+                      : `${selectedTrip.scores.convenienceScore}/100`}
+                  </span>
+                  <span>
+                    Value{' '}
+                    {selectedTrip.estimatedTotal === null
+                      ? 'unavailable'
+                      : `${selectedTrip.scores.costScore}/100`}
+                  </span>
+                  <span>
+                    Overall{' '}
+                    {selectedTrip.scores.overallScore === null || travelExpired || stayExpired
+                      ? 'unavailable'
+                      : `${selectedTrip.scores.overallScore}/100`}
+                  </span>
+                </p>
               </div>
             </div>
           </div>
@@ -494,7 +492,6 @@ export function TripsList() {
     <div className="trips-page">
       <div className="page-heading">
         <div>
-          <p className="greeting">Your planned journeys</p>
           <h1>Trips</h1>
           <p>Your saved concert itineraries with tickets, transport and stays.</p>
         </div>
@@ -547,7 +544,13 @@ export function TripsList() {
                     <span>
                       {trip.transport && (
                         <>
-                          {trip.transport.mode === 'flight' ? '✈️ ' : '🚆 '}
+                          {trip.transport.mode === 'flight' ? (
+                            <Plane size={14} aria-hidden="true" />
+                          ) : trip.transport.mode === 'bus' ? (
+                            <Bus size={14} aria-hidden="true" />
+                          ) : (
+                            <TrainFront size={14} aria-hidden="true" />
+                          )}{' '}
                           {Math.floor(trip.transport.durationMinutes / 60)}h
                           {trip.transport.durationMinutes % 60 > 0
                             ? `${trip.transport.durationMinutes % 60}m`
