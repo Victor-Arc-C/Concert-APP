@@ -136,3 +136,39 @@ export interface AccommodationProvider extends TripProviderDefinition {
     context?: TripSearchContext,
   ): Promise<AccommodationOption[]>;
 }
+
+/** Published price band for one carrier on a route (SNCF open data), never a live quote. */
+export type FareBand = { min: number; max: number };
+export type TrainFare = {
+  carrier: string;
+  /** Arrival station on the concert side, and its straight-line distance to the venue. */
+  station: string;
+  lastMileKm: number;
+  standard: FareBand | null;
+  /** With an Avantage railcard (Jeune, Adulte, Senior…). */
+  avantage: FareBand | null;
+};
+export type TransportComparison = {
+  origin: string;
+  train:
+    | {
+        status: 'priced';
+        fares: TrainFare[];
+        source: string;
+        dataUpdatedAt: string | null;
+      }
+    | { status: 'unpriced'; reason: string };
+  car:
+    | {
+        status: 'estimated';
+        roadKm: number;
+        litres: number;
+        pricePerLitre: number;
+        fuelCost: number;
+        consumptionPer100Km: number;
+        priceObservedAt: string;
+        source: string;
+      }
+    | { status: 'unavailable'; reason: string };
+  coach: { status: 'unpriced'; reason: string };
+};

@@ -29,7 +29,9 @@ export function MarketingPage() {
           <nav aria-label="Site">
             <a href="#how">How it works</a>
             <a href="#shows">Shows</a>
-            <Link href="/login">Sign in</Link>
+            <Link href="/login" className={styles.navKeep}>
+              Sign in
+            </Link>
             <a href="#join" className={styles.navCta}>
               Join the waitlist
             </a>
@@ -53,6 +55,11 @@ export function MarketingPage() {
                 tickets and shows how to get there.
               </p>
               <WaitlistForm />
+              <p className={styles.heroAlt}>
+                Already invited? <Link href="/login">Sign in</Link>
+                <span aria-hidden> · </span>
+                <Link href="/app">Try the sample</Link>
+              </p>
               <HeroBoard />
             </div>
             <div className={styles.heroVisual}>

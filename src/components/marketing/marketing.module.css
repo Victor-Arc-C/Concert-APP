@@ -163,8 +163,18 @@
   }
 }
 @media (max-width: 767px) {
-  .nav nav a:not(.navCta) {
+  .nav nav {
+    gap: 16px;
+  }
+  .nav nav a:not(.navCta):not(.navKeep) {
     display: none;
+  }
+  .nav nav .navKeep {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: 11px;
+    color: var(--ink);
   }
   .nav nav .navCta {
     display: inline-flex;
@@ -188,6 +198,22 @@
   gap: 24px;
   padding: clamp(32px, 5vh, 56px) var(--gutter) 40px;
   border-right: 1px solid var(--line);
+}
+.heroAlt {
+  margin-top: -8px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.heroAlt a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 .heroTitle {
   font-family: var(--display);
@@ -224,7 +250,8 @@
   .heroSub {
     animation: enter 700ms 160ms var(--ease-out) both;
   }
-  .heroMain > form {
+  .heroMain > form,
+  .heroAlt {
     animation: enter 700ms 220ms var(--ease-out) both;
   }
   .board {
