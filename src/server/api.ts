@@ -42,7 +42,6 @@ import { generateTripOptions } from './trips';
 import { savedTripsForUser, saveTrip, tripEvent } from './saved-trips';
 import { exportBetaFeedback, saveBetaFeedback } from './beta-feedback';
 
-
 function onboardingSpotifyState(state: string) {
   try {
     return Buffer.from(state, 'base64url')[0] === 255;
@@ -132,6 +131,8 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
           sources: await ticketSources(await ownEvent(url.searchParams.get('eventId') ?? '', user)),
         });
       if (key === 'trips') {
+        // Each plan can call live travel providers with shared daily quotas.
+        await rateLimit(`trips:${user.id}`, 20, 60);
         const eventId = url.searchParams.get('eventId') ?? '';
         await ownEvent(eventId, user);
         const event = await tripEvent(eventId);
@@ -139,7 +140,10 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
         const options = await generateTripOptions(event, user);
         return ok({ options });
       }
-      if (key === 'trips/saved') return ok({ savedTrips: await savedTripsForUser(user) });
+      if (key === 'trips/saved') {
+        await rateLimit(`trips:${user.id}`, 20, 60);
+        return ok({ savedTrips: await savedTripsForUser(user) });
+      }
 
       if (key === 'artists/search') {
         await rateLimit(`search:${user.id}`, 10, 60);
