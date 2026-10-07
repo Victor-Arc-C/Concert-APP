@@ -102,7 +102,6 @@ export function Journey() {
                   width={780}
                   height={1688}
                   sizes="(min-width: 1024px) 340px, 80vw"
-                  loading="eager"
                 />
               </div>
             </li>

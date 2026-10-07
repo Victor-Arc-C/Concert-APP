@@ -232,7 +232,8 @@ test('desktop and mobile previews have working filters and no horizontal overflo
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
   );
-  await page.goto('/');
+  // The checks below are about layout, not image decoding, so don't wait for every screenshot.
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('heading', { name: 'Every show worth the trip.' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Join the waitlist' })).toBeVisible();
   await page.screenshot({ path: 'test-results/encore-landing-mobile.png', fullPage: true });
