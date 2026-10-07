@@ -735,6 +735,10 @@ export function Privacy() {
       <ul>
         <li>Your account: email, name and a hashed password.</li>
         <li>
+          Waitlist: if you join it, your email and the home city you chose, kept only to invite you
+          when Encore opens.
+        </li>
+        <li>
           Your settings: home city, distance, dates, ticket budget, notification and consent
           choices.
         </li>

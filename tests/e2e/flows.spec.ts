@@ -121,7 +121,7 @@ test('founder flow: register, choose artists, save, persist, must-see, alert, di
   await page.getByRole('button', { name: 'Delete account', exact: true }).click();
   await page.getByLabel('Confirm your current password').fill(password);
   await page.getByRole('button', { name: 'Delete my account permanently' }).click();
-  await expect(page.getByRole('heading', { name: /Your favourite music/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Every show worth the trip.' })).toBeVisible();
   expect((await (await page.request.get('/api/state')).json()).user).toBeNull();
 });
 test('API authorisation, CSRF, account isolation and honest provider errors', async ({
@@ -232,8 +232,10 @@ test('desktop and mobile previews have working filters and no horizontal overflo
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
   );
-  await page.goto('/');
-  await expect(page.getByRole('link', { name: 'Try the sample experience' })).toBeVisible();
+  // The checks below are about layout, not image decoding, so don't wait for every screenshot.
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('heading', { name: 'Every show worth the trip.' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Join the waitlist' })).toBeVisible();
   await page.screenshot({ path: 'test-results/encore-landing-mobile.png', fullPage: true });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,

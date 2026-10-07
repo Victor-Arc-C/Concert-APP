@@ -41,6 +41,7 @@ import { ticketSources, selectTicketSource } from './tickets';
 import { generateTripOptions } from './trips';
 import { savedTripsForUser, saveTrip, tripEvent } from './saved-trips';
 import { exportBetaFeedback, saveBetaFeedback } from './beta-feedback';
+import { joinWaitlist, publicGigs, waitlistSchema } from './marketing';
 
 function onboardingSpotifyState(state: string) {
   try {
@@ -97,6 +98,10 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
     }
     if (request.method === 'GET') {
       if (key === 'state') return ok(await getAppData());
+      if (key === 'gigs')
+        return NextResponse.json(await publicGigs(), {
+          headers: { 'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=3600' },
+        });
       if (key === 'spotify/callback') {
         const user = await requireUser();
         if (url.searchParams.get('error')) {
@@ -196,6 +201,13 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
     }
     if (request.method !== 'POST') throw new HttpError(405, 'Method not supported.');
     checkOrigin(request);
+    if (key === 'waitlist') {
+      await rateLimit('waitlist-global', 300, 60);
+      const input = waitlistSchema.parse(await body(request));
+      await rateLimit(`waitlist:${input.email}`, 5, 3600);
+      await joinWaitlist(input);
+      return ok();
+    }
     if (key === 'auth/signup' || key === 'auth/login') {
       await rateLimit('auth-global', 100, 60);
       const input = authSchema.parse(await body(request));
