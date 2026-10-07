@@ -17,7 +17,21 @@ export const viewport = { themeColor: '#0b0d12' };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {children}
+        <p
+          style={{
+            margin: 0,
+            padding: '12px 20px',
+            color: 'var(--muted)',
+            fontSize: '12px',
+            textAlign: 'center',
+            overflowWrap: 'anywhere',
+          }}
+        >
+          Impact-Site-Verification: d68b4d7b-8500-49d4-a958-47da8bc88882
+        </p>
+      </body>
     </html>
   );
 }
