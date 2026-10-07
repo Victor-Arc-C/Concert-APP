@@ -421,7 +421,20 @@ export function TripPlanner({ eventId }: { eventId: string }) {
                         {selectedTrip.accommodation.distanceKmToVenue === null
                           ? 'Distance unavailable'
                           : `${selectedTrip.accommodation.distanceKmToVenue} km from ${event.venue}`}
+                        {selectedTrip.accommodation.board &&
+                          ` · ${selectedTrip.accommodation.board}`}
+                        {selectedTrip.accommodation.refundable === true && ' · Free cancellation'}
+                        {selectedTrip.accommodation.refundable === false && ' · Non-refundable'}
                       </p>
+                      {selectedTrip.accommodation.verifiedAt && (
+                        <span className="step-verified">
+                          Room availability confirmed with the hotel supplier at{' '}
+                          {new Date(selectedTrip.accommodation.verifiedAt).toLocaleTimeString(
+                            'en-GB',
+                            { hour: '2-digit', minute: '2-digit' },
+                          )}
+                        </span>
+                      )}
                       <span className="step-source">
                         Source: {tripSourceLabel(selectedTrip.accommodation.provider)} · Check-in:{' '}
                         {new Date(selectedTrip.accommodation.checkIn).toLocaleDateString('en-GB')}

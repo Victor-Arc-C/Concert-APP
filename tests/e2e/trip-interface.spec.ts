@@ -89,6 +89,9 @@ async function tripFixture(
       currency: 'EUR',
       distanceKmToVenue: 0.5,
       observedAt: now,
+      board: settings.sample ? null : 'Room only',
+      refundable: settings.sample ? null : false,
+      verifiedAt: settings.sample ? null : now,
       bookingUrl: settings.direct ? 'https://stays.encore.test/hotels/h1?checkin=2027-01-20' : null,
     },
     estimatedTotal: null,
@@ -229,6 +232,10 @@ test('compares published fares for every way to travel, with the seller links', 
   expect(driving.searchParams.get('origin')).toBe('Paris');
   await getThere.screenshot({ path: 'test-results/getting-there-desktop.png' });
   await expect(page.getByText('Overall unavailable', { exact: false })).toBeVisible();
+  await expect(page.getByText('0.5 km from GALAXIE · Room only · Non-refundable')).toBeVisible();
+  await expect(
+    page.getByText('Room availability confirmed with the hotel supplier at', { exact: false }),
+  ).toBeVisible();
   const hotel = page.getByRole('link', { name: 'Find this hotel on Booking.com' });
   let url = new URL((await hotel.getAttribute('href')) as string);
   expect(url.searchParams.get('ss')).toContain('Enzo Hôtels Diane');

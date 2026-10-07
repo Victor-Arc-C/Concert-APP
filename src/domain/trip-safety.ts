@@ -46,6 +46,9 @@ export const accommodationOptionSchema = z.object({
   checkOut: time,
   guests: z.number().int().positive(),
   distanceKmToVenue: z.number().finite().nonnegative().nullable(),
+  board: text.nullable().optional(),
+  refundable: z.boolean().nullable().optional(),
+  verifiedAt: time.nullable().optional(),
 });
 
 // Hosts come from server-owned adapter definitions, never client/provider payloads.

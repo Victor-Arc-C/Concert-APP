@@ -53,6 +53,12 @@ export type AccommodationOption = QuoteObservation & {
   distanceKmToVenue: number | null;
   observedAt: string;
   bookingUrl: string | null;
+  /** Meal plan as the provider names it ("Room only", "Breakfast included"…). */
+  board?: string | null;
+  /** True for a refundable rate, false for non-refundable, null when not stated. */
+  refundable?: boolean | null;
+  /** When the provider last confirmed this exact offer is bookable (live prebook check). */
+  verifiedAt?: string | null;
 };
 
 export type TripScores = {
