@@ -199,6 +199,9 @@ export function Auth({ signup }: { signup: boolean }) {
                 <input
                   name="inviteCode"
                   autoComplete="off"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
                   maxLength={64}
                   required
                   placeholder="From your beta invitation"
