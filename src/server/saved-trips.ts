@@ -89,6 +89,7 @@ export async function revalidateSavedTrip(
   user: User,
   now = new Date(),
   providers?: TripProviders,
+  liveLookups = true,
 ): Promise<SavedTrip> {
   const safeText = (value: string) => (typeof value === 'string' ? value.slice(0, 300) : '');
   const origin = safeText(row.originCity);
@@ -125,6 +126,9 @@ export async function revalidateSavedTrip(
     trip.planStatus = 'mode_changed';
   else if (event.date !== row.eventDate || event.city !== row.destinationCity)
     trip.planStatus = 'event_changed';
+  else if (trip.planStatus === 'active' && intent.success && mode === 'live' && !liveLookups)
+    // Background reads never spend live provider quota; the Trips page checks on demand.
+    revalidationStatus = 'unchecked';
   else if (trip.planStatus === 'active' && intent.success) {
     const options = await generateTripOptions(event, user, providers, now, origin);
     const ref = intent.data;
@@ -220,7 +224,13 @@ export async function revalidateSavedTrip(
   };
 }
 
-export async function savedTripsForUser(user: User, now = new Date()): Promise<SavedTrip[]> {
+/** Live lookups per request are capped; the rest stay 'unchecked' rather than waiting minutes. */
+export const MAX_LIVE_REVALIDATIONS = 3;
+export async function savedTripsForUser(
+  user: User,
+  now = new Date(),
+  { liveLookups = true }: { liveLookups?: boolean } = {},
+): Promise<SavedTrip[]> {
   const rows = await query<StoredTrip>(
     `SELECT id,user_id AS "userId",event_id AS "eventId",trip_option_id AS "tripOptionId",
     origin_city AS "originCity",destination_city AS "destinationCity",event_date AS "eventDate",
@@ -228,10 +238,17 @@ export async function savedTripsForUser(user: User, now = new Date()): Promise<S
     FROM saved_trips WHERE user_id=$1 ORDER BY created_at DESC`,
     [user.id],
   );
-  const saved: SavedTrip[] = [];
-  for (const row of rows) {
-    if (row.userId !== user.id) continue;
-    saved.push(await revalidateSavedTrip(row, await tripEvent(row.eventId), user, now));
-  }
-  return saved;
+  const own = rows.filter((row) => row.userId === user.id);
+  return Promise.all(
+    own.map(async (row, index) =>
+      revalidateSavedTrip(
+        row,
+        await tripEvent(row.eventId),
+        user,
+        now,
+        undefined,
+        liveLookups && index < MAX_LIVE_REVALIDATIONS,
+      ),
+    ),
+  );
 }

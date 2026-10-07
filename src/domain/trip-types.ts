@@ -99,7 +99,18 @@ export type SavedTrip = {
   tripData: TripOption;
   createdAt: string;
   updatedAt: string;
-  revalidationStatus: 'current' | 'unavailable' | 'legacy';
+  /** 'unchecked': live travel was not re-queried on this read (app-state polling). */
+  revalidationStatus: 'current' | 'unavailable' | 'legacy' | 'unchecked';
+};
+
+export type Coordinates = { latitude: number; longitude: number };
+/** Server-derived places for live searches: home city centre and the concert venue. */
+export type TripSearchContext = {
+  origin: Coordinates | null;
+  venue: Coordinates | null;
+  /** False when the venue position is only the city centre: no venue distance may be shown. */
+  venueExact?: boolean;
+  eventTimezone?: string | null;
 };
 
 export interface TransportProvider extends TripProviderDefinition {
@@ -110,6 +121,7 @@ export interface TransportProvider extends TripProviderDefinition {
     eventDate: string,
     eventLocalTime: string | null,
     now?: Date,
+    context?: TripSearchContext,
   ): Promise<TransportOption[]>;
 }
 
@@ -121,5 +133,6 @@ export interface AccommodationProvider extends TripProviderDefinition {
     eventDate: string,
     guests?: number,
     now?: Date,
+    context?: TripSearchContext,
   ): Promise<AccommodationOption[]>;
 }

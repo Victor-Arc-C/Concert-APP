@@ -77,7 +77,21 @@ export function samplesAllowed(appEnv: string, userMode: TripProviderMode, event
   );
 }
 
-export function currentQuote(quote: QuoteObservation & { observedAt: string }, now: Date) {
+// A live timetable result (e.g. SNCF) has no fare and no seat inventory: it is shown as a
+// schedule only — price null, availability 'unknown', never priced, totalled or badged.
+export function scheduleOnly(quote: QuoteObservation & { price?: number | null }) {
+  return (
+    quote.kind === 'live' &&
+    quote.availability === 'unknown' &&
+    quote.price == null &&
+    !quote.priceComplete
+  );
+}
+
+export function currentQuote(
+  quote: QuoteObservation & { observedAt: string; price?: number | null },
+  now: Date,
+) {
   const age = now.getTime() - Date.parse(quote.observedAt);
   const expiry = quote.expiresAt == null ? null : Date.parse(quote.expiresAt);
   return (
@@ -86,7 +100,8 @@ export function currentQuote(quote: QuoteObservation & { observedAt: string }, n
     age < TRIP_QUOTE_MAX_AGE_MS &&
     (expiry === null || (Number.isFinite(expiry) && expiry > now.getTime())) &&
     ((quote.kind === 'sample' && quote.availability === 'sample') ||
-      (quote.kind === 'live' && quote.availability === 'available'))
+      (quote.kind === 'live' && quote.availability === 'available') ||
+      scheduleOnly(quote))
   );
 }
 

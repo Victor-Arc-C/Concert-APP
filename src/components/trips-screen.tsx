@@ -15,10 +15,11 @@ import {
   Bus,
   Plane,
 } from 'lucide-react';
-import type { TripOption } from '@/domain/trip-types';
-import { currentTripView } from '@/domain/trip-safety';
+import type { SavedTrip, TripOption } from '@/domain/trip-types';
+import { currentTripView, scheduleOnly } from '@/domain/trip-safety';
+import { tripSourceLabel } from '@/domain/trip-sources';
 import { assignTripLabels } from '@/domain/trip-scoring';
-import { useApp } from './context';
+import { api, useApp } from './context';
 import { money, dateLabel } from './ui';
 
 export function TripPlanner({ eventId }: { eventId: string }) {
@@ -281,12 +282,17 @@ export function TripPlanner({ eventId }: { eventId: string }) {
                       <div className="step-header">
                         <strong>{selectedTrip.transport.operator || 'Transport'}</strong>
                         <span className="step-price">
-                          {money(selectedTrip.transport.price, selectedTrip.transport.currency)}
-                          {!selectedTrip.transport.priceComplete && ' · Partial quote'}
+                          {scheduleOnly(selectedTrip.transport)
+                            ? 'Timetable only · price with the seller'
+                            : money(selectedTrip.transport.price, selectedTrip.transport.currency)}
+                          {!selectedTrip.transport.priceComplete &&
+                            !scheduleOnly(selectedTrip.transport) &&
+                            ' · Partial quote'}
                         </span>
                       </div>
                       <p className="step-details">
-                        Source: {selectedTrip.transport.provider} · {selectedTrip.originCity}{' '}
+                        Source: {tripSourceLabel(selectedTrip.transport.provider)} ·{' '}
+                        {selectedTrip.originCity}{' '}
                         <ArrowRight
                           size={13}
                           style={{ display: 'inline', verticalAlign: 'middle' }}
@@ -320,7 +326,10 @@ export function TripPlanner({ eventId }: { eventId: string }) {
                           rel="noopener noreferrer"
                           className="external-link"
                         >
-                          Check transport booking <ExternalLink size={12} />
+                          {selectedTrip.transport.provider === 'sncf'
+                            ? 'See prices on SNCF Connect'
+                            : 'Check transport booking'}{' '}
+                          <ExternalLink size={12} />
                         </a>
                       )}
                     </div>
@@ -353,7 +362,8 @@ export function TripPlanner({ eventId }: { eventId: string }) {
                             selectedTrip.accommodation.price,
                             selectedTrip.accommodation.currency,
                           )}
-                          {!selectedTrip.accommodation.priceComplete && ' · Partial quote'}
+                          {!selectedTrip.accommodation.priceComplete &&
+                            ' · Excludes taxes paid at the hotel'}
                         </span>
                       </div>
                       <p className="step-details">
@@ -368,7 +378,7 @@ export function TripPlanner({ eventId }: { eventId: string }) {
                           : `${selectedTrip.accommodation.distanceKmToVenue} km from ${event.venue}`}
                       </p>
                       <span className="step-source">
-                        Source: {selectedTrip.accommodation.provider} · Check-in:{' '}
+                        Source: {tripSourceLabel(selectedTrip.accommodation.provider)} · Check-in:{' '}
                         {new Date(selectedTrip.accommodation.checkIn).toLocaleDateString('en-GB')}
                       </span>
                       {selectedTrip.accommodation.bookingUrl && (
@@ -453,7 +463,27 @@ export function TripPlanner({ eventId }: { eventId: string }) {
 
 export function TripsList() {
   const { data, act, busy } = useApp();
-  const savedTrips = data?.savedTrips ?? [];
+  // App state never re-queries live travel; this page checks saved plans once on open.
+  const [checked, setChecked] = useState<SavedTrip[] | null>(null);
+  const hasUnchecked = (data?.savedTrips ?? []).some((t) => t.revalidationStatus === 'unchecked');
+  const checking = hasUnchecked && checked === null;
+  useEffect(() => {
+    if (!hasUnchecked) return;
+    let active = true;
+    api<{ savedTrips: SavedTrip[] }>('trips/saved')
+      .then((result) => {
+        if (active) setChecked(result.savedTrips);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [hasUnchecked]);
+  // Re-checked rows, but only for plans that still exist (a removed trip disappears at once).
+  const current = data?.savedTrips ?? [];
+  const savedTrips = checked
+    ? checked.filter((trip) => current.some((row) => row.id === trip.id))
+    : current;
   const [clock, setClock] = useState(() => new Date());
   useEffect(() => {
     const timer = setInterval(() => setClock(new Date()), 1000);
@@ -500,6 +530,13 @@ export function TripsList() {
                 {trip.planStatus !== 'active' && (
                   <p>Plan inactive: {trip.planStatus.replaceAll('_', ' ')}</p>
                 )}
+                {saved.revalidationStatus === 'unchecked' && (
+                  <p>
+                    {checking
+                      ? 'Checking current travel options…'
+                      : 'Open the itinerary to check current travel options.'}
+                  </p>
+                )}
                 {saved.revalidationStatus === 'legacy' && (
                   <p>Saved plan retained. Previous quote removed; check again.</p>
                 )}
@@ -522,8 +559,10 @@ export function TripsList() {
                   <div>
                     <small>Stay</small>
                     <span>
-                      {trip.accommodation?.distanceKmToVenue != null
-                        ? `${trip.accommodation.distanceKmToVenue}km to venue`
+                      {trip.accommodation
+                        ? trip.accommodation.distanceKmToVenue != null
+                          ? `${trip.accommodation.distanceKmToVenue}km to venue`
+                          : trip.accommodation.name
                         : 'Stay options unavailable'}
                     </span>
                   </div>
