@@ -206,6 +206,15 @@ describe('SNCF timetable provider', () => {
     expect(await provider.getOptions('Lyon', 'Lyon', '2026-11-07', null, now, context)).toEqual([]);
   });
 
+  it('skips API calls when either leg falls beyond the published timetable window', async () => {
+    const fetcher = sncfFetcher();
+    const provider = new SncfTransportProvider('t', fetcher as unknown as typeof fetch);
+    expect(await provider.getOptions('Paris', 'Lyon', '2027-01-20', '20:00:00', now, context)).toEqual([]);
+    // Outbound fits N+23, but the next-day return does not.
+    expect(await provider.getOptions('Paris', 'Lyon', '2026-11-24', '20:00:00', now, context)).toEqual([]);
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
   it('never invents a return: no return journey means no option', async () => {
     const fetcher = vi.fn(async (input: RequestInfo | URL) =>
       new URL(String(input)).searchParams.get('datetime_represents') === 'arrival'
@@ -437,7 +446,7 @@ describe('review fixes: freshness, honesty and quota', () => {
   it('asks for the return at 09:00 Paris time the next day, also across a DST change', async () => {
     const fetcher = sncfFetcher();
     const provider = new SncfTransportProvider('t', fetcher as unknown as typeof fetch);
-    await provider.getOptions('Paris', 'Lyon', '2026-10-24', '20:00:00', now, context);
+    await provider.getOptions('Paris', 'Lyon', '2026-10-24', '20:00:00', new Date('2026-10-10T10:00:00Z'), context);
     const returns = fetcher.mock.calls
       .map(([url]) => new URL(String(url)))
       .filter((url) => url.searchParams.get('datetime_represents') === 'departure');
