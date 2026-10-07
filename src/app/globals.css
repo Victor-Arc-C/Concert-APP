@@ -2148,6 +2148,11 @@ a.tour-row:hover {
   line-height: 1.55;
   color: var(--dim);
 }
+.mode-links {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
 .fare-table {
   width: 100%;
   border-collapse: collapse;

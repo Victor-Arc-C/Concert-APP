@@ -4,6 +4,7 @@
 //   per route and fare profile. Bands, not live quotes: the seller sets the actual price.
 // - SNCF "Gares de voyageurs": station positions, to find stations near the home city and venue.
 // - Ministère de l'Économie "Prix des carburants en France – flux instantané": pump prices.
+// - geo.api.gouv.fr (official commune register): the town a station is in, for route links.
 import type { Coordinates, FareBand, TrainFare, TransportComparison } from '@/domain/trip-types';
 import { providerJson } from './http';
 import { distanceKm } from './liteapi';
@@ -20,7 +21,13 @@ const VENUE_STATION_RADIUS_KM = 40;
 const DAY_MS = 86400000;
 
 type Fetcher = typeof fetch;
-type Station = { name: string; uic: string; latitude: number; longitude: number };
+type Station = {
+  name: string;
+  uic: string;
+  insee: string | null;
+  latitude: number;
+  longitude: number;
+};
 type FareRow = {
   carrier: string;
   station: string;
@@ -83,6 +90,7 @@ export async function stationsNear(
             stations.push({
               name: row.nom,
               uic,
+              insee: /^\d[\dAB]\d{3}$/.test(String(row.codeinsee)) ? String(row.codeinsee) : null,
               latitude: position.lat,
               longitude: position.lon as number,
             });
@@ -155,6 +163,29 @@ async function fareRows(
   );
 }
 
+/** The town a station is in ("Lyon Part Dieu" → "Lyon"); arrondissements count as their city. */
+export async function communeName(
+  insee: string | null,
+  fetcher: Fetcher = fetch,
+  now = Date.now(),
+) {
+  if (!insee) return null;
+  return cached(
+    `commune:${insee}`,
+    DAY_MS * 7,
+    async () => {
+      const commune = (await providerJson(
+        `https://geo.api.gouv.fr/communes/${encodeURIComponent(insee)}?fields=nom`,
+        {},
+        fetcher,
+      )) as { nom?: unknown };
+      return typeof commune.nom === 'string'
+        ? commune.nom.replace(/\s+\d+(er|e) Arrondissement$/i, '')
+        : null;
+    },
+    now,
+  ).catch(() => null);
+}
 const titleCase = (value: string) =>
   value.toLowerCase().replace(/(^|[\s-])\p{L}/gu, (letter) => letter.toUpperCase());
 const merge = (band: FareBand | null, min: number, max: number): FareBand =>
@@ -218,13 +249,16 @@ export async function trainComparison(
     };
   const nearest = distanceKm(served[0], venue);
   const arrivals = served.filter((s) => distanceKm(s, venue) <= nearest + 15).slice(0, 2);
+  const towns = await Promise.all(arrivals.map((a) => communeName(a.insee, fetcher, now)));
   const fares = new Map<string, TrainFare>();
-  for (const arrival of arrivals)
+  for (const [index, arrival] of arrivals.entries())
     for (const row of rows.filter((r) => r.uic === arrival.uic)) {
       const key = `${row.carrier}|${arrival.uic}`;
       const fare = fares.get(key) ?? {
         carrier: row.carrier,
         station: titleCase(arrival.name),
+        stationCity: towns[index],
+        bookingUrl: null,
         lastMileKm: Math.round(distanceKm(arrival, venue) * 10) / 10,
         standard: null,
         avantage: null,

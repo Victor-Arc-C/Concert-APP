@@ -137,6 +137,9 @@ async function tripFixture(
                     {
                       carrier: 'OUIGO',
                       station: 'Metz Ville',
+                      stationCity: 'Metz',
+                      bookingUrl:
+                        'https://omio.sjv.io/c/7922007/409973/7385?u=https%3A%2F%2Fwww.omio.fr%2Ftrains%2Fparis%2Fmetz&subId1=encore-trip&subId2=trains',
                       lastMileKm: 18.4,
                       standard: { min: 16, max: 79 },
                       avantage: null,
@@ -144,6 +147,9 @@ async function tripFixture(
                     {
                       carrier: 'TGV INOUI',
                       station: 'Thionville',
+                      stationCity: 'Thionville',
+                      bookingUrl:
+                        'https://omio.sjv.io/c/7922007/409973/7385?u=https%3A%2F%2Fwww.omio.fr%2Ftrains%2Fparis%2Fthionville&subId1=encore-trip&subId2=trains',
                       lastMileKm: 11.4,
                       standard: { min: 20.5, max: 95 },
                       avantage: { min: 14.3, max: 66 },
@@ -164,7 +170,10 @@ async function tripFixture(
                 },
                 coach: {
                   status: 'unpriced',
-                  reason: "Coach operators don't publish fares Encore can show yet.",
+                  reason: 'Coach fares change with every departure; Omio compares them live.',
+                  bookingUrl:
+                    'https://omio.sjv.io/c/7922007/409973/7385?u=https%3A%2F%2Fwww.omio.fr%2Fbus%2Fparis%2Fmetz&subId1=encore-trip&subId2=bus',
+                  route: 'Paris → Metz',
                 },
               },
       },
@@ -188,14 +197,28 @@ test('compares published fares for every way to travel, with the seller links', 
     getThere.getByRole('row', { name: /TGV INOUI.*Thionville.*€20\.50–€95.*€14\.30–€66/ }),
   ).toBeVisible();
   await expect(getThere.getByText('≈ €51 fuel')).toBeVisible();
-  await expect(getThere.getByText('No published fares')).toBeVisible();
+  await expect(getThere.getByText('Live fares on Omio')).toBeVisible();
+  await expect(
+    getThere.getByRole('link', { name: 'Times and tickets Paris → Metz on Omio' }),
+  ).toHaveAttribute(
+    'href',
+    'https://omio.sjv.io/c/7922007/409973/7385?u=https%3A%2F%2Fwww.omio.fr%2Ftrains%2Fparis%2Fmetz&subId1=encore-trip&subId2=trains',
+  );
+  await expect(
+    getThere.getByRole('link', { name: 'Times and tickets Paris → Thionville on Omio' }),
+  ).toHaveAttribute(
+    'href',
+    'https://omio.sjv.io/c/7922007/409973/7385?u=https%3A%2F%2Fwww.omio.fr%2Ftrains%2Fparis%2Fthionville&subId1=encore-trip&subId2=trains',
+  );
+  await expect(
+    getThere.getByRole('link', { name: 'Coaches Paris → Metz on Omio' }),
+  ).toHaveAttribute(
+    'href',
+    'https://omio.sjv.io/c/7922007/409973/7385?u=https%3A%2F%2Fwww.omio.fr%2Fbus%2Fparis%2Fmetz&subId1=encore-trip&subId2=bus',
+  );
   await expect(getThere.getByRole('link', { name: 'Exact fares on SNCF Connect' })).toHaveAttribute(
     'href',
     'https://www.sncf-connect.com/',
-  );
-  await expect(getThere.getByRole('link', { name: 'Fares on FlixBus' })).toHaveAttribute(
-    'href',
-    'https://www.flixbus.fr/',
   );
   const driving = new URL(
     (await getThere
@@ -253,7 +276,7 @@ test('sample and cancelled concerts offer no real travel or hotel search', async
   await expect(page.getByRole('button', { name: /Enzo Hôtels/ })).toBeVisible();
   await expect(
     page.getByRole('link', {
-      name: /SNCF Connect|FlixBus|Driving route|Public transport|Booking.com/,
+      name: /SNCF Connect|FlixBus|Omio|Driving route|Public transport|Booking.com/,
     }),
   ).toHaveCount(0);
   await page.unrouteAll();
@@ -263,7 +286,7 @@ test('sample and cancelled concerts offer no real travel or hotel search', async
   ).toBeVisible();
   await expect(
     page.getByRole('link', {
-      name: /SNCF Connect|FlixBus|Driving route|Public transport|Booking.com/,
+      name: /SNCF Connect|FlixBus|Omio|Driving route|Public transport|Booking.com/,
     }),
   ).toHaveCount(0);
 });

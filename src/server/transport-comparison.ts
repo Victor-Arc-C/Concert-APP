@@ -1,13 +1,9 @@
 import type { Concert } from '../domain/types';
 import type { TransportComparison } from '../domain/trip-types';
 import { carComparison, trainComparison } from './providers/fares';
+import { omioRouteUrl } from './providers/omio';
 import { reportError } from './monitoring';
 import { tripSearchContext } from './trips';
-
-const coach: TransportComparison['coach'] = {
-  status: 'unpriced',
-  reason: "Coach operators don't publish fares Encore can show yet.",
-};
 
 /** Price every way to get to the concert that has a real, published source. */
 export async function transportComparison(
@@ -25,16 +21,32 @@ export async function transportComparison(
     carComparison(context.origin, context.venue, fetcher, now),
   ]);
   if (train.status === 'rejected' || car.status === 'rejected') reportError('provider_failed');
+  const trainValue: TransportComparison['train'] =
+    train.status === 'fulfilled'
+      ? train.value
+      : { status: 'unpriced', reason: 'SNCF fares are unavailable right now. Try again later.' };
+  if (trainValue.status === 'priced')
+    trainValue.fares = trainValue.fares.map((fare) => ({
+      ...fare,
+      bookingUrl: fare.stationCity ? omioRouteUrl('trains', originCity, fare.stationCity) : null,
+    }));
+  // Coaches stop in the same towns as the trains; small towns have no Omio route page.
+  const coachTown =
+    (trainValue.status === 'priced' && trainValue.fares.find((f) => f.stationCity)?.stationCity) ||
+    event.city;
+  const coachUrl = omioRouteUrl('bus', originCity, coachTown);
   return {
     origin: originCity,
-    train:
-      train.status === 'fulfilled'
-        ? train.value
-        : { status: 'unpriced', reason: 'SNCF fares are unavailable right now. Try again later.' },
+    train: trainValue,
     car:
       car.status === 'fulfilled'
         ? car.value
         : { status: 'unavailable', reason: 'Fuel prices are unavailable right now.' },
-    coach,
+    coach: {
+      status: 'unpriced',
+      reason: 'Coach fares change with every departure; Omio compares them live.',
+      bookingUrl: coachUrl,
+      route: coachUrl ? `${originCity} → ${coachTown}` : null,
+    },
   };
 }
