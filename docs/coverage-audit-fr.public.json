@@ -240,9 +240,10 @@
       "source": "https://www.jds.fr/artistes/orelsan-1008_N",
       "shows": [
         {
-          "date": "2026-10-19",
+          "date": "2026-10-20",
           "city": "Strasbourg",
-          "venue": "Zénith de Strasbourg"
+          "venue": "Zénith de Strasbourg",
+          "source": "https://www.zenith-strasbourg.fr/evenement/orelsan/"
         },
         {
           "date": "2026-10-22",
@@ -545,9 +546,10 @@
           "venue": "Reims Arena"
         },
         {
-          "date": "2026-10-10",
+          "date": "2026-10-11",
           "city": "Nantes",
-          "venue": "Zénith de Nantes"
+          "venue": "Zénith de Nantes",
+          "source": "https://www.fnacspectacles.com/artist/bigflo-et-oli/?inApp=true"
         },
         {
           "date": "2026-10-19",
@@ -634,7 +636,8 @@
           "city": "Strasbourg",
           "venue": "Zénith de Strasbourg"
         }
-      ]
+      ],
+      "ticketmasterNames": ["Bigflo et Oli"]
     },
     {
       "name": "Justice",
