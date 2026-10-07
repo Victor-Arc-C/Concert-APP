@@ -55,6 +55,8 @@ No affiliate commissions, premium subscription, sponsored placement, payment or 
 
 ## Configure live concerts
 
+French ticket prices remain incomplete: Discovery often supplies no tariff. The [CON-28 source evaluation](docs/CON-28-TICKET-PRICES.md) recommends validating Fnac Spectacles / France Billet feed access first, with Weezevent as a second candidate. Neither is enabled; [access requests](docs/CON-28-ACCESS-REQUESTS.md) are prepared but have not been sent.
+
 1. Copy `.env.example` to `.env.local`.
 2. Add a legitimate `TICKETMASTER_API_KEY` and restart the server.
 3. In **Your artists**, search the live catalogue and follow the exact attraction record. Sample artists deliberately are not automatically matched by name.
