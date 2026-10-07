@@ -67,14 +67,12 @@ export function Feed() {
     <>
       <div className="page-heading">
         <div>
-          <p className="greeting">
-            {data.user
-              ? `Made for you, ${data.user.name.split(' ')[0]}`
-              : 'Your personal concert shortlist'}
-            <span className="greeting-line" />
-          </p>
           <h1>Your next great night.</h1>
-          <p>The artists you love. The shows worth being there for.</p>
+          <p>
+            {data.user
+              ? `Departures for ${data.user.name.split(' ')[0]}: the artists you love, the shows worth the trip.`
+              : 'The artists you love. The shows worth the trip.'}
+          </p>
         </div>
         <button className="button secondary compact" onClick={() => setEdit(true)}>
           <SlidersHorizontal size={16} />
@@ -104,10 +102,10 @@ export function Feed() {
           <ConcertCard event={unique[0]} featured trackImpression />
           <aside className="taste-panel">
             <div className="section-heading">
-              <h2>Your kind of live.</h2>
-              <Music2 size={18} />
+              <h2>Your lines</h2>
+              <Music2 size={18} aria-hidden="true" />
             </div>
-            <p>Your shortlist starts with the artists you care about.</p>
+            <p>Every departure on this board starts with an artist you chose.</p>
             <div className="taste-list">
               {followed.slice(0, 4).map((a) => (
                 <Link href={`/app/artists/${a.id}`} className="taste-artist" key={a.id}>
@@ -257,6 +255,11 @@ export function Feed() {
           </Empty>
         ) : (
           <div className="concert-grid">
+            <div className="board-head" aria-hidden="true">
+              <span>Date</span>
+              <span>Artist · destination</span>
+              <span>Fare · status</span>
+            </div>
             {(showAll || query || month || tab !== 'all' ? unique : unique.slice(1)).map((e) => (
               <ConcertCard
                 key={e.id}
@@ -458,32 +461,44 @@ export function EventDetail({ id }: { id: string }) {
         <ArrowLeft size={16} />
         Your shortlist
       </Link>
-      <div className="detail-hero">
-        <img src={event.image} alt="" />
-        <div className="detail-shade" />
-        <div className="detail-hero-content">
+      <header className="detail-hero boarding-pass">
+        <div className="pass-main">
           <span className="fit-pill warm inline">
-            <Sparkles size={14} />
+            <Sparkles size={14} aria-hidden="true" />
             {event.tier}
           </span>
           <h1>{event.artist}</h1>
           <p>
             {event.venue}, {event.city}
           </p>
+        </div>
+        <dl className="pass-fields">
           <div>
-            <span>
-              <CalendarDays size={17} />
+            <dt>From</dt>
+            <dd>{data.user?.preferences.home ?? 'Paris'}</dd>
+          </div>
+          <div>
+            <dt>To</dt>
+            <dd>{event.city}</dd>
+          </div>
+          <div>
+            <dt>Date</dt>
+            <dd>
+              <CalendarDays size={16} aria-hidden="true" />
               {dateLabel(event.date, true)}
-            </span>
-            <span>
-              <MapPin size={17} />
+            </dd>
+          </div>
+          <div>
+            <dt>Show</dt>
+            <dd>
+              <MapPin size={16} aria-hidden="true" />
               {event.localTime
                 ? `${event.localTime.slice(0, 5)} venue local time`
                 : 'Time to be announced'}
-            </span>
+            </dd>
           </div>
-        </div>
-      </div>
+        </dl>
+      </header>
       <div className="detail-layout">
         <div>
           <section className="detail-section">
@@ -545,7 +560,7 @@ export function EventDetail({ id }: { id: string }) {
                 <span>
                   Check route options and timings.{' '}
                   {!['cancelled', 'postponed'].includes(event.status) && (
-                    <Link href={`/app/trips/${event.id}`} style={{ color: 'var(--amber)', textDecoration: 'underline' }}>
+                    <Link href={`/app/trips/${event.id}`} className="text-link">
                       Plan trip
                     </Link>
                   )}
@@ -557,7 +572,7 @@ export function EventDetail({ id }: { id: string }) {
                 <span>
                   Compare stays close to {event.venue}.{' '}
                   {!['cancelled', 'postponed'].includes(event.status) && (
-                    <Link href={`/app/trips/${event.id}`} style={{ color: 'var(--amber)', textDecoration: 'underline' }}>
+                    <Link href={`/app/trips/${event.id}`} className="text-link">
                       View stays
                     </Link>
                   )}
@@ -644,7 +659,6 @@ export function EventDetail({ id }: { id: string }) {
             <Link
               href={`/app/trips/${event.id}`}
               className="button secondary full"
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
             >
               <Compass size={17} />
               Plan this trip
@@ -724,7 +738,6 @@ export function Artists() {
     <>
       <div className="page-heading">
         <div>
-          <p className="greeting">Your music, your rules</p>
           <h1>Keep your favourites close.</h1>
           <p>Follow an artist. Make the ones you can’t miss a must-see.</p>
         </div>
@@ -1001,7 +1014,6 @@ export function Saved() {
     <>
       <div className="page-heading">
         <div>
-          <p className="greeting">From maybe to being there</p>
           <h1>Nights to keep.</h1>
           <p>Your saved shows, all in one place.</p>
         </div>
@@ -1030,7 +1042,6 @@ export function Inbox() {
     <>
       <div className="page-heading">
         <div>
-          <p className="greeting">Just the things that matter</p>
           <h1>Your concert radar.</h1>
           <p>In-app updates for your artists and saved plans.</p>
         </div>

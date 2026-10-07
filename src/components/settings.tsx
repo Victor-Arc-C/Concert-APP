@@ -45,7 +45,6 @@ function SettingsForm({ initial }: { initial: Preferences }) {
     <>
       <div className="page-heading">
         <div>
-          <p className="greeting">Keep it personal</p>
           <h1>Your way to be there.</h1>
           <p>Your travel plans, your alerts, your data.</p>
         </div>

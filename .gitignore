@@ -18,3 +18,10 @@ SESSION_HANDOFF.md
 *.log
 *.pem
 *.key
+
+# Impeccable working files (keep briefs and design.json only)
+.impeccable/review/
+.impeccable/e2e/
+.impeccable/e2e-results/
+.impeccable/*.mjs
+.impeccable/*.ts

@@ -464,7 +464,6 @@ export function TripsList() {
     <div className="trips-page">
       <div className="page-heading">
         <div>
-          <p className="greeting">Your planned journeys</p>
           <h1>Trips</h1>
           <p>Your saved concert itineraries with tickets, transport and stays.</p>
         </div>
