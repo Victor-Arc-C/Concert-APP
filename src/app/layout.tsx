@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   description:
     'A personal shortlist of concerts by the artists you love. Explore the Encore pilot.',
 };
-export const viewport = { themeColor: '#0b1733' };
+export const viewport = { themeColor: '#0b0d12' };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">

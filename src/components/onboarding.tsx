@@ -152,7 +152,6 @@ export function Auth({ signup }: { signup: boolean }) {
           Back to Encore
         </Link>
         <div className="auth-form">
-          <Music2 className="amber" size={30} />
           <h1>{signup ? 'Good music. Better plans.' : 'Welcome back.'}</h1>
           <p>
             {signup

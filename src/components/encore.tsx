@@ -189,17 +189,6 @@ export function Encore() {
             ))}
           </nav>
 
-          <div className="sidebar-note">
-            <AudioLines />
-            <p>
-              Less searching.
-              <br />
-              More being there.
-            </p>
-            <Link href="/app/artists">
-              Make it yours <ArrowUpRight size={14} />
-            </Link>
-          </div>
           <div className="sidebar-bottom">
             <FeedbackButton className="nav-item" />
             <Link

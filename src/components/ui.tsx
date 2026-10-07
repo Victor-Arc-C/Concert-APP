@@ -18,7 +18,6 @@ export function Avatar({ artist, small = false }: { artist: Artist; small?: bool
   return (
     <span
       className={`artist-avatar ${small ? 'small' : ''}`}
-      style={{ background: artist.color }}
       aria-hidden={artist.image ? undefined : true}
     >
       {artist.image ? <img src={artist.image} alt="" loading="lazy" /> : artist.initials}
@@ -169,11 +168,15 @@ export function ConcertCard({
         </p>
       </div>
       <div className="board-fare">
-        <span className="board-price">
+        <span className={`board-price ${event.price === null ? 'na' : ''}`}>
           {event.price !== null && <small>from</small>}
           {money(event.price, event.currency)}
         </span>
-        <span className={`board-status ${status.tone}`}>{status.label}</span>
+        <span className="board-flaps">
+          {featured && <span className="board-status wait">Next</span>}
+          <span className={`board-status ${status.tone}`}>{status.label}</span>
+        </span>
+        {event.provider === 'sample' && <small className="board-sample">Fictional sample</small>}
       </div>
       <button
         className={`save-button ${event.saved ? 'saved' : ''}`}
@@ -215,7 +218,6 @@ export function boardStatus(event: RankedConcert): {
   label: string;
   tone: 'go' | 'wait' | 'stop' | 'quiet';
 } {
-  if (event.provider === 'sample') return { label: 'Sample', tone: 'quiet' };
   if (event.status === 'cancelled') return { label: 'Cancelled', tone: 'stop' };
   if (event.status === 'postponed') return { label: 'Postponed', tone: 'stop' };
   if (event.saleAt && Date.parse(event.saleAt) > Date.now()) return { label: 'Sale soon', tone: 'wait' };

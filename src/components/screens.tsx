@@ -20,7 +20,6 @@ import {
   Bookmark,
   Compass,
   X,
-
   Bell,
   Music2,
   Plus,
@@ -29,7 +28,7 @@ import {
 import type { Artist, Intent, Preferences } from '@/domain/types';
 import { cities } from '@/domain/catalog';
 import { useApp, api } from './context';
-import { Avatar, ConcertCard, Empty, Modal, dateLabel, money } from './ui';
+import { Avatar, ConcertCard, Empty, Modal, boardDate, dateLabel, money } from './ui';
 import { PreferenceFields } from './onboarding';
 export function Feed() {
   const { data, act, busy } = useApp();
@@ -65,7 +64,7 @@ export function Feed() {
   const months = [...new Set(data.events.map((e) => e.date.slice(0, 7)))].sort();
   return (
     <>
-      <div className="page-heading">
+      <div className="page-heading feed-heading">
         <div>
           <h1>Your next great night.</h1>
           <p>
@@ -97,9 +96,177 @@ export function Feed() {
           {filtered.length} matching dates · {showAll ? 'all dates' : 'one pick per artist'}
         </span>
       </div>
-      {unique.length > 0 && !showAll && !query && !month && tab === 'all' && (
-        <div className="spotlight-layout">
-          <ConcertCard event={unique[0]} featured trackImpression />
+      <div className="board-layout">
+        <section className="shortlist">
+          <div className="section-heading">
+            <h2>{query ? 'Search your shortlist' : 'Departures'}</h2>
+            <button
+              className="text-button"
+              aria-pressed={showAll}
+              onClick={() => {
+                setShowAll(!showAll);
+                setPageSize(8);
+              }}
+            >
+              {showAll ? 'Show shortlist' : `Show all ${filtered.length} matching dates`}
+            </button>
+          </div>
+          <div className="feed-controls">
+            <div className="filter-tabs" role="group" aria-label="Concert location">
+              {[
+                ['all', 'For you'],
+                ['local', 'Close to home'],
+                ['away', 'Worth the trip'],
+              ].map(([value, label]) => (
+                <button
+                  key={value}
+                  className={tab === value ? 'selected' : ''}
+                  aria-pressed={tab === value}
+                  onClick={() => {
+                    setTab(value);
+                    setPageSize(8);
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="filter-tools">
+              <label className="search-field">
+                <Search size={16} />
+                <input
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setPageSize(8);
+                  }}
+                  placeholder="Find an artist or city"
+                  aria-label="Search your concerts"
+                />
+              </label>
+              <label className="date-filter">
+                <CalendarDays size={16} />
+                <select
+                  aria-label="Filter by month"
+                  value={month}
+                  onChange={(e) => {
+                    setMonth(e.target.value);
+                    setPageSize(8);
+                  }}
+                >
+                  <option value="">Any date</option>
+                  {months.map((m) => (
+                    <option key={m} value={m}>
+                      {new Intl.DateTimeFormat('en-GB', {
+                        month: 'short',
+                        year: 'numeric',
+                        timeZone: 'UTC',
+                      }).format(new Date(`${m}-01T12:00:00Z`))}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={13} />
+              </label>
+            </div>
+          </div>
+          {unique.length === 0 ? (
+            <Empty
+              title={
+                query || month || tab !== 'all'
+                  ? 'No shows match these filters.'
+                  : 'Your next show hasn’t found you yet.'
+              }
+            >
+              <p>
+                {data.user?.mode === 'live'
+                  ? data.providerMessage
+                  : 'Try a different city, follow another artist or restore dismissed shows.'}
+              </p>
+              <div className="button-row">
+                <button
+                  className="button secondary"
+                  onClick={() => {
+                    setQuery('');
+                    setMonth('');
+                    setTab('all');
+                    setPageSize(8);
+                  }}
+                >
+                  Clear filters
+                </button>
+                <Link className="button primary" href="/app/artists">
+                  Choose artists
+                </Link>
+                {data.user && (
+                  <button
+                    className="text-button"
+                    disabled={busy}
+                    onClick={() => act('feedback/reset', {}, 'Dismissed shows restored')}
+                  >
+                    Restore dismissed shows
+                  </button>
+                )}
+              </div>
+            </Empty>
+          ) : (
+            <div className="concert-grid">
+              <div className="board-head" aria-hidden="true">
+                <span>Date</span>
+                <span>Artist · destination</span>
+                <span>Fare · status</span>
+              </div>
+              {!expanded &&
+                data.alerts
+                  .filter((a) => !a.read_at)
+                  .slice(0, 3)
+                  .map((a) => {
+                    const alerted = data.allEvents.find((e) => e.id === a.event_id);
+                    const when = alerted ? boardDate(alerted.date) : null;
+                    return (
+                      <Link
+                        key={a.id}
+                        className="board-alert"
+                        href={`/app/events/${a.event_id}`}
+                        onClick={() => act('alerts/read', { id: a.id })}
+                      >
+                        <span className="board-alert-when">
+                          {when && (
+                            <>
+                              <span className="board-day">{when.day}</span>
+                              <span className="board-month">{when.month}</span>
+                            </>
+                          )}
+                        </span>
+                        <span className="board-alert-what">
+                          <strong>{a.title}</strong>
+                          <small>
+                            {a.body.replace(/\b\d{4}-\d{2}-\d{2}\b/g, (iso) =>
+                              dateLabel(iso, true),
+                            )}
+                          </small>
+                        </span>
+                        <span className="board-status wait">New</span>
+                      </Link>
+                    );
+                  })}
+              {unique.map((e, index) => (
+                <ConcertCard
+                  key={e.id}
+                  event={e}
+                  featured={!expanded && index === 0}
+                  source={query ? 'search' : 'feed'}
+                  trackImpression
+                />
+              ))}
+            </div>
+          )}
+          {candidates.length > unique.length && (
+            <button className="button secondary" onClick={() => setPageSize((size) => size + 8)}>
+              Show more concerts
+            </button>
+          )}
+        </section>
+        {followed.length > 0 && (
           <aside className="taste-panel">
             <div className="section-heading">
               <h2>Your lines</h2>
@@ -134,148 +301,8 @@ export function Feed() {
               </span>
             </div>
           </aside>
-        </div>
-      )}
-      <section className="shortlist">
-        <div className="section-heading">
-          <h2>
-            {query
-              ? 'Search your shortlist'
-              : unique.length > 1
-                ? 'More nights to look forward to'
-                : 'Your shortlist'}
-          </h2>
-          <button
-            className="text-button"
-            aria-pressed={showAll}
-            onClick={() => {
-              setShowAll(!showAll);
-              setPageSize(8);
-            }}
-          >
-            {showAll ? 'Show shortlist' : `Show all ${filtered.length} matching dates`}
-          </button>
-        </div>
-        <div className="feed-controls">
-          <div className="filter-tabs" role="group" aria-label="Concert location">
-            {[
-              ['all', 'For you'],
-              ['local', 'Close to home'],
-              ['away', 'Worth the trip'],
-            ].map(([value, label]) => (
-              <button
-                key={value}
-                className={tab === value ? 'selected' : ''}
-                aria-pressed={tab === value}
-                onClick={() => {
-                  setTab(value);
-                  setPageSize(8);
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          <div className="filter-tools">
-            <label className="search-field">
-              <Search size={16} />
-              <input
-                value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value);
-                  setPageSize(8);
-                }}
-                placeholder="Find an artist or city"
-                aria-label="Search your concerts"
-              />
-            </label>
-            <label className="date-filter">
-              <CalendarDays size={16} />
-              <select
-                aria-label="Filter by month"
-                value={month}
-                onChange={(e) => {
-                  setMonth(e.target.value);
-                  setPageSize(8);
-                }}
-              >
-                <option value="">Any date</option>
-                {months.map((m) => (
-                  <option key={m} value={m}>
-                    {new Intl.DateTimeFormat('en-GB', {
-                      month: 'short',
-                      year: 'numeric',
-                      timeZone: 'UTC',
-                    }).format(new Date(`${m}-01T12:00:00Z`))}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown size={13} />
-            </label>
-          </div>
-        </div>
-        {unique.length === 0 ? (
-          <Empty
-            title={
-              query || month || tab !== 'all'
-                ? 'No shows match these filters.'
-                : 'Your next show hasn’t found you yet.'
-            }
-          >
-            <p>
-              {data.user?.mode === 'live'
-                ? data.providerMessage
-                : 'Try a different city, follow another artist or restore dismissed shows.'}
-            </p>
-            <div className="button-row">
-              <button
-                className="button secondary"
-                onClick={() => {
-                  setQuery('');
-                  setMonth('');
-                  setTab('all');
-                  setPageSize(8);
-                }}
-              >
-                Clear filters
-              </button>
-              <Link className="button primary" href="/app/artists">
-                Choose artists
-              </Link>
-              {data.user && (
-                <button
-                  className="text-button"
-                  disabled={busy}
-                  onClick={() => act('feedback/reset', {}, 'Dismissed shows restored')}
-                >
-                  Restore dismissed shows
-                </button>
-              )}
-            </div>
-          </Empty>
-        ) : (
-          <div className="concert-grid">
-            <div className="board-head" aria-hidden="true">
-              <span>Date</span>
-              <span>Artist · destination</span>
-              <span>Fare · status</span>
-            </div>
-            {(showAll || query || month || tab !== 'all' ? unique : unique.slice(1)).map((e) => (
-              <ConcertCard
-                key={e.id}
-                event={e}
-                source={query ? 'search' : 'feed'}
-                trackImpression
-              />
-            ))}
-          </div>
         )}
-        {candidates.length > unique.length && (
-          <button className="button secondary" onClick={() => setPageSize((size) => size + 8)}>
-            Show more concerts
-          </button>
-        )}
-      </section>
+      </div>
       <div className="quiet-banner">
         <div className="quiet-icon">
           <Bell size={19} />
@@ -463,23 +490,31 @@ export function EventDetail({ id }: { id: string }) {
       </Link>
       <header className="detail-hero boarding-pass">
         <div className="pass-main">
-          <span className="fit-pill warm inline">
-            <Sparkles size={14} aria-hidden="true" />
-            {event.tier}
-          </span>
           <h1>{event.artist}</h1>
           <p>
             {event.venue}, {event.city}
           </p>
         </div>
         <dl className="pass-fields">
+          {(data.user?.preferences.home ?? 'Paris') === event.city ? (
+            <div>
+              <dt>Where</dt>
+              <dd>{event.city} · home city</dd>
+            </div>
+          ) : (
+            <div>
+              <dt>From → to</dt>
+              <dd>
+                {data.user?.preferences.home ?? 'Paris'} → {event.city}
+              </dd>
+            </div>
+          )}
           <div>
-            <dt>From</dt>
-            <dd>{data.user?.preferences.home ?? 'Paris'}</dd>
-          </div>
-          <div>
-            <dt>To</dt>
-            <dd>{event.city}</dd>
+            <dt>Why</dt>
+            <dd className="pass-why">
+              <Sparkles size={16} aria-hidden="true" />
+              {event.tier}
+            </dd>
           </div>
           <div>
             <dt>Date</dt>
@@ -493,7 +528,7 @@ export function EventDetail({ id }: { id: string }) {
             <dd>
               <MapPin size={16} aria-hidden="true" />
               {event.localTime
-                ? `${event.localTime.slice(0, 5)} venue local time`
+                ? `${event.localTime.slice(0, 5)} local time`
                 : 'Time to be announced'}
             </dd>
           </div>
@@ -656,23 +691,19 @@ export function EventDetail({ id }: { id: string }) {
             {event.saved ? 'Saved to your shows' : 'Save this show'}
           </button>
           {!['cancelled', 'postponed'].includes(event.status) && (
-            <Link
-              href={`/app/trips/${event.id}`}
-              className="button secondary full"
-            >
+            <Link href={`/app/trips/${event.id}`} className="button secondary full">
               <Compass size={17} />
               Plan this trip
             </Link>
           )}
           {artist && (
-
             <button className="text-button full" onClick={() => setIntent(true)}>
               <Heart size={17} />I need to see this artist
             </button>
           )}
           <p className="fineprint">
             {event.provider === 'sample'
-              ? 'All details on this page are fictional. Generic concert photography.'
+              ? 'All details on this page are fictional.'
               : 'Source: Ticketmaster. Prices and availability can change; fees may apply. No affiliate commission is active.'}
           </p>
           <span className="freshness">
@@ -841,7 +872,7 @@ export function Artists() {
               {imported.map((a) => (
                 <article className="artist-tile" key={a.id}>
                   <a href={a.url} target="_blank" rel="noreferrer">
-                    <span className="artist-avatar" style={{ background: '#3f6b56' }}>
+                    <span className="artist-avatar">
                       {a.image ? <img src={a.image} alt="" loading="lazy" /> : a.name.slice(0, 2)}
                     </span>
                     <h3>{a.name}</h3>

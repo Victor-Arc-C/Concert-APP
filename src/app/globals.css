@@ -8,7 +8,7 @@
   --bg: #0b0d12;
   --panel: #11141b;
   --panel-2: #171b24;
-  --slat: #0e1117;
+  --slat: #12151d;
   --line: #252b38;
   --line-strong: #353d4f;
   --ink: #eceae4;
@@ -436,7 +436,7 @@ svg {
   margin-left: 10px;
 }
 .nav-label {
-  font-family: var(--font-data);
+  font-weight: 700;
   font-size: 0.6875rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -500,35 +500,6 @@ svg {
   position: absolute;
   right: 8px;
   top: 8px;
-}
-.sidebar-note {
-  margin: 36px 10px 0;
-  padding-top: 18px;
-  border-top: 1px solid var(--line);
-}
-.sidebar-note > svg {
-  color: var(--accent);
-  width: 22px;
-  margin-bottom: 10px;
-}
-.sidebar-note p {
-  font-family: var(--font-display);
-  font-weight: 800;
-  text-transform: uppercase;
-  color: var(--ink);
-  font-size: 1.5rem;
-  line-height: 1;
-}
-.sidebar-note a {
-  font-family: var(--font-data);
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  color: var(--accent);
-  margin-top: 14px;
 }
 .sidebar-bottom {
   margin-top: auto;
@@ -665,7 +636,7 @@ svg {
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  font-family: var(--font-data);
+  font-weight: 700;
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -683,7 +654,7 @@ svg {
   margin-bottom: 26px;
   border: 1px solid var(--accent-line);
   background: var(--accent-soft);
-  font-family: var(--font-data);
+  font-weight: 700;
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -785,19 +756,18 @@ svg {
   background: var(--accent);
   animation: blink 1.6s steps(2, jump-none) infinite;
 }
-.spotlight-layout {
+.board-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 300px;
-  gap: 0;
-  margin-top: 28px;
-  border: 1px solid var(--line);
-}
-.spotlight-layout > .concert-card {
-  border: 0;
-  border-right: 1px solid var(--line);
+  gap: 32px;
+  align-items: start;
 }
 .taste-panel {
+  position: sticky;
+  top: 88px;
+  margin-top: 40px;
   background: var(--panel);
+  border: 1px solid var(--line);
   padding: 22px 20px;
   display: flex;
   flex-direction: column;
@@ -871,7 +841,8 @@ svg {
   color: var(--accent);
 }
 .shortlist {
-  margin-top: 40px;
+  margin-top: 28px;
+  min-width: 0;
 }
 .feed-controls {
   display: flex;
@@ -1094,6 +1065,7 @@ svg {
   text-align: right;
 }
 .board-price {
+  white-space: nowrap;
   font-family: var(--font-data);
   font-size: 1rem;
   font-weight: 600;
@@ -1110,6 +1082,7 @@ svg {
 }
 .board-status {
   display: inline-block;
+  white-space: nowrap;
   font-family: var(--font-data);
   font-size: 0.75rem;
   font-weight: 600;
@@ -1161,59 +1134,78 @@ svg {
   border-color: var(--accent);
 }
 
-/* The next departure: same row, at platform scale */
+/* The next departure: row 1 of the board, lit in amber */
 .concert-card.featured {
-  grid-template-columns: 150px minmax(0, 1fr) auto;
   grid-template-areas:
-    'when what save'
-    'when fare cta';
-  padding: 30px 28px;
-  row-gap: 22px;
-  align-items: start;
-  background: var(--panel);
-}
-.concert-card.featured::before {
-  content: 'Next departure';
-  position: absolute;
-  top: 0;
-  left: 0;
-  padding: 4px 10px;
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-family: var(--font-data);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-.featured .board-when {
-  padding-top: 10px;
+    'when what fare save'
+    'when what cta cta';
+  row-gap: 14px;
+  padding: 22px 18px;
+  background: var(--accent-soft);
+  border-top: 2px solid var(--accent);
 }
 .featured .board-day {
-  font-size: 4.5rem;
-}
-.featured .board-what {
-  padding-top: 10px;
+  font-size: 3rem;
 }
 .featured .board-what h2 {
-  font-size: clamp(2.75rem, 5vw, 4.5rem);
-}
-.featured .board-where {
-  font-size: var(--step-0);
-}
-.featured .board-fare {
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 14px;
-}
-.featured .board-price {
-  font-size: 1.375rem;
+  font-size: 2.75rem;
 }
 .board-cta {
   grid-area: cta;
   justify-self: end;
   align-self: center;
+}
+.board-flaps {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+.board-sample {
+  font-family: var(--font-data);
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.board-price.na {
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: var(--dim);
+}
+.board-alert {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+.board-alert:hover {
+  background: var(--panel-2);
+}
+.board-alert-when {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-family: var(--font-data);
+}
+.board-alert-when .board-day {
+  font-size: 1.75rem;
+}
+.board-alert-what strong {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 1.375rem;
+  line-height: 1;
+}
+.board-alert-what small {
+  display: block;
+  margin-top: 4px;
+  font-size: var(--step--1);
+  color: var(--dim);
 }
 
 /* ---------- Banners, empty, failure, loading ---------- */
@@ -1340,7 +1332,7 @@ svg {
   gap: 8px;
   align-items: center;
   min-height: 40px;
-  font-family: var(--font-data);
+  font-weight: 700;
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -1517,6 +1509,9 @@ svg {
   color: var(--accent);
   margin-top: 2px;
 }
+.pass-why {
+  color: var(--accent);
+}
 .fit-pill {
   display: inline-flex;
   align-items: center;
@@ -1652,7 +1647,6 @@ a.tour-row:hover {
 }
 .tour-row.current {
   background: var(--accent-soft);
-  box-shadow: inset 3px 0 0 var(--accent);
 }
 .tour-row strong {
   display: block;
@@ -1708,7 +1702,9 @@ a.tour-row:hover {
   font-weight: 800;
   text-transform: uppercase;
   font-size: 1.875rem;
-  color: #fffffff0;
+  color: var(--ink);
+  background: var(--panel-2);
+  border: 1px solid var(--line-strong);
   flex: none;
 }
 .artist-avatar img {
@@ -1723,24 +1719,35 @@ a.tour-row:hover {
   font-size: 0.9375rem;
 }
 .artist-directory {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  border-top: 1px solid var(--line);
-  border-left: 1px solid var(--line);
-}
-.artist-tile {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 18px;
-  border-right: 1px solid var(--line);
+  border-top: 1px solid var(--line-strong);
+}
+.artist-tile {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px 14px;
+  padding: 14px 18px;
   border-bottom: 1px solid var(--line);
   background: var(--bg);
 }
+.artist-tile:nth-child(even) {
+  background: var(--slat);
+}
 .artist-tile > a {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: 16px;
+  align-items: center;
+  min-width: 0;
+}
+.artist-tile > a > .artist-avatar {
+  grid-row: 1 / 3;
+  width: 52px;
+  height: 52px;
+  font-size: 1.375rem;
 }
 .artist-tile > a:hover h3 {
   color: var(--accent);
@@ -1749,8 +1756,9 @@ a.tour-row:hover {
   font-family: var(--font-display);
   font-weight: 800;
   text-transform: uppercase;
-  font-size: 1.625rem;
+  font-size: 1.75rem;
   line-height: 0.95;
+  align-self: end;
 }
 .artist-tile p {
   font-family: var(--font-data);
@@ -1758,15 +1766,14 @@ a.tour-row:hover {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--faint);
+  align-self: start;
 }
 .artist-tile > small {
+  grid-column: 1 / -1;
   font-family: var(--font-data);
   font-size: 0.75rem;
   color: var(--dim);
   line-height: 1.5;
-}
-.artist-tile .button {
-  align-self: flex-start;
 }
 .artist-detail-heading {
   display: flex;
@@ -1968,7 +1975,22 @@ a.tour-row:hover {
 
 /* ---------- Saved shows: same board, wallet heading ---------- */
 .saved-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 640px), 1fr));
+  gap: 16px;
   margin-top: 28px;
+  border-top: 0;
+}
+.saved-grid .concert-card {
+  border: 1px solid var(--line-strong);
+  background: var(--panel);
+}
+/* Ticket stub: the date sits on its own coupon, torn along a dashed line. */
+.saved-grid .board-when {
+  align-self: stretch;
+  align-content: center;
+  padding-right: 16px;
+  border-right: 1px dashed var(--line-strong);
 }
 
 /* ---------- Trips: itinerary ---------- */
@@ -2005,9 +2027,30 @@ a.tour-row:hover {
 .trip-subtitle {
   max-width: 65ch;
 }
-.trip-badge + .step-source {
-  margin-top: 8px;
+.trip-subtitle .trip-badge {
+  margin-right: 12px;
+  vertical-align: 2px;
 }
+.trip-scores-line {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-family: var(--font-data);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.pill-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 260px;
+}
+
 .trip-breakdown-card > .button {
   margin: 4px 20px 18px;
 }
@@ -2131,6 +2174,21 @@ a.tour-row:hover {
   border: 1px solid var(--line-strong);
   background: var(--panel);
 }
+.breakdown-route {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+  font-family: var(--font-data);
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--dim);
+}
+.breakdown-route > span:first-child {
+  color: var(--ink);
+  font-weight: 600;
+}
 .breakdown-header {
   display: flex;
   justify-content: space-between;
@@ -2212,7 +2270,7 @@ a.tour-row:hover {
   color: var(--dim);
 }
 .step-source {
-  font-family: var(--font-data);
+  font-weight: 700;
   font-size: 0.6875rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2232,10 +2290,10 @@ a.tour-row:hover {
 }
 .trip-footer {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 20px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
   align-items: end;
-  padding: 18px 20px;
+  padding: 18px 20px 18px 80px;
   border-top: 1px solid var(--line-strong);
   background: var(--slat);
 }
@@ -2254,7 +2312,7 @@ a.tour-row:hover {
 }
 .total-price {
   font-family: var(--font-data);
-  font-size: 2rem;
+  font-size: 1.375rem;
   font-weight: 600;
   color: var(--accent);
   line-height: 1.1;
@@ -2391,19 +2449,18 @@ a.tour-row:hover {
   justify-content: space-between;
   gap: 32px;
   padding: 40px;
-  background:
-    repeating-linear-gradient(
-      180deg,
-      var(--slat) 0 63px,
-      var(--line) 63px 64px
-    ),
-    var(--slat);
+  background: var(--slat);
   border-right: 1px solid var(--line);
   overflow: hidden;
 }
 .auth-board {
   display: flex;
   flex-direction: column;
+  border-top: 1px solid var(--line);
+}
+.auth-board span {
+  border-bottom: 1px solid var(--line);
+  padding: 4px 0;
 }
 .auth-board span {
   font-family: var(--font-display);
@@ -2818,6 +2875,9 @@ a.tour-row:hover {
 .concert-card:nth-child(n + 5) .board-status {
   animation-delay: 160ms;
 }
+.board-alert .board-status {
+  animation: none;
+}
 
 /* ---------- Responsive ---------- */
 @media (max-width: 1180px) {
@@ -2830,17 +2890,9 @@ a.tour-row:hover {
     grid-template-columns: minmax(0, 1fr) 300px;
     gap: 24px;
   }
-  .spotlight-layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .spotlight-layout > .concert-card {
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
-  }
-  .taste-panel .taste-list {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 18px;
+  .board-layout {
+    grid-template-columns: minmax(0, 1fr) 260px;
+    gap: 24px;
   }
 }
 @media (max-width: 960px) {
@@ -2886,8 +2938,19 @@ a.tour-row:hover {
     height: 58px;
     padding: 0 var(--gutter);
   }
+  .topbar {
+    height: auto;
+    flex-wrap: wrap;
+    row-gap: 0;
+    padding-top: 8px;
+  }
   .topbar-title {
-    display: none;
+    order: 3;
+    width: 100%;
+    font-size: 0.625rem;
+    padding: 6px 0 8px;
+    margin-top: 6px;
+    border-top: 1px solid var(--line);
   }
   .mobile-brand {
     display: block;
@@ -2942,9 +3005,61 @@ a.tour-row:hover {
     bottom: 80px;
   }
   .page-heading {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 14px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px;
+    padding-bottom: 14px;
+  }
+  .page-heading h1 {
+    margin-bottom: 4px;
+  }
+  .page-heading h1 {
+    font-size: 2.125rem;
+  }
+  .feed-heading p {
+    display: none;
+  }
+  .trip-footer {
+    padding-left: 20px;
+  }
+  .board-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .taste-panel {
+    position: static;
+    margin-top: 32px;
+  }
+  .shortlist {
+    margin-top: 16px;
+  }
+  .feed-context {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 10px 0;
+  }
+  .filter-tools {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    gap: 8px;
+  }
+  .date-filter select {
+    min-width: 0;
+  }
+  .board-alert {
+    margin: 0 calc(var(--gutter) * -1);
+    padding: 12px var(--gutter);
+  }
+  .saved-grid .concert-card {
+    margin: 0;
+  }
+  .artist-tile {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 14px 4px;
+  }
+  .artist-tile .button {
+    justify-self: start;
   }
   .feed-controls,
   .filter-tools {
@@ -2966,7 +3081,26 @@ a.tour-row:hover {
     width: 100%;
   }
   .board-head {
+    grid-template-columns: 62px minmax(0, 1fr);
+    padding: 8px 0;
+    gap: 14px;
+  }
+  .board-head span:nth-child(3) {
     display: none;
+  }
+  /* One alert row on a phone, so a departure lands in the first screen. */
+  .board-alert + .board-alert {
+    display: none;
+  }
+  .board-alert {
+    grid-template-columns: 62px minmax(0, 1fr) auto;
+    gap: 14px;
+  }
+  .board-alert-what small {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
   .concert-card {
     grid-template-columns: 62px minmax(0, 1fr) 44px;
@@ -2996,39 +3130,36 @@ a.tour-row:hover {
   }
   .board-fare {
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
+    gap: 6px 12px;
+    text-align: left;
+  }
+  .board-sample {
+    width: 100%;
   }
   .save-button {
     width: 44px;
     height: 44px;
   }
   .concert-card.featured {
-    grid-template-columns: 74px minmax(0, 1fr) 44px;
+    grid-template-columns: 62px minmax(0, 1fr) 44px;
     grid-template-areas:
       'when what save'
-      'fare fare fare'
+      'when fare fare'
       'cta cta cta';
-    padding: 30px var(--gutter) 20px;
-    margin: 0;
+    padding: 16px var(--gutter);
+    margin: 0 calc(var(--gutter) * -1);
   }
   .featured .board-day {
-    font-size: 3rem;
+    font-size: 2.25rem;
   }
   .featured .board-what h2 {
-    font-size: 2.5rem;
+    font-size: 2rem;
   }
   .board-cta {
     justify-self: stretch;
-  }
-  .spotlight-layout {
-    border-left: 0;
-    border-right: 0;
-    margin-left: calc(var(--gutter) * -1);
-    margin-right: calc(var(--gutter) * -1);
-  }
-  .taste-panel .taste-list {
-    grid-template-columns: minmax(0, 1fr);
   }
   .quiet-banner {
     grid-template-columns: auto 1fr;
@@ -3104,11 +3235,16 @@ a.tour-row:hover {
     padding: 20px var(--gutter) 40px;
   }
   .auth-art {
-    padding: 24px var(--gutter);
+    padding: 16px var(--gutter);
     min-height: 0;
+    gap: 12px;
   }
-  .auth-board span {
-    font-size: 2.75rem;
+  .auth-board,
+  .auth-art p {
+    display: none;
+  }
+  .auth-art h2 {
+    font-size: 1.5rem;
   }
   .landing-benefits {
     grid-template-columns: minmax(0, 1fr);
