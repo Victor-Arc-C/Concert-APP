@@ -1,0 +1,357 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-07T00:00:00Z",
+  "title": "Design System: Encore",
+  "extensions": {
+    "colorMeta": {
+      "board-black": {
+        "role": "neutral",
+        "displayName": "Board Black",
+        "tonalRamp": [
+          "#0b0d12",
+          "#11141b",
+          "#12151d",
+          "#171b24",
+          "#252b38",
+          "#353d4f",
+          "#80879a",
+          "#eceae4"
+        ]
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "Panel"
+      },
+      "panel-raised": {
+        "role": "neutral",
+        "displayName": "Panel Raised"
+      },
+      "slat": {
+        "role": "neutral",
+        "displayName": "Slat"
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Hairline"
+      },
+      "hairline-strong": {
+        "role": "neutral",
+        "displayName": "Hairline Strong"
+      },
+      "porcelain": {
+        "role": "neutral",
+        "displayName": "Porcelain"
+      },
+      "dim": {
+        "role": "neutral",
+        "displayName": "Dim"
+      },
+      "faint": {
+        "role": "neutral",
+        "displayName": "Faint"
+      },
+      "amber": {
+        "role": "primary",
+        "displayName": "Departure Amber",
+        "tonalRamp": [
+          "oklch(15% 0.11 70)",
+          "oklch(25% 0.11 70)",
+          "oklch(35% 0.11 70)",
+          "oklch(45% 0.11 70)",
+          "oklch(55% 0.11 70)",
+          "oklch(68% 0.11 70)",
+          "oklch(82% 0.11 70)",
+          "oklch(95% 0.11 70)"
+        ]
+      },
+      "amber-ink": {
+        "role": "primary",
+        "displayName": "Amber Ink"
+      },
+      "amber-soft": {
+        "role": "primary",
+        "displayName": "Amber Wash"
+      },
+      "amber-line": {
+        "role": "primary",
+        "displayName": "Amber Rule"
+      },
+      "platform-green": {
+        "role": "secondary",
+        "displayName": "Platform Green",
+        "tonalRamp": [
+          "oklch(15% 0.14 158)",
+          "oklch(25% 0.14 158)",
+          "oklch(35% 0.14 158)",
+          "oklch(45% 0.14 158)",
+          "oklch(55% 0.14 158)",
+          "oklch(68% 0.14 158)",
+          "oklch(82% 0.14 158)",
+          "oklch(95% 0.14 158)"
+        ]
+      },
+      "platform-green-soft": {
+        "role": "secondary",
+        "displayName": "Platform Green Wash"
+      },
+      "signal-red": {
+        "role": "tertiary",
+        "displayName": "Signal Red",
+        "tonalRamp": [
+          "oklch(15% 0.17 28)",
+          "oklch(25% 0.17 28)",
+          "oklch(35% 0.17 28)",
+          "oklch(45% 0.17 28)",
+          "oklch(55% 0.17 28)",
+          "oklch(68% 0.17 28)",
+          "oklch(82% 0.17 28)",
+          "oklch(95% 0.17 28)"
+        ]
+      },
+      "signal-red-soft": {
+        "role": "tertiary",
+        "displayName": "Signal Red Wash"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Screen titles; boarding-pass artist name up to clamp(3rem, 6vw, 5.5rem). Uppercase."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Artist names on board rows; 2.75rem on the next-departure row."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Section, modal, side-pane and itinerary-step headings."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Prose in Dim, capped at 65ch."
+      },
+      "body-small": {
+        "displayName": "Body small",
+        "purpose": "Venue lines, notes, fine print."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Buttons, nav, filter tabs, back links. Uppercase."
+      },
+      "data": {
+        "displayName": "Data",
+        "purpose": "Status flaps, weekday/month/time, chips, context strips. Uppercase, tabular."
+      },
+      "data-figure": {
+        "displayName": "Data figure",
+        "purpose": "Row day number and ticket price, in amber."
+      },
+      "data-caption": {
+        "displayName": "Data caption",
+        "purpose": "Board column headers and pass field labels, in Faint."
+      }
+    },
+    "shadows": [
+      {
+        "name": "toast-lift",
+        "value": "0 18px 40px #00000080",
+        "purpose": "Amber confirmation toast."
+      },
+      {
+        "name": "modal-lift",
+        "value": "0 30px 80px #000000b3",
+        "purpose": "Dialogs, over a #05060acc backdrop with 4px blur."
+      },
+      {
+        "name": "flap-seam",
+        "value": "inset 0 -1px 0 #ffffff0a",
+        "purpose": "Split-flap fold on status tiles (with a 1px #ffffff12 mid-line gradient)."
+      },
+      {
+        "name": "field-focus",
+        "value": "0 0 0 1px #f1b66d",
+        "purpose": "Doubles the amber border on focused inputs."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "All state transitions, 160ms (120ms for button press)."
+      },
+      {
+        "name": "flap-in",
+        "value": "420ms, rotateX(-70deg) to 0, staggered 40ms per row up to 160ms",
+        "purpose": "Status flap turns once when a row arrives."
+      },
+      {
+        "name": "blink",
+        "value": "1.6s steps(2) infinite, opacity to 0.25",
+        "purpose": "Live square and unread-alert dot."
+      },
+      {
+        "name": "toast-in",
+        "value": "260ms, translateY 12px to 0",
+        "purpose": "Toast entry."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "animations and transitions collapse to 0.01ms",
+        "purpose": "prefers-reduced-motion: reduce."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "wide",
+        "value": "1180px",
+        "note": "gutter 28px, rail 208px, side pane 260px"
+      },
+      {
+        "name": "stack",
+        "value": "960px",
+        "note": "detail, settings, boarding pass and auth stack to one column"
+      },
+      {
+        "name": "mobile",
+        "value": "820px",
+        "note": "gutter 16px, bottom tab bar replaces rail, h1 2.5rem"
+      },
+      {
+        "name": "narrow",
+        "value": "420px",
+        "note": "filter tabs tighten to 0.6875rem"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one amber action per view.",
+      "html": "<button class=\"ds-btn-primary\">Explore this show</button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;min-height:46px;padding:11px 20px;border:1px solid transparent;border-radius:0;background:var(--accent,#f1b66d);color:var(--accent-ink,#191104);font-family:Manrope,system-ui,sans-serif;font-size:.8125rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:background-color 160ms cubic-bezier(.16,1,.3,1),transform 120ms cubic-bezier(.16,1,.3,1)}.ds-btn-primary:hover{background:#f6c88b}.ds-btn-primary:active{transform:translateY(1px)}.ds-btn-primary:focus-visible{outline:2px solid #f1b66d;outline-offset:3px}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Hairline-framed action.",
+      "html": "<button class=\"ds-btn-secondary\">Your preferences</button>",
+      "css": ".ds-btn-secondary{display:inline-flex;align-items:center;min-height:46px;padding:11px 20px;border:1px solid var(--line-strong,#353d4f);border-radius:0;background:transparent;color:var(--ink,#eceae4);font-family:Manrope,system-ui,sans-serif;font-size:.8125rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:background-color 160ms cubic-bezier(.16,1,.3,1),border-color 160ms cubic-bezier(.16,1,.3,1)}.ds-btn-secondary:hover{background:var(--panel-2,#171b24);border-color:var(--accent-line,#f1b66d66)}.ds-btn-secondary:focus-visible{outline:2px solid #f1b66d;outline-offset:3px}"
+    },
+    {
+      "name": "Search Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Square slat field with amber focus.",
+      "html": "<input class=\"ds-input\" placeholder=\"Find an artist or city\">",
+      "css": ".ds-input{min-height:46px;padding:11px 13px;width:260px;background:var(--slat,#12151d);border:1px solid var(--line-strong,#353d4f);border-radius:0;color:var(--ink,#eceae4);font-family:Manrope,system-ui,sans-serif;font-size:.9375rem;transition:border-color 160ms cubic-bezier(.16,1,.3,1)}.ds-input::placeholder{color:var(--faint,#80879a)}.ds-input:hover{border-color:var(--faint,#80879a)}.ds-input:focus-visible{outline:none;border-color:#f1b66d;box-shadow:0 0 0 1px #f1b66d}"
+    },
+    {
+      "name": "Rail Navigation",
+      "kind": "nav",
+      "refersTo": "nav-item-active",
+      "description": "Stacked uppercase items between hairlines; active fills amber.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-item ds-active\" href=\"#\">For you</a><a class=\"ds-nav-item\" href=\"#\">Saved shows <small>1</small></a><a class=\"ds-nav-item\" href=\"#\">Trips</a></nav>",
+      "css": ".ds-nav{display:flex;flex-direction:column;width:204px;border-top:1px solid var(--line,#252b38);background:var(--slat,#12151d)}.ds-nav-item{display:flex;align-items:center;min-height:48px;padding:12px 10px;border-bottom:1px solid var(--line,#252b38);color:var(--dim,#9aa0ad);font-family:Manrope,system-ui,sans-serif;font-size:.8125rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;transition:color 160ms cubic-bezier(.16,1,.3,1),background-color 160ms cubic-bezier(.16,1,.3,1)}.ds-nav-item:hover{color:var(--ink,#eceae4);background:var(--panel,#11141b)}.ds-nav-item.ds-active{background:var(--accent,#f1b66d);color:var(--accent-ink,#191104)}.ds-nav-item small{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:.75rem;padding:1px 6px;border:1px solid var(--line-strong,#353d4f);background:var(--panel-2,#171b24);color:var(--ink,#eceae4)}.ds-nav-item:focus-visible{outline:2px solid #f1b66d;outline-offset:3px}"
+    },
+    {
+      "name": "Filter Tabs",
+      "kind": "chip",
+      "refersTo": "filter-tab-selected",
+      "description": "Joined tab strip in the board header.",
+      "html": "<div class=\"ds-tabs\"><button class=\"ds-sel\">For you</button><button>Close to home</button><button>Worth the trip</button></div>",
+      "css": ".ds-tabs{display:inline-flex;border:1px solid var(--line-strong,#353d4f)}.ds-tabs button{min-height:42px;padding:8px 16px;border:0;border-right:1px solid var(--line-strong,#353d4f);background:none;color:var(--dim,#9aa0ad);font-family:Manrope,system-ui,sans-serif;font-size:.75rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}.ds-tabs button:last-child{border-right:0}.ds-tabs button:hover{color:var(--ink,#eceae4);background:var(--panel,#11141b)}.ds-tabs button.ds-sel{background:var(--accent,#f1b66d);color:var(--accent-ink,#191104)}.ds-tabs button:focus-visible{outline:2px solid #f1b66d;outline-offset:3px}"
+    },
+    {
+      "name": "Status Flaps",
+      "kind": "chip",
+      "refersTo": "status-flap",
+      "description": "Split-flap status tiles in four tones.",
+      "html": "<span class=\"ds-flap ds-go\">On sale</span> <span class=\"ds-flap ds-wait\">Next</span> <span class=\"ds-flap ds-stop\">Cancelled</span> <span class=\"ds-flap ds-quiet\">No price</span>",
+      "css": ".ds-flap{display:inline-block;padding:4px 9px;background:#07080b linear-gradient(transparent calc(50% - .5px),#ffffff12 50%,transparent calc(50% + .5px));border:1px solid var(--line-strong,#353d4f);box-shadow:inset 0 -1px 0 #ffffff0a;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;animation:ds-flap 420ms cubic-bezier(.16,1,.3,1) both;transform-origin:top center}.ds-go{color:#63d69e}.ds-wait{color:#f1b66d}.ds-stop{color:#ff7a6b}.ds-quiet{color:#9aa0ad}@keyframes ds-flap{from{transform:perspective(300px) rotateX(-70deg);opacity:0}}@media (prefers-reduced-motion:reduce){.ds-flap{animation:none}}"
+    },
+    {
+      "name": "Departure Row",
+      "kind": "card",
+      "refersTo": "board-row",
+      "description": "One concert on the board: date block, destination, fare and flap, save toggle.",
+      "html": "<div class=\"ds-row\"><div class=\"ds-when\"><span class=\"ds-wd\">SUN</span><span class=\"ds-day\">15</span><span class=\"ds-mo\">NOV</span><span class=\"ds-tm\">20:00</span></div><div class=\"ds-what\"><h2>Fred again..</h2><p><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z\"/><circle cx=\"12\" cy=\"10\" r=\"3\"/></svg><strong>Paris</strong><i></i>Accor Arena</p></div><div class=\"ds-fare\"><span class=\"ds-price\"><small>From</small>€79</span><span class=\"ds-flap ds-go\">On sale</span></div><button class=\"ds-save\" aria-label=\"Save\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z\"/></svg></button></div>",
+      "css": ".ds-row{display:grid;grid-template-columns:96px minmax(0,1fr) 150px 46px;gap:20px;align-items:center;padding:16px 18px;background:var(--bg,#0b0d12);border-bottom:1px solid var(--line,#252b38);color:var(--ink,#eceae4);transition:background-color 160ms cubic-bezier(.16,1,.3,1)}.ds-row:hover{background:var(--panel-2,#171b24)}.ds-when{display:grid;grid-template-columns:auto 1fr;column-gap:8px;font-family:'JetBrains Mono',monospace;line-height:1.1}.ds-wd,.ds-mo,.ds-tm{font-size:.75rem;letter-spacing:.06em;color:#9aa0ad}.ds-wd{grid-column:1/-1}.ds-day{grid-row:2/4;font-size:2.25rem;font-weight:600;line-height:.9;color:#f1b66d;font-variant-numeric:tabular-nums}.ds-mo{align-self:end;color:#eceae4}.ds-what h2{margin:0;font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:800;font-size:2rem;line-height:.95;text-transform:uppercase}.ds-what p{display:flex;align-items:center;gap:6px;margin:6px 0 0;font-family:Manrope,sans-serif;font-size:.8125rem;color:#9aa0ad}.ds-what p svg{color:#80879a}.ds-what strong{color:#eceae4}.ds-what i{width:4px;height:4px;background:#80879a}.ds-fare{display:flex;flex-direction:column;align-items:flex-end;gap:8px}.ds-price{font-family:'JetBrains Mono',monospace;font-weight:600;font-variant-numeric:tabular-nums}.ds-price small{font-size:.6875rem;font-weight:400;color:#80879a;text-transform:uppercase;margin-right:6px}.ds-flap{padding:4px 9px;background:#07080b;border:1px solid #353d4f;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase}.ds-go{color:#63d69e}.ds-save{width:46px;height:46px;display:grid;place-items:center;background:transparent;border:1px solid #353d4f;color:#9aa0ad;border-radius:0;cursor:pointer}.ds-save:hover{color:#eceae4;border-color:#80879a}.ds-save:focus-visible{outline:2px solid #f1b66d;outline-offset:3px}"
+    },
+    {
+      "name": "Boarding Pass Fields",
+      "kind": "custom",
+      "refersTo": "panel",
+      "description": "Concert detail header fields, torn off by a dashed rule under a 4px amber edge.",
+      "html": "<dl class=\"ds-pass\"><div><dt>Where</dt><dd>Paris · home city</dd></div><div><dt>Why</dt><dd class=\"ds-why\">Artist you follow</dd></div><div><dt>Date</dt><dd>15 November 2026</dd></div><div><dt>Show</dt><dd>20:00 local time</dd></div></dl>",
+      "css": ".ds-pass{margin:0;display:grid;grid-template-columns:1fr 1fr;background:var(--panel,#11141b);border:1px solid var(--line-strong,#353d4f);border-top:4px solid #f1b66d;border-left:1px dashed #353d4f;max-width:460px}.ds-pass>div{padding:20px 22px;border-bottom:1px solid #252b38;border-right:1px solid #252b38}.ds-pass>div:nth-child(2n){border-right:0}.ds-pass>div:nth-last-child(-n+2){border-bottom:0}.ds-pass dt{font-family:'JetBrains Mono',monospace;font-size:.6875rem;letter-spacing:.12em;text-transform:uppercase;color:#80879a;margin-bottom:8px}.ds-pass dd{margin:0;font-family:'JetBrains Mono',monospace;font-weight:600;font-size:1rem;text-transform:uppercase;color:#eceae4}.ds-pass .ds-why{color:#f1b66d}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Night Departures Board",
+    "overview": "Encore is the board of a station that only serves your artists. Every concert is a departure: a mono date block, a condensed uppercase destination, a city and venue line with the reason it is on your board, a fare, and a status flap. The screen is read the way a traveller reads a board at night: one glance down a column of rows, amber where the eye should land, everything else porcelain and grey on near-black.\n\nDensity is moderate and tabular. Content is organised as rows separated by hairlines, not as a grid of cards. The boarding pass (concert detail), the itinerary (trips) and the coupon wallet (saved shows) are the same board material bent into travel documents: dashed tear lines, labelled fields, a heavy amber top edge. Corners are square everywhere. Depth comes from tonal slats and hairlines; shadows exist only under things that float.\n\nThe marketing site (src/components/marketing) is one brand with this app: it carries the same token values on its own CSS-module scope. Values here and there should move together; this file documents the signed-in app and onboarding only.",
+    "keyCharacteristics": [
+      "Near-black board with alternating slats and 1px hairline row rules.",
+      "One warm accent (amber) for times, prices, the primary action, the selected state and the live signal.",
+      "Three voices of type: condensed uppercase for names, tabular mono for every figure and status, Manrope for prose.",
+      "Square corners, no exceptions.",
+      "Status as split-flap tiles in green / amber / red / grey."
+    ],
+    "rules": [
+      {
+        "name": "The One Lamp Rule",
+        "body": "Amber is the only warm colour on the board. It marks what to read first (the date, the price) or what to press; it never decorates.",
+        "section": "colors"
+      },
+      {
+        "name": "The Signals Are Status Rule",
+        "body": "Green and red appear only to report state (on sale, saved, confirmed; cancelled, postponed, error). Never use them as brand or decoration.",
+        "section": "colors"
+      },
+      {
+        "name": "The Amber Ink Rule",
+        "body": "Anything filled amber carries amber-ink text. White on amber is not used.",
+        "section": "colors"
+      },
+      {
+        "name": "The Mono Figures Rule",
+        "body": "Every date, time, price, distance, count and status is set in JetBrains Mono with tabular numerals. Figures never appear in Manrope or Barlow on the board.",
+        "section": "typography"
+      },
+      {
+        "name": "The Condensed Names Rule",
+        "body": "Barlow Condensed is for names of things (artists, cities, screens, sections), always uppercase at weight 800. It is never used for sentences.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Board Rule",
+        "body": "Rows, panels and passes sit flat on the board. Only toasts and modals cast a shadow.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Square Corner Rule",
+        "body": "Nothing on the board is rounded. If a new element needs softness, it gets a quieter colour, not a radius.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "Do build new lists as board rows on the four-column grid with alternating Board Black / Slat slats and 1px hairline rules.",
+      "Do set every date, time, price, distance, count and status in JetBrains Mono with tabular numerals.",
+      "Do report state with status flaps in the four tones (green go, amber wait, red stop, dim quiet).",
+      "Do keep amber for what to read first or press: the day number, prices, the primary action, the selected state, the live square.",
+      "Do mark emphasis with an amber top edge (2px / 3px / 4px) and tear-line dashes, not with radius or shadow.",
+      "Do ease state changes with cubic-bezier(0.16, 1, 0.3, 1) at 160ms and honour reduced motion.",
+      "Do keep sample and unknown data visibly labelled in the board's own voice (mono captions, NO PRICE flaps, the amber sample banner)."
+    ],
+    "donts": [
+      "Don't round any corner.",
+      "Don't turn the feed into a grid of poster-thumbnail cards or a dashboard of KPI tiles; it is a board of rows.",
+      "Don't use green or red outside of status.",
+      "Don't put white text on amber; use amber ink.",
+      "Don't cast shadows from rows, panels or the boarding pass; only toasts and modals float.",
+      "Don't set sentences in Barlow Condensed or figures in Manrope."
+    ]
+  }
+}

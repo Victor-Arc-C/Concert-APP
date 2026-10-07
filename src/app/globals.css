@@ -315,6 +315,12 @@ svg {
 .button.primary:hover:not(:disabled) {
   background: #f6c88b;
 }
+.button.primary:disabled {
+  opacity: 1;
+  background: var(--panel-2);
+  border-color: var(--line-strong);
+  color: var(--dim);
+}
 .button.secondary,
 .button.light,
 .button.glass {
