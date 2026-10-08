@@ -142,6 +142,9 @@ export const fr: Messages = {
   prefs: {
     modalTitle: 'Suis la musique à ta façon',
     homeCity: 'Ta ville',
+    homeHint:
+      'Ta ville de départ ou la plus proche. Choisis « Partout dans mon pays » ou « Partout en Europe » pour suivre tes artistes jusqu’à Paris et ailleurs.',
+    otherEurope: 'Autres villes en Europe',
     scope: 'Jusqu’où irais-tu ?',
     scopeCity: 'Seulement ma ville',
     scopeCountry: 'Partout dans mon pays',
@@ -166,6 +169,8 @@ export const fr: Messages = {
     saved: 'Tes préférences sont enregistrées',
   },
   intent: {
+    addCity: 'Ajouter une ville (9 maximum)',
+    chooseCity: 'Choisir une destination',
     title: (name) => `Faire de ${name} un incontournable`,
     intro:
       'Dis-nous ce qui rendrait ce concert possible pour toi. On note ton envie, sans réserver de billets.',

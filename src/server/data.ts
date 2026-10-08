@@ -63,12 +63,10 @@ export async function evaluateAlerts(
     );
   }
 }
-/** Live discovery candidates beyond the user's own artists (other followed live artists). */
-export const LIVE_DISCOVERY_LIMIT = 100;
 // One live response must stay far below Vercel's 4.5 MB limit however many artists other
 // accounts follow: the user's saved/dismissed/clicked/alerted concerts and saved trips, upcoming
-// European dates of their own (followed or hidden) artists, and a capped set of the nearest
-// other upcoming European concerts for discovery.
+// European dates of their own (followed or hidden) artists. The shared catalogue is for
+// ingestion and artist search; another account's follows must never populate this feed.
 export const LIVE_EVENTS_SQL = `
   SELECT e.data,t.price_min::float AS price,t.currency,
     t.observed_at AS "observedAt",t.disabled_at AS "disabledAt"
@@ -78,13 +76,8 @@ export const LIVE_EVENTS_SQL = `
     e.id IN (SELECT event_id FROM feedback WHERE user_id=$1
              UNION SELECT event_id FROM alerts WHERE user_id=$1
              UNION SELECT event_id FROM saved_trips WHERE user_id=$1)
-    OR (e.data->>'date' >= $2 AND e.data->>'country' = ANY($3::text[]) AND (
-      e.data->'artistIds' ?| $4::text[]
-      OR e.id IN (SELECT d.id FROM events d
-                  WHERE d.sample=FALSE AND d.data->>'date' >= $2
-                    AND d.data->>'country' = ANY($3::text[])
-                    AND NOT (d.data->'artistIds' ?| $4::text[])
-                  ORDER BY d.data->>'date', d.id LIMIT $5))))`;
+    OR (e.data->>'date' >= $2 AND e.data->>'country' = ANY($3::text[])
+      AND e.data->'artistIds' ?| $4::text[]))`;
 export async function getAppData(): Promise<AppData> {
   const user = await currentUser();
   const artistRows = await query<{ data: Artist }>(
@@ -131,7 +124,6 @@ export async function getAppData(): Promise<AppData> {
           [...europe],
           // Hidden artists too: their own page still lists dates; ranking keeps them out of the feed.
           lists.affinities.map((a) => a.artistId),
-          LIVE_DISCOVERY_LIMIT,
         ]);
   const events = eventRows.map(({ data: event, price, currency, observedAt, disabledAt }) =>
     event.provider === 'sample'
@@ -162,7 +154,6 @@ export async function getAppData(): Promise<AppData> {
     user?.preferences ?? defaults,
     new Date(),
     true,
-    artistRows.map((a) => a.data),
   );
   return {
     user,
@@ -176,7 +167,6 @@ export async function getAppData(): Promise<AppData> {
       user?.preferences ?? defaults,
       new Date(),
       false,
-      artistRows.map((a) => a.data),
     ),
     allEvents: all,
     saved: all.filter((e) => e.saved),

@@ -25,7 +25,7 @@ import {
   X,
 } from 'lucide-react';
 import type { Artist, Intent, Preferences } from '@/domain/types';
-import { cities } from '@/domain/catalog';
+import { CityOptions } from './city-options';
 import { groupByArtist } from '@/domain/feed-groups';
 import { useI18n } from '@/i18n/client';
 import { useApp, api } from './context';
@@ -402,26 +402,37 @@ export function IntentForm({ artist, onClose }: { artist: Artist; onClose: () =>
       >
         <fieldset>
           <legend>{t.intent.cities}</legend>
+          <label>
+            {t.intent.addCity}
+            <select
+              value=""
+              disabled={intent.cities.length >= 9}
+              onChange={(e) => {
+                if (e.target.value)
+                  setIntent({ ...intent, cities: [...intent.cities, e.target.value] });
+              }}
+            >
+              <option value="">{t.intent.chooseCity}</option>
+              <CityOptions excluded={intent.cities} />
+            </select>
+          </label>
           <div className="city-chips">
-            {cities.map((c) => {
-              const on = intent.cities.includes(c.name);
+            {intent.cities.map((name) => {
               return (
                 <button
                   type="button"
-                  key={c.name}
-                  aria-pressed={on}
+                  key={name}
+                  aria-pressed={true}
                   className="city-chip"
                   onClick={() =>
                     setIntent({
                       ...intent,
-                      cities: on
-                        ? intent.cities.filter((n) => n !== c.name)
-                        : [...intent.cities, c.name],
+                      cities: intent.cities.filter((n) => n !== name),
                     })
                   }
                 >
-                  {city(c.name)}
-                  {on && <Check size={14} aria-hidden="true" />}
+                  {city(name)}
+                  <X size={14} aria-hidden="true" />
                 </button>
               );
             })}
