@@ -142,6 +142,9 @@ export const en = {
   prefs: {
     modalTitle: 'Follow the music your way',
     homeCity: 'Home city',
+    homeHint:
+      'Your departure city or the nearest one. Choose “Anywhere in my country” or “Across Europe” to follow your artists to Paris and beyond.',
+    otherEurope: 'Other European cities',
     scope: 'Where would you go?',
     scopeCity: 'My city only',
     scopeCountry: 'Anywhere in my country',
@@ -166,6 +169,8 @@ export const en = {
     saved: 'Your preferences are saved',
   },
   intent: {
+    addCity: 'Add a city (up to 9)',
+    chooseCity: 'Choose a destination',
     title: (name: string) => `Make ${name} a must-see`,
     intro:
       'Tell us what would make this show work for you. This records your interest; it doesn’t reserve tickets.',

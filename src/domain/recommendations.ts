@@ -1,13 +1,5 @@
 import { cities } from './catalog';
-import type {
-  Affinity,
-  Artist,
-  Concert,
-  Feedback,
-  Intent,
-  Preferences,
-  RankedConcert,
-} from './types';
+import type { Affinity, Concert, Feedback, Intent, Preferences, RankedConcert } from './types';
 export const europe = new Set([
   'FR',
   'GB',
@@ -64,7 +56,6 @@ export function rankEvents(
   prefs: Preferences,
   now = new Date(),
   includeExcluded = false,
-  discoveryArtists?: Artist[],
 ): RankedConcert[] {
   const homeCountry = cities.find((c) => c.name === prefs.home)?.country;
   return [...new Map(events.map((event) => [event.id, event])).values()]
@@ -95,7 +86,7 @@ export function rankEvents(
       );
       if (
         !includeExcluded &&
-        ((!affinity && !discoveryArtists) ||
+        (!affinity ||
           hidden ||
           action === 'dismissed' ||
           !allowed ||
@@ -120,24 +111,6 @@ export function rankEvents(
       const reasons = affinity
         ? ['You follow this artist']
         : [action === 'saved' ? 'In your saved concerts' : 'Explore this artist’s concerts'];
-      if (!affinity && discoveryArtists) {
-        const genres = (value: string) =>
-          value
-            .toLowerCase()
-            .split('/')
-            .map((s) => s.trim())
-            .filter((s) => s && s !== 'live music');
-        const likedGenres = new Set(
-          discoveryArtists
-            .filter((a) => affinities.some((f) => f.artistId === a.id && !f.hidden))
-            .flatMap((a) => genres(a.genre)),
-        );
-        const similar = genres(event.genre).some((genre) => likedGenres.has(genre));
-        if (similar) {
-          score += 12;
-          reasons[0] = 'Shares a genre with artists you follow';
-        } else reasons[0] = 'Discover a concert in your chosen region';
-      }
       if (must || affinity?.favorite) {
         score += 25;
         reasons[0] = must ? 'On your must-see list' : 'One of your favourites';

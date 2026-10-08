@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('../src/server/db', () => ({ query: vi.fn() }));
 import { query } from '../src/server/db';
-import { defaults } from '../src/domain/catalog';
+import { cities, defaults } from '../src/domain/catalog';
 import { currentQuote, scheduleOnly } from '../src/domain/trip-safety';
 import { generateTripOptions, selectTripProviders, tripSearchContext } from '../src/server/trips';
 import { revalidateSavedTrip } from '../src/server/saved-trips';
@@ -437,11 +437,16 @@ describe('live provider registry', () => {
 
 describe('trip plans with live providers', () => {
   it('uses venue coordinates from the stored provider record, else the city centre', async () => {
-    expect(await tripSearchContext(event, 'Paris')).toEqual(context);
+    const parisCity = cities.find((c) => c.name === 'Paris')!;
+    expect(await tripSearchContext(event, 'Paris')).toEqual({
+      ...context,
+      origin: { latitude: parisCity.latitude, longitude: parisCity.longitude },
+    });
     vi.mocked(query).mockResolvedValue([]);
     expect((await tripSearchContext(event, 'Nowhere')).origin).toBeNull();
     const fallback = await tripSearchContext(event, 'Paris');
-    expect(fallback.venue).toEqual({ latitude: 45.764, longitude: 4.8357 });
+    const lyonCity = cities.find((c) => c.name === 'Lyon')!;
+    expect(fallback.venue).toEqual({ latitude: lyonCity.latitude, longitude: lyonCity.longitude });
     // City centre is not the venue: hotels then get no venue distance (see below).
     expect(fallback.venueExact).toBe(false);
   });

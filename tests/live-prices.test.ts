@@ -76,6 +76,11 @@ it('persists Discovery prices and serves the exact current source, never stale s
   try {
     await migrate(db);
     const event = normalize([{ min: 79.5, currency: 'EUR' }]);
+    await db.query(
+      "INSERT INTO users(id,email,name,password_hash,preferences) VALUES('user','test@example.test','Test','x','{}')",
+    );
+    await db.query("INSERT INTO artists(id,data) VALUES('artist','{}')");
+    await db.query("INSERT INTO affinities(user_id,artist_id) VALUES('user','artist')");
     await storeEvent(event, raw);
     const [{ id }] = await db.query<{ id: string }>('SELECT id FROM events');
     const feed = async () => (await getAppData()).allEvents.find((e) => e.id === id)!;

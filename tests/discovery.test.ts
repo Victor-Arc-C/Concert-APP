@@ -4,46 +4,50 @@ import { defaults } from '../src/domain/catalog';
 import { sampleEvents } from '../src/domain/sample';
 const now = new Date('2026-10-06T00:00:00Z');
 const base = sampleEvents(now)[0];
-const artist = { id: 'liked', name: 'Liked', genre: 'Electronic', color: '#000', initials: 'L' };
 const follow = { artistId: 'liked', favorite: true, hidden: false };
 const events = [
   { ...base, id: 'exact', artistIds: ['liked'] },
   { ...base, id: 'similar', artistIds: ['new'], genre: 'Electronic' },
   { ...base, id: 'other', artistIds: ['other'], genre: 'Rock' },
 ];
-it('keeps exact favourites ahead of deterministic explained discovery', () => {
-  const ranked = rankEvents(events, [follow], [], [], defaults, now, false, [artist]);
-  expect(ranked.map((e) => e.id)).toEqual(['exact', 'similar', 'other']);
-  expect(ranked[1].tier).toBe('Discover');
-  expect(ranked[1].reasons).toContain('Shares a genre with artists you follow');
-  expect(
-    rankEvents([...events].reverse(), [follow], [], [], defaults, now, false, [artist]),
-  ).toEqual(ranked);
-});
-it('provides honest cold-start content while respecting hides, dismissals and geography', () => {
-  expect(rankEvents(events, [], [], [], defaults, now, false, [])).toHaveLength(3);
-  const result = rankEvents(
+it('never inserts other artists into the feed, even with the same genre or saved feedback', () => {
+  const ranked = rankEvents(
     events,
-    [{ ...follow, hidden: true }],
+    [follow],
     [],
-    [{ eventId: 'similar', action: 'dismissed' }],
+    [{ eventId: 'similar', action: 'saved' }],
     defaults,
     now,
-    false,
-    [artist],
   );
-  expect(result.map((e) => e.id)).toEqual(['other']);
-  expect(result[0].reasons[0]).toBe('Discover a concert in your chosen region');
+  expect(ranked.map((e) => e.id)).toEqual(['exact']);
+  expect(rankEvents([...events].reverse(), [follow], [], [], defaults, now)).toEqual(ranked);
+});
+it('leaves the feed empty without followed artists or eligible concerts', () => {
+  expect(rankEvents(events, [], [], [], defaults, now)).toEqual([]);
+  expect(rankEvents(events, [{ ...follow, hidden: true }], [], [], defaults, now)).toEqual([]);
+  expect(
+    rankEvents(events, [follow], [], [{ eventId: 'exact', action: 'dismissed' }], defaults, now),
+  ).toEqual([]);
   expect(
     rankEvents(
-      [{ ...base, country: 'US', city: 'New York' }],
-      [],
+      [{ ...events[0], country: 'US', city: 'New York' }],
+      [follow],
       [],
       [],
       defaults,
       now,
-      false,
-      [],
     ),
   ).toEqual([]);
+});
+it('preserves saved concerts outside the feed without making them implicit follows', () => {
+  const saved = rankEvents(
+    events,
+    [],
+    [],
+    [{ eventId: 'similar', action: 'saved' }],
+    defaults,
+    now,
+    true,
+  );
+  expect(saved.filter((e) => e.saved).map((e) => e.id)).toEqual(['similar']);
 });

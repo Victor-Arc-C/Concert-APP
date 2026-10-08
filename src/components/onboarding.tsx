@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useId, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowUpRight, Check, ChevronLeft, Music2, Search } from 'lucide-react';
 import { api, useApp } from './context';
@@ -8,7 +8,8 @@ import { ArtistPhoto, Brand, LanguageSwitch } from './ui';
 import { Finder, type FinderArtist } from './finder';
 import { gelFor } from './stage/gel';
 import { useCue } from './stage/rig';
-import { cities, defaults } from '@/domain/catalog';
+import { defaults } from '@/domain/catalog';
+import { CityOptions } from './city-options';
 import type { Artist, Preferences } from '@/domain/types';
 import { onboardingSource } from '@/domain/onboarding';
 import { useI18n } from '@/i18n/client';
@@ -147,18 +148,21 @@ export function PreferenceFields({
   value: Preferences;
   onChange: (value: Preferences) => void;
 }) {
-  const { t, city } = useI18n();
+  const { t } = useI18n();
+  const homeHintId = useId();
   return (
     <div className="preference-fields">
       <label>
         {t.prefs.homeCity}
-        <select value={value.home} onChange={(e) => onChange({ ...value, home: e.target.value })}>
-          {cities.map((c) => (
-            <option key={c.name} value={c.name}>
-              {city(c.name)}
-            </option>
-          ))}
+        <select
+          aria-label={t.prefs.homeCity}
+          aria-describedby={homeHintId}
+          value={value.home}
+          onChange={(e) => onChange({ ...value, home: e.target.value })}
+        >
+          <CityOptions />
         </select>
+        <small id={homeHintId}>{t.prefs.homeHint}</small>
       </label>
       <label>
         {t.prefs.scope}

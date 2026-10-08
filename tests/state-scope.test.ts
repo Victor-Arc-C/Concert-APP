@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, expect, it } from 'vitest';
 import { PGlite } from '@electric-sql/pglite';
 import { migrations } from '../src/server/schema';
-import { LIVE_DISCOVERY_LIMIT, LIVE_EVENTS_SQL } from '../src/server/data';
+import { LIVE_EVENTS_SQL } from '../src/server/data';
 import { europe } from '../src/domain/recommendations';
 
 // Live /api/state must not grow with every artist other accounts follow (Vercel 4.5 MB limit).
@@ -27,8 +27,8 @@ beforeAll(async () => {
   await event('saved-past', 'other', '2026-08-01');
   await event('alerted-us', 'other', '2026-12-01', 'US');
   await event('trip-past', 'trip-artist', '2026-09-15', 'ES');
-  // 3x the discovery cap of other artists' upcoming European concerts.
-  for (let i = 0; i < LIVE_DISCOVERY_LIMIT * 3; i++)
+  // A growing shared catalogue must not populate this account.
+  for (let i = 0; i < 300; i++)
     await event(`other-${String(i).padStart(3, '0')}`, `other-${i}`, `2027-0${1 + (i % 9)}-15`);
   await db.exec(`
     INSERT INTO artists(id,data) VALUES('other','{}');
@@ -43,13 +43,7 @@ afterAll(async () => {
 });
 const ids = async (followed: string[]) =>
   (
-    await db.query<{ data: { id: string } }>(LIVE_EVENTS_SQL, [
-      'u',
-      today,
-      [...europe],
-      followed,
-      LIVE_DISCOVERY_LIMIT,
-    ])
+    await db.query<{ data: { id: string } }>(LIVE_EVENTS_SQL, ['u', today, [...europe], followed])
   ).rows.map((r) => r.data.id);
 
 it('keeps upcoming European dates of followed artists plus saved and alerted concerts', async () => {
@@ -66,30 +60,17 @@ it('keeps upcoming European dates of followed artists plus saved and alerted con
   expect(result).not.toContain('mine-past');
   expect(result).not.toContain('mine-us');
 });
-it('caps discovery from other accounts’ artists at the nearest upcoming concerts', async () => {
+it('never loads unrelated concerts from the shared catalogue', async () => {
   const result = await ids(['mine']);
-  const discovery = result.filter((id) => id.startsWith('other-'));
-  expect(discovery.length).toBeLessThanOrEqual(LIVE_DISCOVERY_LIMIT);
-  expect(result.length).toBeLessThanOrEqual(LIVE_DISCOVERY_LIMIT + 5);
-  // Nearest dates first: with 300 candidates over Jan–Sep 2027, only Jan–Apr can fit in 100.
-  const dates = (
-    await db.query<{ id: string; date: string }>(
-      "SELECT id, data->>'date' AS date FROM events WHERE id = ANY($1)",
-      [discovery],
-    )
-  ).rows.map((r) => r.date);
-  expect(dates.every((date) => date <= '2027-04-15')).toBe(true);
-  expect(dates).toContain('2027-01-15');
+  expect(result.filter((id) => id.startsWith('other-'))).toEqual([]);
+  expect(result).toHaveLength(5);
 });
-it('does not spend discovery slots on the user’s own artists', async () => {
-  // Following the artists of 50 other concerts: those 50 come from the followed branch, and
-  // discovery still adds a full set of 100 different concerts.
+it('includes newly followed artists without adding any others', async () => {
   const followed = Array.from({ length: 50 }, (_, i) => `other-${i}`);
   const result = await ids(['mine', ...followed]);
-  expect(result.filter((id) => id.startsWith('other-'))).toHaveLength(50 + LIVE_DISCOVERY_LIMIT);
+  expect(result.filter((id) => id.startsWith('other-'))).toHaveLength(50);
+  expect(result).toHaveLength(55);
 });
-it('works for an account that follows no live artist yet', async () => {
-  const result = await ids([]);
-  expect(result).toEqual(expect.arrayContaining(['saved-past', 'alerted-us']));
-  expect(result.length).toBeLessThanOrEqual(LIVE_DISCOVERY_LIMIT + 3);
+it('keeps only personal history when the account follows no artist', async () => {
+  expect((await ids([])).sort()).toEqual(['alerted-us', 'saved-past', 'trip-past']);
 });

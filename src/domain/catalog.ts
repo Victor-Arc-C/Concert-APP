@@ -1,7 +1,6 @@
 import type { Artist, Preferences } from './types';
-export const cities = [
-  { latitude: 48.8566, longitude: 2.3522, name: 'Paris', country: 'FR' },
-  { latitude: 45.764, longitude: 4.8357, name: 'Lyon', country: 'FR' },
+import { frenchCities } from './french-cities';
+export const internationalCities = [
   { latitude: 51.5074, longitude: -0.1278, name: 'London', country: 'GB' },
   { latitude: 52.3676, longitude: 4.9041, name: 'Amsterdam', country: 'NL' },
   { latitude: 50.8503, longitude: 4.3517, name: 'Brussels', country: 'BE' },
@@ -10,6 +9,13 @@ export const cities = [
   { latitude: 40.4168, longitude: -3.7038, name: 'Madrid', country: 'ES' },
   { latitude: 45.4642, longitude: 9.19, name: 'Milan', country: 'IT' },
 ];
+export const cities = [...frenchCities, ...internationalCities];
+export const frenchCityGroups = [...new Set(frenchCities.map((c) => c.region))].map((region) => ({
+  region,
+  cities: frenchCities
+    .filter((c) => c.region === region)
+    .sort((a, b) => a.name.localeCompare(b.name, 'fr')),
+}));
 export const artists: Artist[] = [
   { id: 'fred-again', name: 'Fred again..', genre: 'Electronic', color: '#BA8269', initials: 'fa' },
   {
