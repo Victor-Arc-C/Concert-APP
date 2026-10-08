@@ -3926,6 +3926,28 @@ legend {
   font-size: 18px;
   letter-spacing: -0.02em;
 }
+.mode-price {
+  margin-left: auto;
+  font-size: 18px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.fare-found {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: var(--r-m);
+  background: var(--white);
+  border: 1px solid var(--line);
+  font-size: 14px;
+}
+.fare-found p {
+  margin: 0;
+}
+.fare-found small {
+  font-size: 13px;
+  color: var(--ink-mute);
+}
 .mode-tag {
   padding: 3px 9px;
   border-radius: 8px;

@@ -173,6 +173,22 @@ export type TransportComparison = {
     date: string;
     /** Latest sensible landing time, local to the concert, when the show time is known. */
     landBy: string | null;
+    /**
+     * Cheapest fare on the concert day that Aviasales travellers found in the last 48 hours
+     * (Travelpayouts), with a link to book it. Null without a token or without a result.
+     */
+    fare: {
+      price: number;
+      currency: 'EUR';
+      airline: string | null;
+      flightNumber: string | null;
+      departureAt: string;
+      arrivalAt: string | null;
+      transfers: number | null;
+      bookingUrl: string;
+    } | null;
+    /** True when the fare provably lands by `landBy`; null when its landing time is unknown. */
+    fareOnTime: boolean | null;
   } | null;
   train: { status: 'served'; routes: TrainRoute[] } | { status: 'none'; reason: string } | null;
   road: { coachUrl: string | null; coachRoute: string | null } | null;

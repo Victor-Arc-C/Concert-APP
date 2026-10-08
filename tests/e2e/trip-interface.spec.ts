@@ -309,6 +309,17 @@ test('a far-away show offers the plane first, with the landing deadline, and no 
               'https://omio.sjv.io/c/7922007/409973/7385?u=https%3A%2F%2Fwww.omio.fr%2Fvols%2Fparis%2Fathenes&subId1=encore-trip&subId2=vols',
             date: '2027-01-20',
             landBy: '17:00',
+            fare: {
+              price: 79,
+              currency: 'EUR',
+              airline: 'TO',
+              flightNumber: '3500',
+              departureAt: '2027-01-20T09:20:00+01:00',
+              arrivalAt: '2027-01-20T11:35:00.000Z',
+              transfers: 0,
+              bookingUrl: 'https://www.aviasales.com/search/PAR2001ATH1?marker=123456',
+            },
+            fareOnTime: true,
           },
           train: null,
           road: null,
@@ -335,5 +346,14 @@ test('a far-away show offers the plane first, with the landing deadline, and no 
   await expect(getThere.getByRole('link', { name: 'Compare flights on Omio' })).toBeVisible();
   await expect(getThere.getByText('Car')).toHaveCount(0);
   await expect(getThere.getByText('Coach')).toHaveCount(0);
+  // The cheapest flight landing in time, priced, and added to the trip so far.
+  await expect(getThere.locator('[data-mode=flight] .mode-price')).toHaveText('€79');
+  await expect(getThere.getByText('TO 3500')).toBeVisible();
+  await expect(getThere.getByText('departs 09:20, lands 12:35 local time · direct')).toBeVisible();
+  await expect(
+    getThere.getByRole('link', { name: 'Book this flight on Aviasales' }),
+  ).toHaveAttribute('href', 'https://www.aviasales.com/search/PAR2001ATH1?marker=123456');
+  const total = page.locator('.trip-total');
+  await expect(total.locator('.total-price')).toHaveText('€142.18');
   await getThere.screenshot({ path: 'test-results/getting-there-far.png' });
 });

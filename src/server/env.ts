@@ -46,6 +46,16 @@ const schema = z
         )
         .optional(),
     ),
+    // Travelpayouts (Aviasales Data API): flight prices for the concert day. Token from the
+    // Travelpayouts dashboard (Profile → API token); marker = partner ID, for commission.
+    TRAVELPAYOUTS_TOKEN: optionalString,
+    TRAVELPAYOUTS_MARKER: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      z
+        .string()
+        .regex(/^\d{1,12}$/, 'The marker is the numeric partner ID.')
+        .optional(),
+    ),
     // Web Push (VAPID). Generate once with `npx web-push generate-vapid-keys`; without both keys
     // the app keeps alerts in the in-app inbox only.
     VAPID_PUBLIC_KEY: optionalString,
@@ -93,6 +103,7 @@ const schema = z
         settings.DATABASE_URL ||
         settings.TICKETMASTER_API_KEY ||
         settings.SNCF_API_KEY ||
+        settings.TRAVELPAYOUTS_TOKEN ||
         settings.LITEAPI_API_KEY ||
         settings.SPOTIFY_APPROVED === 'true')
     )

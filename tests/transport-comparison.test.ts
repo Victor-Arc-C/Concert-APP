@@ -23,7 +23,24 @@ vi.mock('../src/server/providers/rail', () => ({
     ],
   })),
 }));
+vi.mock('../src/server/providers/travelpayouts', () => ({
+  landingDeadline: vi.fn(() => Date.parse('2027-05-12T14:00:00Z')),
+  cheapestFlight: vi.fn(async () => ({
+    onTime: true,
+    fare: {
+      price: 79,
+      currency: 'EUR',
+      airline: 'TO',
+      flightNumber: '3500',
+      departureAt: '2027-05-12T09:20:00+02:00',
+      arrivalAt: '2027-05-12T10:35:00.000Z',
+      transfers: 0,
+      bookingUrl: 'https://www.aviasales.com/search/PAR1205ATH1',
+    },
+  })),
+}));
 import { trainRoutes } from '../src/server/providers/rail';
+import { cheapestFlight } from '../src/server/providers/travelpayouts';
 import { landBy, transportComparison } from '../src/server/transport-comparison';
 
 const show = (city: string, localTime = '20:00:00') =>
@@ -41,6 +58,7 @@ it('a show 300 km away: train first, car and coach, no plane, no estimated price
   const result = (await transportComparison(show('Amneville Les Thermes'), 'Paris'))!;
   expect(result.recommended).toBe('train');
   expect(result.flight).toBeNull();
+  expect(cheapestFlight).not.toHaveBeenCalled();
   expect(result.train?.status).toBe('served');
   if (result.train?.status !== 'served') return;
   expect(u(result.train.routes[0].bookingUrl)).toBe('https://www.omio.fr/trains/paris/metz');
@@ -63,6 +81,16 @@ it('a show in Athens: the plane only, landing three hours before the show', asyn
   expect(search.hostname).toBe('www.google.com');
   expect(search.searchParams.get('q')).toBe('Flights from PAR to ATH on 2027-05-12 one way');
   expect(u(result.flight!.omioUrl)).toBe('https://www.omio.fr/vols/paris/athenes');
+  // The cheapest flight landing in time, from the concert day's fares.
+  expect(result.flight).toMatchObject({ fareOnTime: true, fare: { price: 79, airline: 'TO' } });
+  expect(cheapestFlight).toHaveBeenCalledWith(
+    'PAR',
+    'ATH',
+    '2027-05-12',
+    Date.parse('2027-05-12T14:00:00Z'),
+    expect.anything(),
+    expect.anything(),
+  );
 });
 
 it('a show 600 km away by train: train first, plane offered too', async () => {

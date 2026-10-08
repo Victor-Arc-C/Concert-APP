@@ -89,6 +89,7 @@ export function TripPlanner({ eventId }: { eventId: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [revision, setRevision] = useState(0);
+  const [flightFare, setFlightFare] = useState<{ price: number; currency: string } | null>(null);
   const [clock, setClock] = useState(() => new Date());
   useEffect(() => {
     const timer = setInterval(() => setClock(new Date()), 1000);
@@ -146,7 +147,21 @@ export function TripPlanner({ eventId }: { eventId: string }) {
     );
   }
 
-  const known = selectedTrip ? knownTripCost(selectedTrip) : null!;
+  // A flight fare found for the concert day stands in for the transport price when the plan
+  // itself has none (timetables carry no fare).
+  const flightTransport =
+    flightFare &&
+    !(selectedTrip?.transport?.price != null && selectedTrip.transportState === 'ready')
+      ? {
+          transport: {
+            price: flightFare.price,
+            currency: flightFare.currency,
+            priceComplete: true,
+          },
+          transportState: 'ready',
+        }
+      : {};
+  const known = selectedTrip ? knownTripCost({ ...selectedTrip, ...flightTransport }) : null!;
   const travelExpired = selectedTrip?.transportState === 'stale';
   const stayExpired = selectedTrip?.accommodationState === 'stale';
   const externalSearchAllowed =
@@ -210,7 +225,14 @@ export function TripPlanner({ eventId }: { eventId: string }) {
       </header>
 
       {externalSearchAllowed && !atHome && (
-        <GettingThere eventId={event.id} origin={origin} city={event.city} venue={event.venue} />
+        <GettingThere
+          eventId={event.id}
+          origin={origin}
+          city={event.city}
+          venue={event.venue}
+          timeZone={event.timezone}
+          onFlightFare={setFlightFare}
+        />
       )}
 
       {loading && (

@@ -61,3 +61,13 @@ Omio approved Encore on Impact ("Omio Travel Partner Program", campaign 7385; on
 - Link builder: `src/server/providers/omio.ts`. Route pages are `https://www.omio.fr/{trains|bus}/{from}/{to}` with Omio's slugs (lower case, no accents, `-`). They exist for towns with a station or coach stop (Metz, Thionville, Saint-Étienne…), not for small venue towns (Amnéville returns 410), so links use the **town of the arrival station** from the fare comparison, resolved from the station's INSEE code through geo.api.gouv.fr (arrondissements fold into Paris, Lyon, Marseille).
 - Tracking: `OMIO_AFFILIATE_URL` is the long Impact link without query, e.g. `https://omio.sjv.io/c/<partner>/<ad>/<campaign>` (Impact → link icon → "Create and share link" gives a short `omio.sjv.io/…` link; its redirect reveals the long form). Encore adds `u=<route page>`, `subId1=encore-trip`, `subId2=<trains|bus>`; no personal data. Without the variable, links go to omio.fr unattributed.
 - Checked by hand on 7 October 2026: the long link lands on `/trains/paris/metz` with Impact's click ID.
+
+## Flight fares (Travelpayouts)
+
+`src/server/providers/travelpayouts.ts` reads the Aviasales Data API `GET /aviasales/v3/prices_for_dates` (origin and destination city codes from `airport-cities.ts`, the concert day, one way, EUR; token in the `X-Access-Token` header). These are **real fares Aviasales travellers found in the last 48 hours**, not a live booking quote, and the page says so.
+
+- Only flights leaving on the concert day. The cheapest that provably lands at least three hours before the show (show start in the venue's timezone; arrival = departure + `duration_to`/`duration`) wins. Flights without a duration count only when none is provably on time, and the page asks to check the landing time.
+- Booking link: the itinerary `link` the API returns on aviasales.com (never another host), else `https://www.aviasales.com/search/PAR1205ATH1`, with `marker=<TRAVELPAYOUTS_MARKER>` for commission.
+- Cached 30 minutes per route and day. Without `TRAVELPAYOUTS_TOKEN`, nothing is fetched and the Google Flights link remains.
+- The fare is added to "Trip so far" as the transport price when the plan has no transport price of its own.
+- **To verify with a real token**: the response field names (`price`, `airline`, `flight_number`, `departure_at`, `duration_to`, `link`) follow Travelpayouts' published examples; the official reference was not reachable from the build machine.
