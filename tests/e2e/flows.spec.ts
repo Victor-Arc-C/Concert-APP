@@ -517,7 +517,7 @@ test('trip intelligence flow: concert -> plan trip -> compare itineraries -> sav
 
   // On the Trip Planner screen
   await expect(page.getByRole('heading', { name: /in Amsterdam/ })).toBeVisible();
-  await expect(page.getByText('Trip Intelligence')).toBeVisible();
+  await expect(page.getByText('Trip plan', { exact: true })).toBeVisible();
 
   // Check that options are generated and loaded
   await expect(page.locator('.option-pill-group button').first()).toBeVisible();

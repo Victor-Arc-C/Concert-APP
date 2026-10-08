@@ -515,7 +515,7 @@ export const fr: Messages = {
     notFound: 'Concert introuvable.',
     backToDetail: 'Retour au concert',
     title: (artist, city) => `${artist} à ${city}`,
-    badge: 'Trip Intelligence',
+    badge: 'Plan de voyage',
     fromHome: (city) => `Depuis ${city}`,
     sampleTrip: 'Voyage de démo : trajets, hébergements, prix et distances sont fictifs.',
     homeCityTravel:

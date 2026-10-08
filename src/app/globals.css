@@ -3193,8 +3193,8 @@ legend {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 12px 8px;
-  max-width: 420px;
+  gap: 12px 6px;
+  max-width: 440px;
   margin: 18px 0 0;
   padding: 0;
   list-style: none;
@@ -3233,7 +3233,7 @@ legend {
   display: -webkit-box;
   max-width: 64px;
   overflow: hidden;
-  font-size: 10.5px;
+  font-size: 12px;
   line-height: 1.2;
   text-align: center;
   overflow-wrap: anywhere;

@@ -188,6 +188,15 @@
         ],
         "createdAt": "2026-10-07T22:04:00.069Z",
         "reason": "Claude: full-width Impact-Site-Verification line required by the Omio/Impact partner check; its text is padded 20px"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "design/rebrand/f-pitstop/marketing.html"
+        ],
+        "createdAt": "2026-10-08T02:13:45.669Z",
+        "reason": "Claude: truss rails in the approved step-1 prototype, a full-width stage element, not a card side-tab"
       }
     ]
   }

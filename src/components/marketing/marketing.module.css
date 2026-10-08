@@ -473,15 +473,16 @@
     order: 3;
     margin-top: 18px;
   }
-  .floor {
-    order: 4;
-    margin-top: 40px;
-  }
   .more {
-    order: 5;
+    order: 4;
     position: relative;
     z-index: 2;
-    margin-top: 44px;
+    margin-top: 2px;
+    font-size: 14px;
+  }
+  .floor {
+    order: 5;
+    margin-top: 28px;
   }
   .hint {
     order: 6;

@@ -509,7 +509,7 @@ export const en = {
     notFound: 'Concert not found.',
     backToDetail: 'Back to concert detail',
     title: (artist: string, city: string) => `${artist} in ${city}`,
-    badge: 'Trip Intelligence',
+    badge: 'Trip plan',
     fromHome: (city: string) => `From ${city}`,
     sampleTrip: 'Sample trip: all travel, stays, prices and distances are fictional.',
     homeCityTravel:
