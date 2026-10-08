@@ -13,6 +13,8 @@ export const preferencesSchema = z
     budget: z.number().min(1).max(10000).nullable(),
     notifications: z.enum(['off', 'critical', 'important', 'everything']),
     analytics: z.boolean(),
+    // Interface language, so notifications sent later use it too.
+    locale: z.enum(['en', 'fr']).optional(),
   })
   .refine((p) => !p.dateFrom || !p.dateTo || p.dateFrom <= p.dateTo, {
     message: 'End date must be on or after start date',

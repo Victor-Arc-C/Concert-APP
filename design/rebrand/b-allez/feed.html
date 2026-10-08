@@ -1,0 +1,979 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#ffd93b" />
+    <title>Allez · feed prototype</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@50..150,400..900&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../shared/proto.css" />
+    <style>
+      :root {
+        --sun: #ffd93b;
+        --sun-deep: #f6c600;
+        --paper: #fffbea;
+        --grape: #24113f;
+        --grape-soft: #4b3566;
+        --marker: #e8005a;
+        --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+        --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+        --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+        --display: 'Anybody', 'Arial Narrow', system-ui, sans-serif;
+        --text: 'Hanken Grotesk', system-ui, sans-serif;
+      }
+      ::selection {
+        background: var(--grape);
+        color: var(--sun);
+      }
+      body {
+        font-family: var(--text);
+        color: var(--grape);
+        background: var(--sun);
+      }
+      .device {
+        background: var(--sun);
+      }
+      .screen {
+        position: absolute;
+        inset: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding: calc(var(--safe-top) + 6px) 16px calc(var(--safe-bottom) + 100px);
+        scrollbar-width: none;
+      }
+      .screen::-webkit-scrollbar {
+        display: none;
+      }
+      :focus-visible {
+        outline: 3px solid var(--grape);
+        outline-offset: 3px;
+        border-radius: 6px;
+      }
+      button {
+        cursor: pointer;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
+      .top {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 52px;
+      }
+      .logo {
+        position: relative;
+        display: inline-block;
+        padding: 6px 12px;
+        font: 900 24px/1 var(--display);
+        font-stretch: 125%;
+        letter-spacing: 0.01em;
+        color: var(--grape);
+        text-decoration: none;
+      }
+      .logo svg {
+        position: absolute;
+        inset: -2px -4px;
+        width: calc(100% + 8px);
+        height: calc(100% + 4px);
+        overflow: visible;
+      }
+      .logo path {
+        fill: none;
+        stroke: var(--marker);
+        stroke-width: 3;
+        stroke-linecap: round;
+        vector-effect: non-scaling-stroke;
+      }
+      .spacer {
+        flex: 1;
+      }
+      .ghost {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        height: 44px;
+        min-width: 44px;
+        padding: 0 12px;
+        border: 2px solid var(--grape);
+        border-radius: 14px;
+        background: transparent;
+        color: var(--grape);
+        font-weight: 800;
+        font-size: 15px;
+        position: relative;
+        transition: transform 120ms var(--ease-out);
+      }
+      .ghost.icon {
+        padding: 0;
+      }
+      .ghost:active {
+        transform: scale(0.96);
+      }
+      .ghost .badge {
+        position: absolute;
+        top: 7px;
+        right: 8px;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--marker);
+        box-shadow: 0 0 0 2px var(--sun);
+      }
+
+      .poster-title {
+        margin: 18px 0 0;
+        font: 900 64px/0.86 var(--display);
+        text-transform: uppercase;
+        letter-spacing: -0.01em;
+      }
+      .sample {
+        margin: 10px 0 0;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--grape-soft);
+      }
+      .notice {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        margin: 14px 0 0;
+        padding: 12px 14px;
+        border-radius: 16px;
+        background: var(--paper);
+        font-size: 14px;
+        line-height: 1.4;
+        font-weight: 600;
+      }
+      .notice svg {
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .notice button {
+        margin-left: auto;
+        border: 0;
+        background: none;
+        font-weight: 800;
+        color: var(--grape);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        padding: 0 0 0 8px;
+      }
+
+      /* Filters as poster day-tabs: the marker underline moves to the chosen one. */
+      .days {
+        position: relative;
+        display: flex;
+        gap: 4px;
+        margin: 20px -4px 6px;
+      }
+      .days button {
+        position: relative;
+        height: 44px;
+        padding: 0 10px;
+        border: 0;
+        background: none;
+        color: var(--grape-soft);
+        font: 800 15px/1 var(--display);
+        font-stretch: 112%;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        transition: color 160ms ease;
+      }
+      .days button[aria-pressed='true'] {
+        color: var(--grape);
+      }
+      .days button span {
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+      }
+      .underline {
+        position: absolute;
+        left: 0;
+        bottom: 2px;
+        height: 12px;
+        width: 100px;
+        pointer-events: none;
+        transition:
+          transform 360ms var(--ease-in-out),
+          width 360ms var(--ease-in-out);
+      }
+      .underline path {
+        fill: none;
+        stroke: var(--marker);
+        stroke-width: 3.5;
+        stroke-linecap: round;
+        vector-effect: non-scaling-stroke;
+      }
+
+      /* The lineup. Each name is stretched until it fills its line, like a festival bill. */
+      .month {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 22px 0 4px;
+        font: 800 13px/1 var(--display);
+        font-stretch: 140%;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .month::after {
+        content: '';
+        flex: 1;
+        height: 2px;
+        background: var(--grape);
+        opacity: 0.85;
+      }
+      .act {
+        position: relative;
+        padding: 6px 0 12px;
+      }
+      .act + .act {
+        border-top: 2px dotted rgb(36 17 63 / 0.35);
+      }
+      .act.enter {
+        animation: in 360ms var(--ease-out) both;
+        animation-delay: calc(var(--i) * 32ms);
+      }
+      @keyframes in {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+      }
+      .name {
+        position: relative;
+        display: block;
+        width: 100%;
+        padding: 0;
+        border: 0;
+        background: none;
+        color: var(--grape);
+        text-align: left;
+        font-family: var(--display);
+        font-weight: 850;
+        line-height: 0.92;
+        text-transform: uppercase;
+        white-space: nowrap;
+        letter-spacing: -0.005em;
+      }
+      .name.must {
+        font-weight: 900;
+      }
+      .name.wraps {
+        white-space: normal;
+        text-wrap: balance;
+      }
+      .name .txt {
+        position: relative;
+        display: inline-block;
+        max-width: 100%;
+        padding: 2px 0;
+      }
+      .name svg.circle {
+        position: absolute;
+        left: -9px;
+        top: -9px;
+        width: calc(100% + 18px);
+        height: calc(100% + 18px);
+        overflow: visible;
+        pointer-events: none;
+      }
+      .circle path {
+        fill: none;
+        stroke: var(--marker);
+        stroke-width: 3.5;
+        stroke-linecap: round;
+        stroke-dasharray: var(--len, 2000);
+        stroke-dashoffset: var(--len, 2000);
+        transition: stroke-dashoffset 260ms var(--ease-out);
+      }
+      .act.is-saved .circle path {
+        stroke-dashoffset: 0;
+        transition: stroke-dashoffset 560ms var(--ease-in-out);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .circle path,
+        .act.is-saved .circle path {
+          transition: opacity 200ms ease;
+          stroke-dashoffset: 0;
+          opacity: 0;
+        }
+        .act.is-saved .circle path {
+          opacity: 1;
+        }
+        .act.enter {
+          animation-name: fade;
+        }
+        @keyframes fade {
+          from {
+            opacity: 0;
+          }
+        }
+      }
+      .is-off .name .txt {
+        text-decoration: line-through;
+        text-decoration-thickness: 4px;
+        opacity: 0.5;
+      }
+      .meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .meta .ph.mini {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        border: 3px solid #fff;
+        background: var(--sun-deep);
+        rotate: -4deg;
+        box-shadow: 0 6px 12px -8px rgb(36 17 63 / 0.6);
+      }
+      .act:nth-of-type(even) .meta .ph.mini {
+        rotate: 3deg;
+      }
+      .meta .ph.mini .ph-fallback {
+        font: 900 14px/1 var(--display);
+        font-stretch: 120%;
+      }
+      .meta p {
+        flex: 1;
+        min-width: 0;
+        margin: 0;
+        font-size: 14px;
+        line-height: 1.35;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
+      .meta p b {
+        font-weight: 800;
+      }
+      .meta .soft {
+        color: var(--grape-soft);
+      }
+      .pill-flag {
+        display: inline-block;
+        margin-left: 4px;
+        padding: 1px 6px;
+        border-radius: 6px;
+        background: var(--grape);
+        color: var(--sun);
+        font-size: 12px;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+      .circle-it {
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        width: 44px;
+        height: 44px;
+        border: 2px solid var(--grape);
+        border-radius: 50%;
+        background: transparent;
+        color: var(--grape);
+        transition:
+          background-color 200ms ease,
+          color 200ms ease,
+          border-color 200ms ease,
+          transform 120ms var(--ease-out);
+      }
+      .circle-it:active {
+        transform: scale(0.92);
+      }
+      .circle-it[aria-pressed='true'] {
+        background: var(--marker);
+        border-color: var(--marker);
+        color: #fff;
+      }
+      .circle-it:disabled {
+        opacity: 0.4;
+      }
+
+      .empty {
+        margin-top: 26px;
+        padding: 26px 20px;
+        border-radius: 24px;
+        background: var(--paper);
+      }
+      .empty b {
+        display: block;
+        font: 900 34px/0.9 var(--display);
+        font-stretch: 120%;
+        text-transform: uppercase;
+      }
+      .empty p {
+        margin: 12px 0 18px;
+        font-size: 15px;
+        line-height: 1.45;
+        font-weight: 500;
+      }
+      .solid {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        height: 50px;
+        padding: 0 20px;
+        border: 0;
+        border-radius: 16px;
+        background: var(--grape);
+        color: var(--sun);
+        font-weight: 800;
+        font-size: 16px;
+        text-decoration: none;
+        transition: transform 120ms var(--ease-out);
+      }
+      .solid:active {
+        transform: scale(0.97);
+      }
+
+      /* Detail sheet: rises from the name, drags down to close. */
+      .scrim {
+        position: absolute;
+        inset: 0;
+        z-index: 40;
+        background: rgb(36 17 63 / 0.42);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 300ms ease;
+      }
+      .scrim.on {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .sheet {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 41;
+        max-height: calc(100% - var(--safe-top) - 24px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding: 10px 20px calc(var(--safe-bottom) + 20px);
+        border-radius: 30px 30px 0 0;
+        background: var(--paper);
+        transform: translateY(105%);
+        visibility: hidden;
+      }
+      .sheet.open {
+        visibility: visible;
+      }
+      .grabber {
+        display: block;
+        width: 44px;
+        height: 5px;
+        margin: 0 auto 10px;
+        border-radius: 3px;
+        background: rgb(36 17 63 / 0.25);
+        touch-action: none;
+      }
+      .sheet .drag {
+        touch-action: none;
+        padding-bottom: 4px;
+      }
+      .sticker {
+        position: relative;
+        width: 180px;
+        height: 180px;
+        margin: 6px auto 0;
+        border-radius: 26px;
+        border: 6px solid #fff;
+        background: var(--sun-deep);
+        rotate: -3deg;
+        box-shadow: 0 18px 30px -16px rgb(36 17 63 / 0.55);
+      }
+      .sticker .ph {
+        position: absolute;
+        inset: 0;
+        border-radius: 20px;
+      }
+      .sticker .ph-fallback {
+        font: 900 64px/1 var(--display);
+        font-stretch: 130%;
+      }
+      .sheet h2 {
+        margin: 18px 0 0;
+        font: 900 40px/0.9 var(--display);
+        font-stretch: 110%;
+        text-transform: uppercase;
+        text-align: center;
+        overflow-wrap: anywhere;
+        text-wrap: balance;
+      }
+      .sheet .why {
+        margin: 8px 0 0;
+        text-align: center;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--grape-soft);
+      }
+      .facts {
+        list-style: none;
+        margin: 18px 0 0;
+        padding: 0;
+        display: grid;
+        gap: 2px;
+      }
+      .facts li {
+        display: grid;
+        grid-template-columns: 26px minmax(0, 1fr);
+        gap: 10px;
+        padding: 12px 0;
+        border-top: 2px dotted rgb(36 17 63 / 0.3);
+        font-size: 15px;
+        line-height: 1.4;
+        font-weight: 600;
+      }
+      .facts li small {
+        display: block;
+        color: var(--grape-soft);
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .actions {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        margin-top: 16px;
+      }
+      .actions .ghost {
+        height: 50px;
+      }
+      .actions .ghost[aria-pressed='true'] {
+        background: var(--marker);
+        border-color: var(--marker);
+        color: #fff;
+      }
+
+      .tabs {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 30;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        padding: 6px 4px calc(var(--safe-bottom) + 4px);
+        background: var(--paper);
+        border-top: 2px solid var(--grape);
+      }
+      .tabs a {
+        position: relative;
+        display: grid;
+        justify-items: center;
+        gap: 3px;
+        min-height: 50px;
+        padding-top: 6px;
+        color: var(--grape-soft);
+        font-size: 11px;
+        font-weight: 700;
+        text-decoration: none;
+      }
+      .tabs a[aria-current] {
+        color: var(--grape);
+        font-weight: 800;
+      }
+      .tabs a[aria-current] svg {
+        color: var(--marker);
+      }
+      .tabs .count {
+        position: absolute;
+        top: 0;
+        left: calc(50% + 6px);
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 9px;
+        background: var(--marker);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 800;
+        line-height: 18px;
+      }
+      .toast {
+        position: absolute;
+        left: 16px;
+        right: 16px;
+        bottom: calc(var(--safe-bottom) + 86px);
+        z-index: 35;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 12px 12px 16px;
+        border-radius: 16px;
+        background: var(--grape);
+        color: var(--sun);
+        font-weight: 700;
+        font-size: 15px;
+        transform: translateY(16px);
+        opacity: 0;
+        transition:
+          transform 300ms ease,
+          opacity 300ms ease;
+        pointer-events: none;
+      }
+      .toast.show {
+        transform: none;
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .toast button {
+        margin-left: auto;
+        height: 36px;
+        padding: 0 12px;
+        border: 0;
+        border-radius: 10px;
+        background: rgb(255 217 59 / 0.16);
+        color: var(--sun);
+        font-weight: 800;
+      }
+    </style>
+  </head>
+  <body class="phone-page">
+    <div class="device">
+      <div class="screen" id="screen"></div>
+      <div class="scrim" id="scrim"></div>
+      <section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title"></section>
+      <div class="toast" role="status" aria-live="polite" id="toast"></div>
+      <nav class="tabs" aria-label="Main"></nav>
+    </div>
+    <script src="../shared/icons.js"></script>
+    <script src="../shared/data.js"></script>
+    <script src="../shared/proto.js"></script>
+    <script>
+      const { shows, mode, providerError, note } = PROTO;
+      const { dateParts, money, esc, Spring, photo, project, reduceQuery } = P;
+      if (PROTO.embed) document.body.classList.add('embed');
+      const screen = document.getElementById('screen');
+      const saved = new Set(mode === 'demo' ? ['kendrick-ams'] : []);
+      let filter = 'all';
+
+      // A hand-drawn loop: overshoots its start so the ends cross, like a real marker circle.
+      const loop = `<svg class="circle" aria-hidden="true"><path/></svg>`;
+      // The loop is drawn at each name's real size so the stroke stays even and the dash
+      // length (used to draw it on) is measured, not guessed.
+      const LOOP = [[60,3.5],[86,3,99,11,97.5,21],[96,33,70,38.5,46,37.5],[20,36.5,2.5,31,3,20],[3.5,8.5,25,3,52,3],[68,3,83,5.5,90,9.5]];
+      function sizeLoop(txt) {
+        const svg = txt.querySelector('svg.circle');
+        const path = svg.querySelector('path');
+        const W = txt.offsetWidth + 18;
+        const H = txt.offsetHeight + 18;
+        const pt = (x, y) => `${((x / 100) * W).toFixed(1)} ${((y / 40) * H).toFixed(1)}`;
+        const [m, ...curves] = LOOP;
+        path.setAttribute('d', `M${pt(...m)} ` + curves.map((c) => `C ${pt(c[0], c[1])}, ${pt(c[2], c[3])}, ${pt(c[4], c[5])}`).join(' '));
+        svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+        path.style.setProperty('--len', Math.ceil(path.getTotalLength()) + 2);
+      }
+      const logo = `<a class="logo" href="#" aria-label="Allez home">ALLEZ<svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true"><path d="M58 4 C 84 3, 99 10, 98 20 C 97 32, 72 38, 46 37.5 C 19 37, 2 31, 3 19.5 C 4 8, 27 3.5, 54 3.5 C 70 3.5, 84 6, 91 10"/></svg></a>`;
+
+      const priceText = (s) => {
+        if (s.status === 'cancelled') return `<span class="pill-flag">Cancelled</span>`;
+        if (s.status === 'postponed') return `<span class="pill-flag">Postponed</span>`;
+        const m = money(s.price);
+        return m ? `from <b>${m}</b>` : `<span class="soft">price not listed</span>`;
+      };
+      const travelText = (s) => {
+        if (!s.travel) return '';
+        if (!s.travel.duration) return '<span class="soft">no timetable yet</span>';
+        return `${s.travel.mode === 'flight' ? 'flight' : 'train'} ${s.travel.duration}`;
+      };
+
+      const act = (s, i) => {
+        const p = dateParts(s.date);
+        const off = s.status === 'cancelled';
+        return `<article class="act enter ${saved.has(s.id) ? 'is-saved' : ''} ${off ? 'is-off' : ''}" style="--i:${i}" data-id="${s.id}">
+          <button class="name ${s.mustSee ? 'must' : ''}" data-size="${s.mustSee ? 58 : 40}" aria-haspopup="dialog"><span class="txt">${esc(s.artist)}${loop}</span></button>
+          <div class="meta">
+            ${photo(s, 'mini')}
+            <p><b>${p.dow} ${p.day} ${p.mon}</b> · ${esc(s.city)}, ${esc(s.venue)} · ${[priceText(s), travelText(s)].filter(Boolean).join(' · ')}</p>
+            <button class="circle-it" aria-pressed="${saved.has(s.id)}" ${off ? 'disabled' : ''} aria-label="${saved.has(s.id) ? 'Uncircle' : 'Circle'} ${esc(s.artist)}, ${p.full}">${icon(saved.has(s.id) ? 'check' : 'plus', 20, 2.6)}</button>
+          </div>
+        </article>`;
+      };
+
+      const visible = () => shows.filter((s) => (filter === 'home' ? s.home : filter === 'trip' ? !s.home : true));
+
+      // Fit each name to its line by stretching the width axis; wrap only when even the
+      // narrowest cut cannot hold it.
+      function fit(root = document) {
+        root.querySelectorAll('.name').forEach((btn) => {
+          const txt = btn.querySelector('.txt');
+          const max = btn.clientWidth;
+          const base = Number(btn.dataset.size);
+          btn.classList.remove('wraps');
+          btn.style.fontSize = `${base}px`;
+          btn.style.fontStretch = '100%';
+          const w100 = txt.scrollWidth;
+          let stretch = (100 * max) / w100;
+          let size = base;
+          if (stretch > 150) {
+            size = Math.min(base * 1.3, (base * stretch) / 150);
+            stretch = 150;
+          }
+          if (stretch < 62) {
+            btn.classList.add('wraps');
+            btn.style.fontSize = `${Math.round(base * 0.8)}px`;
+            btn.style.fontStretch = '78%';
+          } else {
+            btn.style.fontSize = `${size}px`;
+            btn.style.fontStretch = `${Math.floor(stretch * 0.985)}%`;
+          }
+          sizeLoop(txt);
+        });
+      }
+
+      function renderList(flip) {
+        const list = document.getElementById('lineup');
+        const before = new Map();
+        if (flip) list.querySelectorAll('.act').forEach((el) => before.set(el.dataset.id, el.getBoundingClientRect().top));
+        const items = visible();
+        if (!items.length) {
+          list.innerHTML = `<div class="empty"><b>Nothing here</b><p>${filter === 'home' ? 'None of your artists plays in Paris yet.' : 'No trips to plan right now.'}</p></div>`;
+          return;
+        }
+        let html = '';
+        let month = '';
+        items.forEach((s, i) => {
+          const m = dateParts(s.date);
+          const label = `${m.month} ${m.year}`;
+          if (label !== month) {
+            html += `<h3 class="month">${label}</h3>`;
+            month = label;
+          }
+          html += act(s, i);
+        });
+        list.innerHTML = html;
+        fit(list);
+        if (flip && !reduceQuery.matches) {
+          // FLIP: acts that stay glide from where they were instead of jumping.
+          list.querySelectorAll('.act').forEach((el) => {
+            const was = before.get(el.dataset.id);
+            if (was === undefined) return;
+            el.classList.remove('enter');
+            const dy = was - el.getBoundingClientRect().top;
+            if (Math.abs(dy) < 1) return;
+            el.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], {
+              duration: 420,
+              easing: 'cubic-bezier(0.77, 0, 0.175, 1)',
+            });
+          });
+        }
+      }
+
+      function moveUnderline() {
+        const on = document.querySelector('.days button[aria-pressed="true"]');
+        const u = document.querySelector('.underline');
+        if (!on || !u) return;
+        u.style.width = `${on.offsetWidth - 12}px`;
+        u.style.transform = `translateX(${on.offsetLeft + 6}px)`;
+      }
+
+      function render() {
+        const head = `<header class="top">${logo}<span class="spacer"></span>
+            <button class="ghost" aria-label="Home city: Paris">${icon('map-pin', 17, 2.4)}Paris</button>
+            <button class="ghost icon" aria-label="Alerts, 1 new">${icon('bell', 20, 2.3)}<span class="badge"></span></button></header>`;
+        if (mode === 'error') {
+          screen.innerHTML = `${head}<h1 class="poster-title">Your lineup</h1>
+            <div class="notice" role="alert">${icon('circle-alert', 18, 2.4)}<span>${esc(providerError)}</span></div>
+            <div class="empty"><b>Can’t load the bill</b><p>Your artists and circled shows are safe. Try again in a minute.</p><button class="solid">${icon('refresh-cw', 18, 2.4)}Try again</button></div>`;
+          return;
+        }
+        if (!shows.length) {
+          screen.innerHTML = `${head}<h1 class="poster-title">Your lineup</h1><p class="sample">${esc(note)}</p>
+            <div class="empty"><b>No acts announced</b><p>None of your artists has a date yet. We’ll put them on your bill the moment they do.</p><button class="solid">${icon('plus', 18, 2.6)}Add artists</button></div>`;
+          return;
+        }
+        const home = shows.filter((s) => s.home).length;
+        const trip = shows.length - home;
+        screen.innerHTML = `${head}
+          <h1 class="poster-title">Your lineup</h1>
+          <p class="sample">${esc(note)}</p>
+          ${providerError ? `<div class="notice">${icon('circle-alert', 18, 2.4)}<span>${esc(providerError)}</span><button>Refresh</button></div>` : ''}
+          <div class="days" role="group" aria-label="Filter the lineup">
+            <button aria-pressed="true" data-f="all">All <span>${shows.length}</span></button>
+            <button aria-pressed="false" data-f="home">Paris <span>${home}</span></button>
+            <button aria-pressed="false" data-f="trip">Worth the trip <span>${trip}</span></button>
+            <svg class="underline" viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true"><path d="M2 8 C 30 4, 70 4, 98 7"/></svg>
+          </div>
+          <div id="lineup"></div>`;
+        renderList(false);
+        moveUnderline();
+      }
+
+      // Sheet: spring-driven, follows the finger 1:1, closes on a flick or a long drag.
+      const sheet = document.getElementById('sheet');
+      const scrim = document.getElementById('scrim');
+      let openId = null;
+      let lastFocus = null;
+      const sheetY = new Spring({
+        value: 1,
+        response: 0.42,
+        damping: 1,
+        onUpdate: (v) => (sheet.style.transform = `translateY(${v * 105}%)`),
+        onRest: (v) => {
+          if (v >= 1) sheet.classList.remove('open');
+        },
+      });
+
+      function openSheet(id) {
+        const s = shows.find((x) => x.id === id);
+        const p = dateParts(s.date);
+        openId = id;
+        lastFocus = document.activeElement;
+        const isSaved = saved.has(id);
+        const off = s.status === 'cancelled';
+        sheet.innerHTML = `<div class="drag"><span class="grabber"></span><div class="sticker">${photo(s)}</div></div>
+          <h2 id="sheet-title" tabindex="-1">${esc(s.artist)}</h2>
+          <p class="why">${esc(s.reason)}</p>
+          <ul class="facts">
+            <li>${icon('calendar', 20, 2.3)}<span>${p.dow} ${p.day} ${p.month} ${p.year}${s.time ? `, ${s.time}` : ''}<small>${s.time ? 'Doors and times from the seller' : 'Time not announced'}</small></span></li>
+            <li>${icon('map-pin', 20, 2.3)}<span>${esc(s.venue)}<small>${esc(s.city)}</small></span></li>
+            <li>${icon('ticket', 20, 2.3)}<span>${s.status === 'cancelled' ? 'Cancelled by the organiser' : s.status === 'postponed' ? 'Postponed. New date not announced' : money(s.price) ? `From ${money(s.price)}` : 'Price not listed'}<small>Ticketmaster · checked today</small></span></li>
+            ${s.travel ? `<li>${icon(s.travel.mode === 'flight' ? 'plane' : 'train-front', 20, 2.3)}<span>${s.travel.duration ? `${s.travel.mode === 'flight' ? 'Flight' : 'Train'} ${s.travel.duration}` : 'No timetable yet'}<small>${esc(s.travel.from)} → ${esc(s.travel.to)} · timetable, not a fare</small></span></li>` : ''}
+          </ul>
+          <div class="actions">
+            <a class="solid" href="#" ${off ? 'aria-disabled="true"' : ''}>Tickets on Ticketmaster ${icon('arrow-up-right', 18, 2.6)}</a>
+            <button class="ghost" data-save="${id}" aria-pressed="${isSaved}" ${off ? 'disabled' : ''}>${isSaved ? 'Circled' : 'Circle it'}</button>
+          </div>`;
+        sheet.classList.add('open');
+        scrim.classList.add('on');
+        sheetY.to(0);
+        sheet.querySelector('#sheet-title').focus({ preventScroll: true });
+        wireDrag();
+      }
+      function closeSheet() {
+        if (openId === null) return;
+        openId = null;
+        scrim.classList.remove('on');
+        sheetY.to(1);
+        lastFocus?.focus({ preventScroll: true });
+      }
+      function wireDrag() {
+        const handle = sheet.querySelector('.drag');
+        let startY = 0;
+        let startV = 0;
+        let samples = [];
+        handle.addEventListener('pointerdown', (e) => {
+          handle.setPointerCapture(e.pointerId);
+          sheetY.stop();
+          startY = e.clientY;
+          startV = sheetY.value;
+          samples = [[e.timeStamp, e.clientY]];
+        });
+        handle.addEventListener('pointermove', (e) => {
+          if (!handle.hasPointerCapture(e.pointerId)) return;
+          const h = sheet.offsetHeight * 1.05;
+          let v = startV + (e.clientY - startY) / h;
+          if (v < 0) v = v / 4; // rubber-band past the top
+          sheetY.value = v;
+          sheet.style.transform = `translateY(${v * 105}%)`;
+          samples.push([e.timeStamp, e.clientY]);
+          if (samples.length > 5) samples.shift();
+        });
+        handle.addEventListener('pointerup', (e) => {
+          const [t0, y0] = samples[0];
+          const vel = ((e.clientY - y0) / Math.max(1, e.timeStamp - t0)) * 1000; // px/s
+          const h = sheet.offsetHeight * 1.05;
+          const projected = sheetY.value + project(vel) / h;
+          if (projected > 0.45) {
+            openId = null;
+            scrim.classList.remove('on');
+            sheetY.to(1, { velocity: vel / h });
+            lastFocus?.focus({ preventScroll: true });
+          } else sheetY.to(0, { velocity: vel / h });
+        });
+      }
+      scrim.addEventListener('click', closeSheet);
+      document.addEventListener('keydown', (e) => e.key === 'Escape' && closeSheet());
+
+      let toastTimer;
+      function toast(message, undo) {
+        const el = document.getElementById('toast');
+        el.innerHTML = `<span>${message}</span>${undo ? '<button>Undo</button>' : ''}`;
+        el.classList.add('show');
+        el.querySelector('button')?.addEventListener('click', () => {
+          undo();
+          el.classList.remove('show');
+        });
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove('show'), 4000);
+      }
+
+      function toggleSave(id) {
+        const s = shows.find((x) => x.id === id);
+        const on = !saved.has(id);
+        on ? saved.add(id) : saved.delete(id);
+        const el = document.querySelector(`.act[data-id="${id}"]`);
+        if (el) {
+          el.classList.toggle('is-saved', on);
+          const b = el.querySelector('.circle-it');
+          b.setAttribute('aria-pressed', on);
+          b.setAttribute('aria-label', `${on ? 'Uncircle' : 'Circle'} ${s.artist}, ${dateParts(s.date).full}`);
+          b.innerHTML = icon(on ? 'check' : 'plus', 20, 2.6);
+        }
+        const sb = sheet.querySelector(`[data-save="${id}"]`);
+        if (sb) {
+          sb.setAttribute('aria-pressed', on);
+          sb.textContent = on ? 'Circled' : 'Circle it';
+        }
+        renderTabs();
+        if (on) toast(`Circled. ${s.artist} is on your bill.`, () => toggleSave(id));
+      }
+
+      screen.addEventListener('click', (e) => {
+        const c = e.target.closest('.circle-it');
+        if (c) return toggleSave(c.closest('.act').dataset.id);
+        const n = e.target.closest('.name');
+        if (n) return openSheet(n.closest('.act').dataset.id);
+        const f = e.target.closest('.days button');
+        if (f && f.dataset.f !== filter) {
+          filter = f.dataset.f;
+          document.querySelectorAll('.days button').forEach((b) => b.setAttribute('aria-pressed', b === f));
+          moveUnderline();
+          renderList(true);
+        }
+      });
+      sheet.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-save]');
+        if (b) toggleSave(b.dataset.save);
+      });
+
+      function renderTabs() {
+        const tabs = [
+          ['For you', 'compass', true],
+          ['Circled', 'bookmark'],
+          ['Trips', 'route'],
+          ['Artists', 'heart'],
+          ['Alerts', 'bell'],
+        ];
+        document.querySelector('.tabs').innerHTML = tabs
+          .map(
+            ([label, ico, current]) =>
+              `<a href="#" ${current ? 'aria-current="page"' : ''}>${icon(ico, 22, current ? 2.6 : 2.2)}${label}${
+                label === 'Circled' && saved.size ? `<span class="count">${saved.size}<span class="vh"> circled</span></span>` : ''
+              }</a>`,
+          )
+          .join('');
+      }
+
+      render();
+      renderTabs();
+      document.fonts.ready.then(() => {
+        fit();
+        moveUnderline();
+      });
+      addEventListener('resize', () => fit());
+      P.mountDataToggle();
+    </script>
+  </body>
+</html>

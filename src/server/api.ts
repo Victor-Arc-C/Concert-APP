@@ -35,7 +35,7 @@ import { resolveSpotifyArtists, searchArtists, syncArtists } from './providers/t
 import { ProviderError } from './providers/http';
 import { runConcertChecks } from './jobs';
 import { schedulerAuthorized } from './scheduler-auth';
-import { unsupportedLiveArtists } from '../domain/onboarding';
+import { onboardingProgress, unsupportedLiveArtists } from '../domain/onboarding';
 import { inviteCodes, inviteValid } from './invite';
 import { ticketSources, selectTicketSource } from './tickets';
 import { generateTripOptions } from './trips';
@@ -165,6 +165,21 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
         await rateLimit(`trips:${user.id}`, 20, 60);
         return ok({ savedTrips: await savedTripsForUser(user) });
       }
+      if (key === 'onboarding/progress') {
+        // Polled by the loader while the onboarding request checks each artist; read-only.
+        await rateLimit(`progress:${user.id}`, 240, 60);
+        const checks = await query<{ artistId: string; fresh: boolean; failed: boolean }>(
+          `SELECT a.id AS "artistId",
+             COALESCE((s.message IS NULL AND s.checked_at>NOW()-INTERVAL '1 hour')
+               OR (s.message IS NOT NULL AND s.checked_at>NOW()-INTERVAL '15 minutes'), FALSE) AS fresh,
+             s.message IS NOT NULL AS failed
+           FROM affinities f JOIN artists a ON a.id=f.artist_id
+           LEFT JOIN provider_sync s ON s.artist_id=a.id
+           WHERE f.user_id=$1 AND f.hidden=FALSE AND a.data->>'providerId' IS NOT NULL`,
+          [user.id],
+        );
+        return ok(onboardingProgress(checks));
+      }
 
       if (key === 'artists/search') {
         await rateLimit(`search:${user.id}`, 10, 60);
@@ -212,7 +227,7 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
           },
           {
             headers: {
-              'Content-Disposition': 'attachment; filename="encore-data.json"',
+              'Content-Disposition': 'attachment; filename="showbound-data.json"',
               'Cache-Control': 'no-store',
             },
           },

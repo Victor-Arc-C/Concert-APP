@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#efeafb" />
+    <title>Showbound · finding your shows</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../shared/proto.css" />
+    <style>
+      @property --p {
+        syntax: '<number>';
+        inherits: true;
+        initial-value: 0;
+      }
+      :root {
+        --haze: #efeafb;
+        --haze-deep: #e4dcf8;
+        --white: #ffffff;
+        --ink: #15122b;
+        --ink-soft: #4a4566;
+        --truss: #2b2840;
+        --line: #ddd5f2;
+        --rose: #ff3d7f;
+        --cyan: #1fb6ff;
+        --amber: #ffaa00;
+        --violet: #8b6cff;
+        --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+        --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+        --text: 'Bricolage Grotesque', system-ui, sans-serif;
+      }
+      body {
+        font-family: var(--text);
+        color: var(--ink);
+        background: var(--haze);
+      }
+      .device {
+        background: linear-gradient(180deg, var(--haze-deep), var(--haze) 50%, #f6e8f3);
+      }
+      .truss {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: var(--safe-top);
+        z-index: 3;
+        height: 12px;
+        background:
+          repeating-linear-gradient(60deg, transparent 0 5px, #4a4468 5px 7px),
+          repeating-linear-gradient(-60deg, transparent 0 5px, #4a4468 5px 7px),
+          var(--truss);
+      }
+      .lamp {
+        position: absolute;
+        top: calc(var(--safe-top) + 9px);
+        z-index: 3;
+        width: 40px;
+        height: 40px;
+        translate: -50% 0;
+      }
+      .lamp::before {
+        content: '';
+        position: absolute;
+        left: 5px;
+        right: 5px;
+        top: 0;
+        height: 22px;
+        border: 4px solid var(--truss);
+        border-top: 0;
+        border-radius: 0 0 12px 12px;
+      }
+      .head {
+        position: absolute;
+        left: 8px;
+        top: 6px;
+        width: 24px;
+        height: 28px;
+        border-radius: 8px 8px 10px 10px;
+        background: linear-gradient(#3a3556, var(--truss));
+        transform-origin: 50% 30%;
+      }
+      .lens {
+        position: absolute;
+        left: 50%;
+        bottom: 3px;
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        translate: -50% 0;
+        background: radial-gradient(circle, #fff 0 30%, var(--c) 62%);
+      }
+      .lens::after {
+        content: '';
+        position: absolute;
+        inset: -16px;
+        border-radius: 50%;
+        background: radial-gradient(circle, color-mix(in srgb, var(--c) 70%, white) 0 18%, color-mix(in srgb, var(--c) 40%, transparent) 36%, transparent 70%);
+      }
+      .beam {
+        position: absolute;
+        top: calc(var(--safe-top) + 46px);
+        z-index: 0;
+        width: 260px;
+        height: 400px;
+        margin-left: -130px;
+        clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%);
+        background: linear-gradient(90deg, color-mix(in srgb, var(--c) 30%, transparent), var(--c) 50%, color-mix(in srgb, var(--c) 30%, transparent));
+        mix-blend-mode: multiply;
+        opacity: 0.42;
+        transform-origin: 50% 0;
+        -webkit-mask-image: linear-gradient(#000 0%, rgb(0 0 0 / 0.55) 60%, transparent 100%);
+        mask-image: linear-gradient(#000 0%, rgb(0 0 0 / 0.55) 60%, transparent 100%);
+        will-change: transform;
+      }
+      main {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: calc(var(--safe-top) + 84px) 20px calc(var(--safe-bottom) + 24px);
+        text-align: center;
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+      main > * {
+        flex-shrink: 0;
+      }
+      /* The progress ring is lit from inside: a conic sweep of the three gels. */
+      .ring {
+        position: relative;
+        display: grid;
+        place-items: center;
+        width: 176px;
+        height: 176px;
+        border-radius: 50%;
+        background: var(--white);
+        box-shadow: 0 30px 60px -36px rgb(43 40 64 / 0.55);
+        transition: --p 600ms var(--ease-out);
+      }
+      .ring::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: conic-gradient(var(--rose) 0%, var(--amber) calc(var(--p) * 0.5%), var(--cyan) calc(var(--p) * 1%), var(--line) 0);
+        -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 14px), #000 calc(100% - 13px));
+        mask: radial-gradient(farthest-side, transparent calc(100% - 14px), #000 calc(100% - 13px));
+      }
+      .ring b {
+        font: 800 52px/1 var(--text);
+        font-variation-settings: 'opsz' 96;
+        letter-spacing: -0.04em;
+        font-variant-numeric: tabular-nums;
+      }
+      .ring b small {
+        font-size: 24px;
+        letter-spacing: 0;
+      }
+      .ring span {
+        position: absolute;
+        bottom: 40px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--ink-soft);
+        font-variant-numeric: tabular-nums;
+      }
+      .say {
+        position: relative;
+        height: 56px;
+        width: 100%;
+        max-width: 340px;
+        margin-top: 20px;
+        overflow: hidden;
+      }
+      .say p {
+        position: absolute;
+        inset: 0;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        font: 700 22px/1.2 var(--text);
+        letter-spacing: -0.02em;
+        text-wrap: balance;
+        transition:
+          opacity 360ms ease,
+          transform 520ms var(--ease-out),
+          filter 360ms ease;
+      }
+      .say p.out {
+        opacity: 0;
+        transform: translateY(-16px);
+        filter: blur(3px);
+      }
+      .say p.in {
+        opacity: 0;
+        transform: translateY(16px);
+        filter: blur(3px);
+      }
+      /* The artists you picked, lit one by one as their dates come in. */
+      .lineup {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px 8px;
+        margin: 18px 0 0;
+        padding: 0;
+        list-style: none;
+        max-width: 350px;
+      }
+      .lineup li {
+        position: relative;
+        display: grid;
+        justify-items: center;
+        gap: 5px;
+        width: 58px;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--ink-soft);
+      }
+      .lineup .ph {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: var(--line);
+        box-shadow: 0 0 0 3px var(--haze);
+        transition:
+          box-shadow 400ms ease,
+          transform 400ms var(--ease-out);
+      }
+      .lineup .ph img {
+        filter: grayscale(1) opacity(0.45);
+        transition: filter 600ms ease;
+      }
+      .lineup .ph-fallback {
+        font: 800 17px/1 var(--text);
+        color: var(--ink-soft);
+      }
+      .lineup li span.n {
+        max-width: 58px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .lineup li.now .ph {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 3px var(--white), 0 0 0 6px var(--gel);
+      }
+      .lineup li.done .ph {
+        box-shadow: 0 0 0 3px var(--gel);
+      }
+      .lineup li.done .ph img {
+        filter: none;
+      }
+      .lineup li.done span.n {
+        color: var(--ink);
+      }
+      .tick {
+        position: absolute;
+        top: 32px;
+        right: 2px;
+        display: grid;
+        place-items: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--ink);
+        color: var(--white);
+        opacity: 0;
+        transform: scale(0.6);
+        transition:
+          opacity 200ms ease,
+          transform 360ms var(--ease-out);
+      }
+      .lineup li.done .tick {
+        opacity: 1;
+        transform: none;
+      }
+      .ready {
+        display: grid;
+        justify-items: center;
+        gap: 10px;
+        margin-top: 14px;
+        opacity: 0;
+        transform: translateY(12px);
+        pointer-events: none;
+        transition:
+          opacity 400ms ease,
+          transform 600ms var(--ease-out);
+      }
+      .finished .ready {
+        opacity: 1;
+        transform: none;
+        pointer-events: auto;
+      }
+      .ready p {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--ink-soft);
+      }
+      .solid {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 54px;
+        padding: 0 24px;
+        border: 0;
+        border-radius: 16px;
+        background: var(--ink);
+        color: var(--white);
+        font: 700 17px var(--text);
+        text-decoration: none;
+        transition: transform 120ms var(--ease-out);
+      }
+      .solid:active {
+        transform: scale(0.97);
+      }
+      .replay {
+        position: absolute;
+        right: 16px;
+        bottom: calc(var(--safe-bottom) + 16px);
+        z-index: 4;
+        height: 36px;
+        padding: 0 12px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--white);
+        font: 600 13px var(--text);
+        color: var(--ink-soft);
+        cursor: pointer;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .ring {
+          transition: none;
+        }
+        .say p,
+        .say p.out,
+        .say p.in {
+          transform: none;
+          filter: none;
+          transition: opacity 200ms ease;
+        }
+        .lineup li.now .ph {
+          transform: none;
+        }
+      }
+    </style>
+  </head>
+  <body class="phone-page">
+    <div class="device" id="device">
+      <span class="truss" aria-hidden="true"></span>
+      <div id="rig" aria-hidden="true"></div>
+      <main id="main">
+        <div class="ring" id="ring" role="progressbar" aria-label="Finding your shows" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <b id="pct">0<small>%</small></b>
+          <span id="count"></span>
+        </div>
+        <div class="say" aria-hidden="true"><p id="say">Finding your next favourite show…</p></div>
+        <p class="vh" id="live" aria-live="polite"></p>
+        <ol class="lineup" id="lineup" aria-label="Your artists"></ol>
+        <div class="ready">
+          <p id="found"></p>
+          <a class="solid" href="feed.html">See your shows</a>
+        </div>
+      </main>
+      <button class="replay" id="replay">Replay</button>
+    </div>
+    <script src="../shared/icons.js"></script>
+    <script src="../shared/data.js"></script>
+    <script src="../shared/proto.js"></script>
+    <script>
+      const { esc, photo, Spring, reduceQuery } = P;
+      const reduce = reduceQuery.matches;
+      if (PROTO.embed) document.body.classList.add('embed');
+      const GELS = ['#ff3d7f', '#1fb6ff', '#ffaa00', '#8b6cff', '#ff6a3d', '#7be03a'];
+      // The artists picked on Spotify (sample). One with no photo, to show the fallback.
+      const picked = [...new Map(PROTO.demo.map((s) => [s.artist, s])).values()];
+      picked.push({ artist: 'Bigflo & Oli', photo: null, city: 'Toulouse' });
+      const device = document.getElementById('device');
+      const lineup = document.getElementById('lineup');
+      const ring = document.getElementById('ring');
+      const pct = document.getElementById('pct');
+      const count = document.getElementById('count');
+      const say = document.getElementById('say');
+      const live = document.getElementById('live');
+      const found = document.getElementById('found');
+
+      // Rig: three heads. The middle one follows the artist being checked.
+      const LAMPS = [
+        { x: 0.15, c: '#ff3d7f', rest: -18 },
+        { x: 0.5, c: '#1fb6ff', rest: 0 },
+        { x: 0.85, c: '#ffaa00', rest: 18 },
+      ];
+      document.getElementById('rig').innerHTML = LAMPS.map(
+        (l) =>
+          `<span class="lamp" style="left:${l.x * 100}%;--c:${l.c}"><span class="head"><span class="lens"></span></span></span><span class="beam" style="left:${l.x * 100}%;--c:${l.c}"></span>`,
+      ).join('');
+      const beams = [...device.querySelectorAll('.beam')];
+      const heads = [...device.querySelectorAll('.head')];
+      const springs = beams.map(
+        (b, i) =>
+          new Spring({
+            value: LAMPS[i].rest,
+            response: 0.7,
+            damping: 0.75,
+            precision: 0.05,
+            onUpdate: (d) => {
+              b.style.transform = `rotate(${d}deg)`;
+              heads[i].style.transform = `rotate(${d * 0.7}deg)`;
+            },
+          }),
+      );
+      const aimAt = (i, el) => {
+        const d = device.getBoundingClientRect();
+        const t = el.getBoundingClientRect();
+        const bx = d.left + LAMPS[i].x * d.width;
+        const by = d.top + beams[i].offsetTop;
+        const dx = t.left + t.width / 2 - bx;
+        const dy = t.top + t.height / 2 - by;
+        beams[i].style.height = `${Math.hypot(dx, dy) + 30}px`;
+        const a = (Math.atan2(dx, dy) * -180) / Math.PI;
+        reduce ? springs[i].set(a) : springs[i].to(a);
+      };
+
+      const LINES = [
+        'Finding your next favourite show…',
+        'Checking tour dates for {artist}…',
+        'Looking for shows near Paris…',
+        'Spotting trips worth taking…',
+        'Reading ticket prices at the source…',
+        'Lining up the lights…',
+      ];
+      let current = picked[0].artist;
+      let line = 0;
+      let lineTimer;
+      function nextLine() {
+        line = (line + 1) % LINES.length;
+        const text = LINES[line].replace('{artist}', current);
+        if (reduce) {
+          say.textContent = text;
+          return;
+        }
+        say.classList.add('out');
+        setTimeout(() => {
+          say.textContent = text;
+          say.classList.remove('out');
+          say.classList.add('in');
+          requestAnimationFrame(() => requestAnimationFrame(() => say.classList.remove('in')));
+        }, 320);
+      }
+
+      async function run() {
+        device.classList.remove('finished');
+        lineup.innerHTML = picked
+          .map(
+            (s, i) =>
+              `<li style="--gel:${GELS[i % GELS.length]}">${photo(s)}<span class="tick" aria-hidden="true">${icon('check', 12, 3)}</span><span class="n">${esc(s.artist)}</span></li>`,
+          )
+          .join('');
+        const items = [...lineup.children];
+        let done = 0;
+        const set = () => {
+          const p = Math.round((done / picked.length) * 100);
+          ring.style.setProperty('--p', p);
+          ring.setAttribute('aria-valuenow', p);
+          ring.setAttribute('aria-valuetext', `${done} of ${picked.length} artists checked`);
+          pct.innerHTML = `${p}<small>%</small>`;
+          count.textContent = `${done} of ${picked.length} artists`;
+        };
+        set();
+        say.textContent = LINES[0];
+        line = 0;
+        clearInterval(lineTimer);
+        lineTimer = setInterval(nextLine, 2600);
+        // Each step is one artist checked against the listings: progress is real, not a timer.
+        for (const [i, li] of items.entries()) {
+          current = picked[i].artist;
+          // Keep the artist line truthful: it always names the artist being checked right now.
+          if (LINES[line].includes('{artist}')) say.textContent = LINES[line].replace('{artist}', current);
+          li.classList.add('now');
+          aimAt(1, li);
+          await new Promise((r) => setTimeout(r, 650 + Math.random() * 700));
+          li.classList.remove('now');
+          li.classList.add('done');
+          done += 1;
+          set();
+          if (done % 3 === 0) live.textContent = `${done} of ${picked.length} artists checked`;
+        }
+        clearInterval(lineTimer);
+        say.textContent = 'Your lineup is ready.';
+        live.textContent = 'All artists checked. Your lineup is ready.';
+        found.textContent = '8 shows found · 5 worth the trip';
+        device.classList.add('finished');
+        // All three heads converge on the ring.
+        LAMPS.forEach((_, i) => aimAt(i, ring));
+      }
+      document.fonts.ready.then(run);
+      document.getElementById('replay').addEventListener('click', () => {
+        LAMPS.forEach((l, i) => springs[i].to(l.rest));
+        run();
+      });
+    </script>
+  </body>
+</html>

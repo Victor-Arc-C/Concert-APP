@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rebranding · trois directions</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@50..150,400..900&family=Archivo:ital,wdth,wght@0,62..125,400..900;1,62..125,400..900&family=Bagel+Fat+One&family=Kalam:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* Neutral presentation chrome: it must not compete with the three directions. */
+      :root {
+        --bg: #f3f3f5;
+        --panel: #ffffff;
+        --text: #18181b;
+        --muted: #55555e;
+        --line: #e2e2e7;
+        --focus: #2a5bd7;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font: 16px/1.55 system-ui, -apple-system, 'Segoe UI', sans-serif;
+      }
+      a {
+        color: inherit;
+        text-underline-offset: 3px;
+      }
+      :focus-visible {
+        outline: 3px solid var(--focus);
+        outline-offset: 2px;
+      }
+      .wrap {
+        max-width: 1360px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+      header.top {
+        padding: 40px 0 8px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 34px;
+        line-height: 1.15;
+        letter-spacing: -0.01em;
+      }
+      .lede {
+        max-width: 72ch;
+        margin: 12px 0 0;
+        color: var(--muted);
+      }
+      h2 {
+        margin: 48px 0 14px;
+        font-size: 24px;
+        letter-spacing: -0.01em;
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 15px;
+      }
+      th,
+      td {
+        padding: 12px 14px;
+        text-align: left;
+        vertical-align: top;
+        border-bottom: 1px solid var(--line);
+      }
+      th {
+        font-size: 13px;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      tr:last-child td {
+        border-bottom: 0;
+      }
+      td b {
+        font-size: 17px;
+      }
+      .tag {
+        display: inline-block;
+        padding: 1px 8px;
+        border-radius: 6px;
+        background: #ececf0;
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .tag.warn {
+        background: #fde8e6;
+        color: #8a1c12;
+      }
+      .tag.ok {
+        background: #e5f3ea;
+        color: #1d5b33;
+      }
+      .reco {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 24px;
+        padding: 22px 24px;
+      }
+      .reco h3 {
+        margin: 0 0 6px;
+        font-size: 18px;
+      }
+      .reco p,
+      .reco ul {
+        margin: 0;
+      }
+      .reco ul {
+        padding-left: 18px;
+      }
+      .controls {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px 16px;
+        margin-top: 40px;
+        padding: 12px 0;
+        background: rgb(243 243 245 / 0.92);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid var(--line);
+      }
+      .seg {
+        display: inline-flex;
+        padding: 3px;
+        border-radius: 10px;
+        background: #e3e3e8;
+      }
+      .seg button {
+        border: 0;
+        background: none;
+        padding: 7px 12px;
+        border-radius: 8px;
+        font: 600 14px system-ui, sans-serif;
+        color: #3a3a42;
+        cursor: pointer;
+      }
+      .seg button[aria-pressed='true'] {
+        background: #fff;
+        color: #111;
+        box-shadow: 0 1px 2px rgb(0 0 0 / 0.12);
+      }
+      .controls p {
+        margin: 0;
+        font-size: 14px;
+        color: var(--muted);
+      }
+      .dir {
+        margin-top: 28px;
+        padding: 28px;
+      }
+      .dir-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 8px 16px;
+      }
+      .dir-head .letter {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--muted);
+      }
+      .dir-head h3 {
+        margin: 0;
+        font-size: 28px;
+        letter-spacing: -0.01em;
+      }
+      .dir-head .badge {
+        padding: 3px 10px;
+        border-radius: 999px;
+        background: #18181b;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .idea {
+        margin: 8px 0 0;
+        font-size: 18px;
+        max-width: 80ch;
+      }
+      .logos {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 20px;
+      }
+      .logo-tile {
+        display: grid;
+        place-items: center;
+        gap: 10px;
+        min-height: 150px;
+        padding: 16px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+      }
+      .logo-tile small {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .sizes {
+        display: flex;
+        align-items: end;
+        gap: 14px;
+      }
+      .previews {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 300px;
+        gap: 20px;
+        margin-top: 20px;
+        align-items: start;
+      }
+      .frame-desk {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1440 / 900;
+        overflow: hidden;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: #ddd;
+      }
+      .frame-desk iframe {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1440px;
+        height: 900px;
+        border: 0;
+        transform-origin: 0 0;
+      }
+      .frame-phone {
+        position: relative;
+        width: 300px;
+        height: calc(844px * 300 / 390);
+        overflow: hidden;
+        border-radius: 42px;
+        box-shadow:
+          0 0 0 8px #16161a,
+          0 0 0 9px #3a3a40;
+        margin: 9px;
+        background: #000;
+      }
+      .frame-phone iframe {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 390px;
+        height: 844px;
+        border: 0;
+        transform: scale(calc(300 / 390));
+        transform-origin: 0 0;
+      }
+      .cap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 14px;
+        margin-top: 8px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .facts {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 20px;
+        margin-top: 22px;
+      }
+      .facts h4 {
+        margin: 0 0 4px;
+        font-size: 14px;
+        color: var(--muted);
+        font-weight: 700;
+      }
+      .facts p {
+        margin: 0;
+      }
+      .demoted {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 12px;
+        font-size: 14px;
+      }
+      .demoted div {
+        padding: 14px 16px;
+      }
+      .demoted b {
+        display: block;
+      }
+      .demoted span {
+        color: var(--muted);
+      }
+      .two {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 20px;
+      }
+      .two .card {
+        padding: 20px 22px;
+      }
+      .two h3 {
+        margin: 0 0 8px;
+        font-size: 17px;
+      }
+      .two ul {
+        margin: 0;
+        padding-left: 18px;
+      }
+      footer {
+        margin: 56px 0 40px;
+        font-size: 14px;
+        color: var(--muted);
+      }
+      @media (max-width: 980px) {
+        .previews,
+        .reco,
+        .facts,
+        .two,
+        .demoted {
+          grid-template-columns: 1fr;
+        }
+        .logos {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .frame-phone {
+          justify-self: center;
+        }
+        table {
+          display: block;
+          overflow-x: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="top">
+        <h1>Rebranding de Concert app : cinq noms et trois directions</h1>
+        <p class="lede">
+          Étape 1, séparée de l’application : rien ici ne touche aux routes existantes. Chaque direction montre son logo, sa page marketing sur ordinateur et son feed sur iPhone, tous interactifs. Les dates, prix et temps de trajet sont fictifs. Les photos d’artistes sont les images publiques Spotify (hôte déjà autorisé par l’app), chargées à l’affichage.
+        </p>
+      </header>
+
+      <section aria-labelledby="names-h">
+        <h2 id="names-h">Cinq noms</h2>
+        <div class="card">
+          <table>
+            <thead>
+              <tr><th>Nom</th><th>Pourquoi</th><th>Collisions repérées (recherche web du 7 octobre 2026)</th><th>Domaines (RDAP)</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>Allez</b><br /><span class="tag">direction B</span></td>
+                <td>« Allez ! » est le cri de la foule et l’invitation à partir. Le même mot sert le concert et le voyage, se prononce pareil en anglais et en français.</td>
+                <td><span class="tag ok">Aucune app concert trouvée</span> Mot courant : protection de marque plus faible.</td>
+                <td>allez.app (2026), allez.live, getallez.com, allezapp.com, allez.fr : pris. allez.fm : aucune fiche RDAP, à confirmer chez un registrar.</td>
+              </tr>
+              <tr>
+                <td><b>Roadie</b><br /><span class="tag">direction A</span></td>
+                <td>Celui qui suit la tournée de ville en ville et prépare la soirée. Mot identique en anglais et en français.</td>
+                <td><span class="tag warn">Collisions musique</span> Roadie (app de gestion de tournée pour groupes), Mobile Roadie, Roadie Tuner ; Roadie (livraison, États-Unis).</td>
+                <td>roadie.app, roadie.live : pris.</td>
+              </tr>
+              <tr>
+                <td><b>Sortie</b><br /><span class="tag">direction C</span></td>
+                <td>« Une sortie » : le soir du concert et l’escapade. Le mot existe dans les deux langues (« outing » en anglais).</td>
+                <td><span class="tag warn">Proches</span> O’sorty (app concerts), SortezPlus, salle Sortie 13 (Gironde), Sortir à Paris.</td>
+                <td>sortie.app, sortie.live : pris.</td>
+              </tr>
+              <tr>
+                <td><b>Tournée</b></td>
+                <td>Le mot exact de l’artiste qui part en tournée ; porte naturellement le déplacement.</td>
+                <td><span class="tag ok">Aucune app trouvée</span> Accent difficile dans une URL, moins clair pour un anglophone.</td>
+                <td>tournee.app (2023), tournee.fr : pris.</td>
+              </tr>
+              <tr>
+                <td><b>Gigaway</b></td>
+                <td>Gig + getaway : le concert devient une escapade. Descriptif et mémorisable.</td>
+                <td><span class="tag ok">Aucune app trouvée</span> Jeu de mots surtout anglais ; concept proche de GigNomad.</td>
+                <td>gigaway.com (2004), gigaway.app (août 2026) : pris.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="lede">
+          Écartés après vérification : Flyer (Flyer et iFLYER, découverte d’événements), Pogo (app concerts en Chine), Fugue (app musicale, voyages musicaux La Fugue), Escapade (app du festival Escapade), Ramdam (festival Grand Ramdam). Ces recherches repèrent des collisions évidentes ; elles ne valent pas validation juridique (INPI, EUIPO non consultés).
+        </p>
+      </section>
+
+      <section aria-labelledby="reco-h">
+        <h2 id="reco-h">Recommandation : B, « Allez »</h2>
+        <div class="card reco">
+          <div>
+            <h3>Pourquoi</h3>
+            <ul>
+              <li>La typographie porte toute l’identité : chaque nom s’étire pour remplir sa ligne, comme sur une affiche de festival que les étudiants partagent déjà.</li>
+              <li>Le geste de sauvegarde est le logo : on entoure un concert au marqueur, et la marque elle-même est un nom entouré.</li>
+              <li>Jaune soleil, encre raisin, marqueur rose : la direction la plus lumineuse et énergique des trois, avec une seule zone sombre réservée au soir du concert.</li>
+              <li>Le nom tient le concert (le cri de la foule) et le départ (« on y va »), sans app concurrente trouvée.</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Ce qu’il faudra tenir</h3>
+            <ul>
+              <li>Les dates et prix sont plus petits que les noms : la ligne d’infos doit rester très lisible (testé avec le pire cas).</li>
+              <li>Les noms très longs passent sur deux lignes au lieu de s’étirer : prévu, à vérifier sur chaque écran.</li>
+              <li>Le langage « affiche de festival » est connu (proche d’Instafest) : la singularité vient du marqueur et du feed, pas de l’affiche seule.</li>
+              <li>allez.app est pris : il faudra un domaine composé.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <div class="controls">
+        <span class="seg" role="group" aria-label="Données des feeds">
+          <button aria-pressed="true" data-data="demo">Démo</button>
+          <button aria-pressed="false" data-data="worst">Pire cas</button>
+          <button aria-pressed="false" data-data="empty">Vide</button>
+          <button aria-pressed="false" data-data="error">Erreur</button>
+        </span>
+        <p>Change les données des trois iPhone en même temps : photo absente, prix absent, noms longs, annulation, liste vide, erreur fournisseur.</p>
+      </div>
+
+      <section aria-labelledby="dirs-h">
+        <h2 id="dirs-h">Les trois directions</h2>
+
+        <article class="card dir" id="a">
+          <div class="dir-head"><span class="letter">A</span><h3>Roadie · le t-shirt de tournée</h3></div>
+          <p class="idea">Ta tournée imprimée au dos de ton propre t-shirt : seulement tes artistes, seulement les dates que tu peux faire.</p>
+          <div class="logos" data-logos="a"></div>
+          <div class="previews">
+            <div>
+              <div class="frame-desk"><iframe title="Roadie, page marketing" src="a-roadie/marketing.html" loading="lazy" tabindex="-1"></iframe></div>
+              <div class="cap"><a href="a-roadie/marketing.html">Ouvrir la page marketing</a><span>Coton rose, encre cerise en deux tons, lettrage arrondi « puff ». L’étiquette suspendue porte la liste d’attente.</span></div>
+            </div>
+            <div>
+              <div class="frame-phone"><iframe title="Roadie, feed iPhone" data-feed="a-roadie/feed.html" loading="lazy"></iframe></div>
+              <div class="cap"><a href="a-roadie/feed.html">Ouvrir le feed</a></div>
+            </div>
+          </div>
+          <div class="facts">
+            <div><h4>Interaction signature</h4><p>Retourner le t-shirt : un toucher ou Entrée fait pivoter la carte d’un artiste pour montrer sa tournée au dos. Ressort interruptible : un second toucher en plein vol repart de l’angle actuel. Sauvegarder « imprime » la ligne d’un coup de raclette.</p></div>
+            <div><h4>Avantage pour l’étudiant</h4><p>Le merch est l’objet que tout fan connaît : la liste des dates par ville, c’est littéralement le produit. Les photos sont partout, toutes imprimées dans la même encre.</p></div>
+            <div><h4>Compromis réel</h4><p>La bichromie rouge uniformise les photos mais en efface certaines (photo sombre = aplat rouge, voir Billie Eilish). Le rose et le lettrage très rond peuvent sembler mignons pour une partie du public. Collisions de nom dans la musique.</p></div>
+          </div>
+        </article>
+
+        <article class="card dir" id="b">
+          <div class="dir-head"><span class="letter">B</span><h3>Allez · l’affiche de festival</h3><span class="badge">Recommandée</span></div>
+          <p class="idea">Toute l’année, ton propre lineup : chaque artiste que tu suis sur une affiche, et tu entoures au marqueur les dates où tu vas.</p>
+          <div class="logos" data-logos="b"></div>
+          <div class="previews">
+            <div>
+              <div class="frame-desk"><iframe title="Allez, page marketing" src="b-allez/marketing.html" loading="lazy" tabindex="-1"></iframe></div>
+              <div class="cap"><a href="b-allez/marketing.html">Ouvrir la page marketing</a><span>Jaune soleil, encre raisin, marqueur rose. Les noms s’étirent sur l’axe de largeur de la police pour remplir chaque ligne.</span></div>
+            </div>
+            <div>
+              <div class="frame-phone"><iframe title="Allez, feed iPhone" data-feed="b-allez/feed.html" loading="lazy"></iframe></div>
+              <div class="cap"><a href="b-allez/feed.html">Ouvrir le feed</a></div>
+            </div>
+          </div>
+          <div class="facts">
+            <div><h4>Interaction signature</h4><p>Entourer : le bouton trace un cercle de marqueur autour du nom (réversible en plein tracé). Les filtres réorganisent l’affiche en glissant les noms à leur nouvelle place. Toucher un nom ouvre une fiche qu’on referme en la tirant vers le bas, avec l’élan du doigt.</p></div>
+            <div><h4>Avantage pour l’étudiant</h4><p>Le rituel de l’annonce de lineup est déjà le sien : capture, partage, « qui vient ? ». L’écran se lit comme une affiche, d’un coup d’œil, et les noms très connus deviennent l’image.</p></div>
+            <div><h4>Compromis réel</h4><p>Les informations de décision (date, lieu, prix) sont secondaires visuellement face aux noms ; les photos sont petites dans le feed. Grammaire d’affiche familière. Domaine principal à composer.</p></div>
+          </div>
+        </article>
+
+        <article class="card dir" id="c">
+          <div class="dir-head"><span class="letter">C</span><h3>Sortie · la jaquette de cassette</h3></div>
+          <p class="idea">Deux faces à chaque mois : face A les concerts de ta ville, face B ceux qui valent le voyage. Ce qui est confirmé est écrit à l’encre, ce qui est incertain au crayon.</p>
+          <div class="logos" data-logos="c"></div>
+          <div class="previews">
+            <div>
+              <div class="frame-desk"><iframe title="Sortie, page marketing" src="c-sortie/marketing.html" loading="lazy" tabindex="-1"></iframe></div>
+              <div class="cap"><a href="c-sortie/marketing.html">Ouvrir la page marketing</a><span>Carton blanc ligné, stylo bille bleu, bande rouge. La couverture suit le titre que l’on survole, touche ou sélectionne au clavier.</span></div>
+            </div>
+            <div>
+              <div class="frame-phone"><iframe title="Sortie, feed iPhone" data-feed="c-sortie/feed.html" loading="lazy"></iframe></div>
+              <div class="cap"><a href="c-sortie/feed.html">Ouvrir le feed</a></div>
+            </div>
+          </div>
+          <div class="facts">
+            <div><h4>Interaction signature</h4><p>Retourner la cassette : toucher A ou B, ou glisser la jaquette sur le côté. L’angle suit le doigt 1:1, puis un ressort reprend sa vitesse et choisit la face d’après l’élan. Sauvegarder coche la case au stylo.</p></div>
+            <div><h4>Avantage pour l’étudiant</h4><p>La règle d’honnêteté du produit devient visible : encre = source, crayon = inconnu. Face A / face B reprend exactement « près de chez moi / vaut le voyage ». Photos en couleur partout.</p></div>
+            <div><h4>Compromis réel</h4><p>La plus calme des trois : moins d’énergie au premier regard. L’écriture manuscrite peut virer au « scrapbook » et se lit moins vite. La cassette est une nostalgie de génération précédente.</p></div>
+          </div>
+        </article>
+
+        <div class="demoted">
+          <div class="card"><b>Écarté : disque d’accrétion (trou noir)</b><span>Fond noir dominant, contraire au brief. Retenu : un seul état irréversible bien marqué (annulé).</span></div>
+          <div class="card"><b>Écartés : sous-bois luminescent, algorave, chambre noire</b><span>Mondes sombres. Retenus : divulgation progressive (B : détails dans la fiche), étapes du plan construites dans l’ordre (les trois).</span></div>
+          <div class="card"><b>Écarté : magazine tech fluo des années 90</b><span>Univers étranger au public. Retenu par A : deux encres pour tout, photos comprises.</span></div>
+        </div>
+      </section>
+
+      <section aria-labelledby="checked-h">
+        <h2 id="checked-h">Ce qui a été vérifié, et les limites</h2>
+        <div class="two">
+          <div class="card">
+            <h3>Vérifié</h3>
+            <ul id="checked">
+              <li>WebKit en émulation iPhone 15 (Playwright, toucher activé) : retourner une carte (A), sauvegarder, entourer et ouvrir la fiche (B), passer en face B (C). Avec et sans « réduire les animations ».</li>
+              <li>Glissement de la jaquette (C) au pointeur dans WebKit et Chromium : vers la gauche → face B, vers la droite → face A, petit coup rapide → face B. L’émulation tactile de Playwright n’envoie pas de glissement, d’où ce test au pointeur.</li>
+              <li>Données pire cas, vide et erreur dans les trois feeds : aucun débordement horizontal mesuré.</li>
+              <li>Captures iPhone (WebKit) et ordinateur (Chromium 1440 × 900) dans <code>captures/</code>.</li>
+              <li>Détecteur Impeccable sur les sept pages : contrastes conformes après correction de l’encre de A.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Pas encore vérifié</h3>
+            <ul>
+              <li>Aucun essai sur un iPhone physique : WebKit simulé seulement (gestes, clavier virtuel, zones sûres réelles).</li>
+              <li>Clavier : boutons natifs et focus visibles ; pas de parcours complet au lecteur d’écran, et la fiche de B ne retient pas encore le focus.</li>
+              <li>Zoom à 200 % et mode sombre : non testés à ce stade.</li>
+              <li>Ce sont des maquettes : aucun texte n’est traduit, rien n’est branché à l’app.</li>
+              <li>Polices chargées depuis Google Fonts pour l’exploration ; elles seront auto-hébergées à l’intégration (CSP de l’app).</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <footer>Branche <code>victormarsaut/rebrand-directions</code>, dossier <code>design/rebrand</code>. Rien n’est fusionné ni publié.</footer>
+    </div>
+
+    <script>
+      // Logos: symbol at real sizes, colour wordmark, one-colour wordmark.
+      const LOOP = 'M58 4 C 84 3, 99 10, 98 20 C 97 32, 72 38, 46 37.5 C 19 37, 2 31, 3 19.5 C 4 8, 27 3.5, 54 3.5 C 70 3.5, 84 6, 91 10';
+      const reels = (c, t) => `<g fill="none" stroke="${c}" stroke-width="3"><circle cx="9" cy="10" r="7"/><circle cx="29" cy="10" r="7"/></g><g fill="${c}"><circle cx="9" cy="10" r="2.4"/><circle cx="29" cy="10" r="2.4"/></g><path d="M9 17 H29" stroke="${t}" stroke-width="3" stroke-linecap="round"/>`;
+      const symbols = {
+        a: (s) => `<svg width="${s}" height="${s}" viewBox="0 0 64 64" role="img" aria-label="Roadie symbol"><path d="M8 13a7 7 0 0 1 7-7h34a7 7 0 0 1 7 7v27a18 18 0 0 1-18 18H26A18 18 0 0 1 8 40z" fill="#c40f28"/><text x="29" y="46" text-anchor="middle" font-family="Bagel Fat One" font-size="40" fill="#fff7f5">r</text><circle cx="44" cy="40" r="4.5" fill="#ffd5dc"/></svg>`,
+        b: (s) => `<svg width="${s}" height="${s}" viewBox="0 0 64 64" role="img" aria-label="Allez symbol"><rect width="64" height="64" rx="16" fill="#ffd93b"/><text x="32" y="45" text-anchor="middle" font-family="Anybody" font-weight="900" style="font-stretch:125%" font-size="34" fill="#24113f">A</text><svg x="6" y="12" width="52" height="40" viewBox="0 0 100 40" preserveAspectRatio="none" overflow="visible"><path d="${LOOP}" fill="none" stroke="#e8005a" stroke-width="${s < 24 ? 5 : 3.2}" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg></svg>`,
+        c: (s) => `<svg width="${s}" height="${s}" viewBox="0 0 64 64" role="img" aria-label="Sortie symbol"><rect width="64" height="64" rx="16" fill="#f7f9fd" stroke="#cfdff3"/><g transform="translate(6 18) scale(1.37)">${reels('#1d2f96', '#d92b1e')}</g></svg>`,
+      };
+      const words = {
+        a: (mono) => `<svg width="220" height="70" viewBox="0 0 220 70" role="img" aria-label="Roadie"><path d="M6 8a8 8 0 0 1 8-8h192a8 8 0 0 1 8 8v40a22 22 0 0 1-22 22H28A22 22 0 0 1 6 48z" fill="${mono || '#c40f28'}"/><text x="98" y="49" text-anchor="middle" font-family="Bagel Fat One" font-size="44" fill="${mono ? '#fff' : '#fff7f5'}">roadie</text><circle cx="190" cy="38" r="6" fill="${mono ? '#fff' : '#ffd5dc'}"/></svg>`,
+        b: (mono) => `<svg width="230" height="80" viewBox="0 0 230 80" role="img" aria-label="Allez"><text x="115" y="54" text-anchor="middle" font-family="Anybody" font-weight="900" style="font-stretch:125%" font-size="46" fill="${mono || '#24113f'}">ALLEZ</text><svg x="12" y="10" width="206" height="62" viewBox="0 0 100 40" preserveAspectRatio="none" overflow="visible"><path d="${LOOP}" fill="none" stroke="${mono || '#e8005a'}" stroke-width="3.5" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg></svg>`,
+        c: (mono) => `<svg width="230" height="60" viewBox="0 0 230 60" role="img" aria-label="Sortie"><g transform="translate(4 13) scale(1.3)">${reels(mono || '#d92b1e', mono || '#d92b1e')}</g><text x="62" y="43" font-family="Archivo" font-style="italic" font-weight="900" style="font-stretch:125%" font-size="40" fill="${mono || '#1d2f96'}">sortie</text></svg>`,
+      };
+      const grounds = { a: '#ffd5dc', b: '#ffd93b', c: '#f7f9fd' };
+      document.querySelectorAll('[data-logos]').forEach((el) => {
+        const k = el.dataset.logos;
+        el.innerHTML = `
+          <div class="logo-tile" style="background:${grounds[k]}">${words[k]()}<small>Logo couleur</small></div>
+          <div class="logo-tile" style="background:#fff"><span class="sizes">${symbols[k](64)}${symbols[k](32)}${symbols[k](16)}</span><small>Symbole à 64, 32 et 16 px (favicon)</small></div>
+          <div class="logo-tile" style="background:#fff">${words[k]('#18181b')}<small>Monochrome noir</small></div>
+          <div class="logo-tile" style="background:#18181b">${words[k]('#ffffff').replace('fill="#fff"', 'fill="#18181b"').replace('fill="#fff"', 'fill="#18181b"')}<small style="color:#c9c9d1">Monochrome blanc</small></div>`;
+      });
+
+      // Desktop previews scale to their frame; phones load with the chosen dataset.
+      const fit = () =>
+        document.querySelectorAll('.frame-desk').forEach((f) => {
+          f.querySelector('iframe').style.transform = `scale(${f.clientWidth / 1440})`;
+        });
+      fit();
+      addEventListener('resize', fit);
+      const load = (data) =>
+        document.querySelectorAll('[data-feed]').forEach((f) => {
+          f.src = `${f.dataset.feed}?embed&data=${data}`;
+        });
+      load('demo');
+      document.querySelector('.seg').addEventListener('click', (e) => {
+        const b = e.target.closest('button');
+        if (!b) return;
+        document.querySelectorAll('.seg button').forEach((x) => x.setAttribute('aria-pressed', x === b));
+        load(b.dataset.data);
+      });
+    </script>
+  </body>
+</html>

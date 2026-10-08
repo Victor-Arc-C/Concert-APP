@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#ff5b24" />
+    <title>Gigaway · feed prototype</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../shared/proto.css" />
+    <style>
+      :root {
+        --curtain: #ff5b24;
+        --curtain-fold: #e2440f;
+        --paper: #ffffff;
+        --wall: #eceef1;
+        --ink: #121212;
+        --ink-soft: #4a4542;
+        --bulb: #ffd84a;
+        --plate: #232327;
+        --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+        --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+        --sign: 'Bungee', 'Arial Black', system-ui, sans-serif;
+        --text: 'Schibsted Grotesk', system-ui, sans-serif;
+      }
+      ::selection {
+        background: var(--ink);
+        color: var(--bulb);
+      }
+      body {
+        font-family: var(--text);
+        color: var(--ink);
+        background: var(--wall);
+      }
+      .device {
+        background: var(--wall);
+      }
+      .screen {
+        position: absolute;
+        inset: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding-bottom: calc(var(--safe-bottom) + 100px);
+        scrollbar-width: none;
+      }
+      .screen::-webkit-scrollbar {
+        display: none;
+      }
+      :focus-visible {
+        outline: 3px solid var(--ink);
+        outline-offset: 3px;
+        border-radius: 8px;
+      }
+      button {
+        cursor: pointer;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
+      /* The booth curtain: vertical folds, soft at the hem. */
+      .curtain {
+        padding: calc(var(--safe-top) + 8px) 16px 18px;
+        border-radius: 0 0 32px 32px;
+        background:
+          repeating-linear-gradient(90deg, rgb(0 0 0 / 0) 0 14px, rgb(120 20 0 / 0.14) 22px, rgb(0 0 0 / 0) 30px, rgb(255 255 255 / 0.08) 36px, rgb(0 0 0 / 0) 44px),
+          var(--curtain);
+      }
+      .top {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .sign {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 12px 7px;
+        border-radius: 10px;
+        background: var(--plate);
+        color: var(--bulb);
+        font: 19px/1 var(--sign);
+        letter-spacing: 0.02em;
+        text-decoration: none;
+        border: 2px solid #5c4d18;
+      }
+      .spacer {
+        flex: 1;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        height: 44px;
+        min-width: 44px;
+        padding: 0 12px;
+        border: 0;
+        border-radius: 14px;
+        background: var(--paper);
+        color: var(--ink);
+        font: 700 15px var(--text);
+        position: relative;
+        transition: transform 120ms var(--ease-out);
+      }
+      .pill.icon {
+        padding: 0;
+      }
+      .pill:active {
+        transform: scale(0.96);
+      }
+      .pill .badge {
+        position: absolute;
+        top: 9px;
+        right: 10px;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--curtain);
+        box-shadow: 0 0 0 2px var(--paper);
+      }
+      h1 {
+        margin: 22px 0 0;
+        font: 30px/1 var(--sign);
+        letter-spacing: -0.005em;
+      }
+      .sub {
+        margin: 8px 0 0;
+        font-size: 15px;
+        line-height: 1.45;
+        font-weight: 500;
+        max-width: 34ch;
+      }
+      .filters {
+        display: flex;
+        gap: 6px;
+        margin-top: 16px;
+        padding: 4px;
+        border-radius: 16px;
+        background: rgb(18 18 18 / 0.12);
+      }
+      .filters button {
+        flex: 1;
+        height: 40px;
+        padding: 0 8px;
+        border: 0;
+        border-radius: 12px;
+        background: transparent;
+        color: var(--ink);
+        font: 700 14px var(--text);
+        white-space: nowrap;
+        transition:
+          background-color 180ms ease,
+          color 180ms ease;
+      }
+      .filters button span {
+        font-variant-numeric: tabular-nums;
+        opacity: 0.7;
+      }
+      .filters button[aria-pressed='true'] {
+        background: var(--paper);
+      }
+      .sample {
+        margin: 14px 16px 0;
+        font-size: 13px;
+        color: var(--ink-soft);
+      }
+      .notice {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        margin: 14px 16px 0;
+        padding: 12px 14px;
+        border-radius: 16px;
+        background: var(--paper);
+        font-size: 14px;
+        line-height: 1.4;
+        font-weight: 500;
+      }
+      .notice svg {
+        flex-shrink: 0;
+        color: var(--curtain-fold);
+        margin-top: 1px;
+      }
+      .notice button {
+        margin-left: auto;
+        border: 0;
+        background: none;
+        font-weight: 800;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        padding: 0 0 0 8px;
+      }
+
+      /* Strips: four poses each, cut chronologically. */
+      .strips {
+        display: grid;
+        gap: 22px;
+        padding: 18px 16px 0;
+      }
+      .strip {
+        padding: 10px 10px 14px;
+        border-radius: 8px;
+        background: var(--paper);
+        box-shadow: 0 16px 28px -22px rgb(20 22 30 / 0.4);
+        rotate: -0.6deg;
+      }
+      .strip:nth-child(even) {
+        rotate: 0.7deg;
+      }
+      .strip.enter {
+        animation: drop 520ms var(--ease-out) both;
+      }
+      @keyframes drop {
+        from {
+          opacity: 0;
+          transform: translateY(-18px);
+        }
+      }
+      .stamp {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 10px;
+        font: 12px/1 var(--sign);
+        letter-spacing: 0.04em;
+        color: var(--ink-soft);
+      }
+      .pose + .pose {
+        margin-top: 10px;
+      }
+      .shot {
+        position: relative;
+        display: block;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        padding: 0;
+        border: 0;
+        border-radius: 4px;
+        overflow: hidden;
+        background: var(--plate);
+      }
+      .shot .ph {
+        position: absolute;
+        inset: 0;
+        background: var(--plate);
+      }
+      .shot img {
+        filter: grayscale(1) contrast(1.12) brightness(1.04);
+        transition: filter 320ms ease;
+      }
+      .pose.is-kept .shot img {
+        filter: grayscale(0) contrast(1.04) brightness(1.02);
+        transition: filter 760ms var(--ease-out);
+      }
+      /* Developing: the print arrives washed out and comes up. */
+      .pose.raw .shot img {
+        filter: grayscale(1) brightness(2.4) contrast(0.35);
+        transition: none;
+      }
+      .pose.developing .shot img {
+        transition: filter 1300ms var(--ease-out);
+      }
+      /* No photo: the empty booth, curtain and initials. */
+      .shot .ph.is-missing {
+        background:
+          repeating-linear-gradient(90deg, rgb(0 0 0 / 0) 0 10px, rgb(120 20 0 / 0.16) 16px, rgb(0 0 0 / 0) 22px),
+          var(--curtain);
+        color: var(--ink);
+      }
+      .shot .ph-fallback {
+        font: 72px/1 var(--sign);
+      }
+      .flash {
+        position: absolute;
+        inset: 0;
+        background: #fff;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .keep {
+        position: absolute;
+        right: 10px;
+        bottom: 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 36px;
+        padding: 0 12px 0 10px;
+        border-radius: 12px;
+        background: rgb(255 255 255 / 0.94);
+        color: var(--ink);
+        font: 800 14px var(--text);
+        transition:
+          background-color 220ms ease,
+          transform 140ms var(--ease-out);
+      }
+      .pose.is-kept .keep {
+        background: var(--bulb);
+      }
+      .shot:active .keep {
+        transform: scale(0.94);
+      }
+      .stop {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        padding: 8px 14px;
+        border: 3px solid #fff;
+        border-radius: 8px;
+        color: #fff;
+        font: 20px/1 var(--sign);
+        translate: -50% -50%;
+        rotate: -8deg;
+        background: rgb(18 18 18 / 0.45);
+      }
+      .cap {
+        padding: 10px 2px 0;
+      }
+      .cap strong {
+        display: block;
+        font: 19px/1.08 var(--sign);
+        overflow-wrap: anywhere;
+      }
+      .cap .where {
+        margin-top: 5px;
+        font-size: 14px;
+        line-height: 1.4;
+        font-weight: 500;
+        color: var(--ink-soft);
+      }
+      .facts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+      }
+      .fact {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        height: 26px;
+        padding: 0 9px;
+        border-radius: 8px;
+        background: var(--wall);
+        font-size: 13px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .fact.quiet {
+        font-weight: 500;
+        color: var(--ink-soft);
+      }
+      .empty {
+        margin: 22px 16px 0;
+        padding: 24px 20px;
+        border-radius: 22px;
+        background: var(--paper);
+        text-align: center;
+      }
+      .empty b {
+        display: block;
+        font: 24px/1.1 var(--sign);
+      }
+      .empty p {
+        margin: 10px auto 16px;
+        max-width: 30ch;
+        font-size: 15px;
+        line-height: 1.45;
+        color: var(--ink-soft);
+      }
+      .solid {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 48px;
+        padding: 0 18px;
+        border: 0;
+        border-radius: 14px;
+        background: var(--ink);
+        color: var(--bulb);
+        font: 800 16px var(--text);
+        transition: transform 120ms var(--ease-out);
+      }
+      .solid:active {
+        transform: scale(0.97);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .strip.enter {
+          animation: fade 200ms ease both;
+        }
+        @keyframes fade {
+          from {
+            opacity: 0;
+          }
+        }
+        .pose.raw .shot img {
+          filter: grayscale(1) contrast(1.12) brightness(1.04);
+        }
+        .flash {
+          display: none;
+        }
+      }
+
+      .toast {
+        position: absolute;
+        left: 16px;
+        right: 16px;
+        bottom: calc(var(--safe-bottom) + 86px);
+        z-index: 35;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 12px 12px 16px;
+        border-radius: 16px;
+        background: var(--ink);
+        color: var(--paper);
+        font-weight: 600;
+        font-size: 15px;
+        transform: translateY(16px);
+        opacity: 0;
+        transition:
+          transform 300ms ease,
+          opacity 300ms ease;
+        pointer-events: none;
+      }
+      .toast.show {
+        transform: none;
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .toast button {
+        margin-left: auto;
+        height: 36px;
+        padding: 0 12px;
+        border: 0;
+        border-radius: 10px;
+        background: var(--bulb);
+        color: var(--ink);
+        font-weight: 800;
+      }
+      .tabs {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 30;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        padding: 6px 4px calc(var(--safe-bottom) + 4px);
+        background: var(--paper);
+        box-shadow: 0 -1px 0 rgb(18 18 18 / 0.08);
+      }
+      .tabs a {
+        position: relative;
+        display: grid;
+        justify-items: center;
+        gap: 3px;
+        min-height: 50px;
+        padding-top: 6px;
+        color: var(--ink-soft);
+        font-size: 11px;
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .tabs a[aria-current] {
+        color: var(--ink);
+        font-weight: 800;
+      }
+      .tabs a[aria-current]::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        width: 24px;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--curtain);
+      }
+      .tabs .count {
+        position: absolute;
+        top: 0;
+        left: calc(50% + 6px);
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 9px;
+        background: var(--curtain);
+        color: var(--ink);
+        font-size: 11px;
+        font-weight: 800;
+        line-height: 18px;
+      }
+    </style>
+  </head>
+  <body class="phone-page">
+    <div class="device">
+      <div class="screen" id="screen"></div>
+      <div class="toast" role="status" aria-live="polite" id="toast"></div>
+      <nav class="tabs" aria-label="Main"></nav>
+    </div>
+    <script src="../shared/icons.js"></script>
+    <script src="../shared/data.js"></script>
+    <script src="../shared/proto.js"></script>
+    <script>
+      const { shows, mode, providerError, note } = PROTO;
+      const { dateParts, money, esc, photo, reduceQuery } = P;
+      if (PROTO.embed) document.body.classList.add('embed');
+      const screen = document.getElementById('screen');
+      const kept = new Set(mode === 'demo' ? ['fred-paris'] : []);
+      let filter = 'all';
+
+      const facts = (s) => {
+        const out = [];
+        const m = money(s.price);
+        if (s.status === 'onsale') out.push(m ? `<span class="fact">From ${m}</span>` : `<span class="fact quiet">Price not listed</span>`);
+        if (s.travel)
+          out.push(
+            s.travel.duration
+              ? `<span class="fact">${icon(s.travel.mode === 'flight' ? 'plane' : 'train-front', 14, 2.4)}${s.travel.mode === 'flight' ? 'Flight' : 'Train'} ${s.travel.duration}</span>`
+              : `<span class="fact quiet">No timetable yet</span>`,
+          );
+        return out.join('');
+      };
+
+      const pose = (s) => {
+        const p = dateParts(s.date);
+        const off = s.status === 'cancelled' || s.status === 'postponed';
+        const isKept = kept.has(s.id);
+        return `<li class="pose raw ${isKept ? 'is-kept' : ''}" data-id="${s.id}">
+          <button class="shot" ${off ? 'disabled' : ''} aria-pressed="${isKept}" aria-label="${isKept ? 'Kept' : 'Keep'}: ${esc(s.artist)}, ${p.full}">
+            ${photo(s)}
+            <span class="flash" aria-hidden="true"></span>
+            ${off ? `<span class="stop">${s.status === 'cancelled' ? 'Cancelled' : 'Postponed'}</span>` : `<span class="keep" aria-hidden="true">${icon(isKept ? 'check' : 'plus', 16, 2.8)}${isKept ? 'Kept' : 'Keep'}</span>`}
+          </button>
+          <div class="cap">
+            <strong>${esc(s.artist)}</strong>
+            <div class="where">${p.dow} ${p.day} ${p.mon}${s.time ? `, ${s.time}` : ''} · ${esc(s.venue)}, ${esc(s.city)}</div>
+            <div class="facts">${facts(s)}</div>
+          </div>
+        </li>`;
+      };
+
+      const visible = () => shows.filter((s) => (filter === 'home' ? s.home : filter === 'trip' ? !s.home : true));
+
+      function renderStrips() {
+        const box = document.getElementById('strips');
+        const items = visible();
+        if (!items.length) {
+          box.innerHTML = `<div class="empty"><b>Nothing to print</b><p>${filter === 'home' ? 'None of your artists plays in Paris yet.' : 'No trips to plan right now.'}</p></div>`;
+          return;
+        }
+        let html = '';
+        for (let i = 0; i < items.length; i += 4) {
+          const chunk = items.slice(i, i + 4);
+          const a = dateParts(chunk[0].date);
+          const b = dateParts(chunk[chunk.length - 1].date);
+          html += `<section class="strip enter" style="animation-delay:${(i / 4) * 90}ms" aria-label="Shows from ${a.full} to ${b.full}"><ol style="list-style:none;margin:0;padding:0">${chunk.map(pose).join('')}</ol><div class="stamp" aria-hidden="true"><span>GIGAWAY</span><span>${a.dd}.${a.mm} – ${b.dd}.${b.mm}</span></div></section>`;
+        }
+        box.innerHTML = html;
+        develop(box);
+      }
+
+      // Prints develop as they come into view, once.
+      function develop(root) {
+        const poses = root.querySelectorAll('.pose.raw');
+        if (reduceQuery.matches) return poses.forEach((p) => p.classList.remove('raw'));
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((e) => {
+              if (!e.isIntersecting) return;
+              const p = e.target;
+              io.unobserve(p);
+              p.classList.add('developing');
+              requestAnimationFrame(() => requestAnimationFrame(() => p.classList.remove('raw')));
+              setTimeout(() => p.classList.remove('developing'), 1400);
+            });
+          },
+          { root: screen, threshold: 0.35 },
+        );
+        poses.forEach((p) => io.observe(p));
+      }
+
+      function render() {
+        const head = `<header class="curtain"><div class="top"><a class="sign" href="#" aria-label="Gigaway home">GIGAWAY</a><span class="spacer"></span>
+          <button class="pill" aria-label="Home city: Paris">${icon('map-pin', 17, 2.4)}Paris</button>
+          <button class="pill icon" aria-label="Alerts, 1 new">${icon('bell', 20, 2.3)}<span class="badge"></span></button></div>`;
+        const home = shows.filter((s) => s.home).length;
+        const trip = shows.length - home;
+        const filters = shows.length
+          ? `<div class="filters" role="group" aria-label="Filter shows"><button aria-pressed="true" data-f="all">All <span>${shows.length}</span></button><button aria-pressed="false" data-f="home">Paris <span>${home}</span></button><button aria-pressed="false" data-f="trip">Far <span>${trip}</span></button></div>`
+          : '';
+        if (mode === 'error') {
+          screen.innerHTML = `${head}<h1>Your next nights</h1></header>
+            <div class="notice" role="alert">${icon('circle-alert', 18, 2.4)}<span>${esc(providerError)}</span></div>
+            <div class="empty"><b>Can’t load shows</b><p>Your artists and kept shows are safe. Try again in a minute.</p><button class="solid">${icon('refresh-cw', 18, 2.4)}Try again</button></div>`;
+          return;
+        }
+        if (!shows.length) {
+          screen.innerHTML = `${head}<h1>Your next nights</h1><p class="sub">Nothing announced yet.</p></header><p class="sample">${esc(note)}</p>
+            <div class="empty"><b>No shows yet</b><p>None of your artists has a date. We’ll print it here the moment one does.</p><button class="solid">${icon('plus', 18, 2.6)}Add artists</button></div>`;
+          return;
+        }
+        screen.innerHTML = `${head}<h1>Your next nights</h1><p class="sub">Tap a photo to keep the show. Kept shows turn to colour.</p>${filters}</header>
+          <p class="sample">${esc(note)}</p>
+          ${providerError ? `<div class="notice">${icon('circle-alert', 18, 2.4)}<span>${esc(providerError)}</span><button>Refresh</button></div>` : ''}
+          <div class="strips" id="strips"></div>`;
+        renderStrips();
+      }
+
+      let toastTimer;
+      function toast(message, undo) {
+        const el = document.getElementById('toast');
+        el.innerHTML = `<span>${message}</span>${undo ? '<button>Undo</button>' : ''}`;
+        el.classList.add('show');
+        el.querySelector('button')?.addEventListener('click', () => {
+          undo();
+          el.classList.remove('show');
+        });
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove('show'), 4000);
+      }
+
+      // Keep: one soft flash on the photo, then it develops into colour.
+      function toggleKeep(id) {
+        const s = shows.find((x) => x.id === id);
+        const li = document.querySelector(`.pose[data-id="${id}"]`);
+        const on = !kept.has(id);
+        on ? kept.add(id) : kept.delete(id);
+        if (li) {
+          li.classList.toggle('is-kept', on);
+          const btn = li.querySelector('.shot');
+          btn.setAttribute('aria-pressed', on);
+          btn.setAttribute('aria-label', `${on ? 'Kept' : 'Keep'}: ${s.artist}, ${dateParts(s.date).full}`);
+          li.querySelector('.keep').innerHTML = `${icon(on ? 'check' : 'plus', 16, 2.8)}${on ? 'Kept' : 'Keep'}`;
+          if (on && !reduceQuery.matches) {
+            li.querySelector('.flash').animate([{ opacity: 0 }, { opacity: 0.85, offset: 0.18 }, { opacity: 0 }], {
+              duration: 420,
+              easing: 'ease-out',
+            });
+          }
+        }
+        renderTabs();
+        if (on) toast(`Kept. ${s.artist} is in colour now.`, () => toggleKeep(id));
+      }
+
+      screen.addEventListener('click', (e) => {
+        const shot = e.target.closest('.shot');
+        if (shot) return toggleKeep(shot.closest('.pose').dataset.id);
+        const f = e.target.closest('.filters button');
+        if (f && f.dataset.f !== filter) {
+          filter = f.dataset.f;
+          document.querySelectorAll('.filters button').forEach((b) => b.setAttribute('aria-pressed', b === f));
+          renderStrips();
+        }
+      });
+
+      function renderTabs() {
+        const tabs = [
+          ['For you', 'compass', true],
+          ['Kept', 'bookmark'],
+          ['Trips', 'route'],
+          ['Artists', 'heart'],
+          ['Alerts', 'bell'],
+        ];
+        document.querySelector('.tabs').innerHTML = tabs
+          .map(
+            ([label, ico, current]) =>
+              `<a href="#" ${current ? 'aria-current="page"' : ''}>${icon(ico, 22, current ? 2.5 : 2.1)}${label}${
+                label === 'Kept' && kept.size ? `<span class="count">${kept.size}<span class="vh"> kept</span></span>` : ''
+              }</a>`,
+          )
+          .join('');
+      }
+
+      render();
+      renderTabs();
+      P.mountDataToggle();
+    </script>
+  </body>
+</html>

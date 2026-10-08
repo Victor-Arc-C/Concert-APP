@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { BellRing, Share, SquarePlus } from 'lucide-react';
+import { useI18n } from '@/i18n/client';
 import { api, useApp } from './context';
 
 type Status = 'checking' | 'unconfigured' | 'ios-install' | 'unsupported' | 'denied' | 'off' | 'on';
@@ -31,6 +32,7 @@ async function registration() {
 /** Push notifications for this device, with the iPhone "Add to Home Screen" step when needed. */
 export function PushSettings() {
   const { data, toast } = useApp();
+  const { t } = useI18n();
   const publicKey = data.pushPublicKey ?? null;
   const [status, setStatus] = useState<Status>('checking'),
     [working, setWorking] = useState(false);
@@ -77,15 +79,13 @@ export function PushSettings() {
           .subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(publicKey) })
           .catch(() => {
             // Browser wording ("Registration failed - …") is not useful to show as-is.
-            throw new Error(
-              'This browser could not register for notifications. Your alerts stay in the inbox.',
-            );
+            throw new Error(t.push.registerFailed);
           }));
       await api('push/subscribe', subscription.toJSON());
       setStatus('on');
-      toast('Notifications are on for this device');
+      toast(t.push.onToast);
     } catch (e) {
-      toast((e as Error).message || 'Notifications could not be turned on.');
+      toast((e as Error).message || t.push.failed);
     } finally {
       setWorking(false);
     }
@@ -99,7 +99,7 @@ export function PushSettings() {
         await subscription.unsubscribe();
       }
       setStatus('off');
-      toast('Notifications are off for this device');
+      toast(t.push.offToast);
     } catch (e) {
       toast((e as Error).message);
     } finally {
@@ -110,7 +110,7 @@ export function PushSettings() {
     setWorking(true);
     try {
       await api('push/test', {});
-      toast('Test sent. It should arrive in a few seconds.');
+      toast(t.push.testToast);
     } catch (e) {
       toast((e as Error).message);
     } finally {
@@ -122,48 +122,43 @@ export function PushSettings() {
   return (
     <div className="push-settings" aria-live="polite">
       <h3>
-        <BellRing size={18} />
-        On this device
+        <BellRing size={18} aria-hidden="true" />
+        {t.push.title}
       </h3>
       {status === 'ios-install' ? (
         <>
-          <p>
-            To get notifications on iPhone, add Encore to your home screen, then open it from there:
-          </p>
+          <p>{t.push.iosIntro}</p>
           <ol className="install-steps">
             <li>
-              Tap <Share size={16} aria-label="Share" /> Share in Safari.
+              {t.push.iosTap} <Share size={16} aria-hidden /> {t.push.iosShare} {t.push.iosInSafari}
             </li>
             <li>
-              Choose <SquarePlus size={16} aria-hidden /> <strong>Add to Home Screen</strong>.
+              <SquarePlus size={16} aria-hidden /> <strong>{t.push.iosStep2}</strong>
             </li>
-            <li>Open Encore from the new icon and come back to this page.</li>
+            <li>{t.push.iosStep3}</li>
           </ol>
         </>
       ) : status === 'unsupported' ? (
-        <p>This browser cannot receive notifications. Your alerts stay in the in-app inbox.</p>
+        <p>{t.push.unsupported}</p>
       ) : status === 'denied' ? (
-        <p>
-          Notifications are blocked for Encore. Allow them in your browser or phone settings, then
-          reload this page.
-        </p>
+        <p>{t.push.denied}</p>
       ) : status === 'on' ? (
         <>
-          <p>New alerts are sent to this device after each concert check.</p>
+          <p>{t.push.on}</p>
           <div className="button-row">
             <button type="button" className="button secondary" disabled={working} onClick={test}>
-              Send a test
+              {t.push.test}
             </button>
             <button type="button" className="button secondary" disabled={working} onClick={disable}>
-              Turn off on this device
+              {t.push.turnOff}
             </button>
           </div>
         </>
       ) : (
         <>
-          <p>Get your alerts as notifications, even when Encore is closed.</p>
+          <p>{t.push.offIntro}</p>
           <button type="button" className="button primary" disabled={working} onClick={enable}>
-            {working ? 'Turning on…' : 'Turn on notifications'}
+            {working ? t.push.turningOn : t.push.turnOn}
           </button>
         </>
       )}

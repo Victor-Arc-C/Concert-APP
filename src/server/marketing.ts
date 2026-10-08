@@ -10,14 +10,20 @@ import {
 } from '../domain/marketing';
 import type { Concert } from '../domain/types';
 
-type Row = { data: Concert; latitude: number | null; longitude: number | null };
+type Row = {
+  data: Concert;
+  latitude: number | null;
+  longitude: number | null;
+  image?: string | null;
+};
 const GIGS_PER_CITY = 12;
 
 async function upcoming(sample: boolean, today: string) {
   return query<Row>(
-    `SELECT e.data, v.latitude, v.longitude FROM events e
+    `SELECT e.data, v.latitude, v.longitude, a.data->>'image' AS image FROM events e
      LEFT JOIN event_venues ev ON ev.event_id=e.id
      LEFT JOIN venues v ON v.id=ev.venue_id
+     LEFT JOIN artists a ON a.id=e.data->'artistIds'->>0
      WHERE e.sample=$1 AND e.data->>'date' >= $2 AND e.data->>'status' <> 'cancelled'
      ORDER BY e.data->>'date'`,
     [sample, today],
@@ -26,7 +32,7 @@ async function upcoming(sample: boolean, today: string) {
 
 export function groupByCity(rows: Row[], mode: PublicGigs['mode']): PublicCity[] {
   const byCity = new Map<string, PublicCity>();
-  for (const { data, latitude, longitude } of rows) {
+  for (const { data, latitude, longitude, image } of rows) {
     const known = catalogCities.find((c) => c.name.toLowerCase() === data.city.toLowerCase());
     const lat = latitude ?? known?.latitude,
       lon = longitude ?? known?.longitude;
@@ -47,6 +53,7 @@ export function groupByCity(rows: Row[], mode: PublicGigs['mode']): PublicCity[]
         venue: data.venue,
         // Sample dates are fictional, so they never leave the server.
         date: mode === 'live' ? data.date : null,
+        image: image ?? null,
       });
     byCity.set(key, city);
   }

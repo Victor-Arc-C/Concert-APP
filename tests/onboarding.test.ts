@@ -1,5 +1,9 @@
 import { expect, it } from 'vitest';
-import { onboardingSource, unsupportedLiveArtists } from '../src/domain/onboarding';
+import {
+  onboardingProgress,
+  onboardingSource,
+  unsupportedLiveArtists,
+} from '../src/domain/onboarding';
 
 it('classifies manual, Spotify, mixed and demo onboarding', () => {
   expect(onboardingSource(['a', 'b'], [], false)).toBe('manual');
@@ -13,4 +17,14 @@ it('rejects fictional artists in live onboarding', () => {
     'fred-again',
   ]);
   expect(unsupportedLiveArtists([], [])).toEqual([]);
+});
+it('reports onboarding progress from fresh artist checks only', () => {
+  const progress = onboardingProgress([
+    { artistId: 'a', fresh: true, failed: false },
+    { artistId: 'b', fresh: false, failed: false },
+    { artistId: 'c', fresh: true, failed: true },
+    { artistId: 'd', fresh: false, failed: true },
+  ]);
+  expect(progress).toEqual({ total: 4, done: ['a', 'c'], failed: ['c'] });
+  expect(onboardingProgress([])).toEqual({ total: 0, done: [], failed: [] });
 });

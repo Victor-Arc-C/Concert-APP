@@ -3,25 +3,19 @@ import { useEffect, useState } from 'react';
 import { Bus, CarFront, ExternalLink, MapPin, Plane, TrainFront } from 'lucide-react';
 import type { TransportComparison } from '@/domain/trip-types';
 import { directionsUrl } from '@/domain/trip-search';
+import { useI18n } from '@/i18n/client';
 import { api } from './context';
-
-const day = (date: string) =>
-  new Date(`${date}T12:00:00Z`).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'long',
-    timeZone: 'UTC',
-  });
 
 function Link({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     <a href={href} target="_blank" rel="noopener noreferrer" className="external-link">
-      {children} <ExternalLink size={12} />
+      {children} <ExternalLink size={12} aria-hidden="true" />
     </a>
   );
 }
 
 /**
- * The realistic ways to reach the show, best first. Encore shows no estimated price: each link
+ * The realistic ways to reach the show, best first. Showbound shows no estimated price: each link
  * opens the seller's live search, where the real fares are.
  */
 export function GettingThere({
@@ -35,6 +29,7 @@ export function GettingThere({
   city: string;
   venue: string;
 }) {
+  const { t, f, s, city: place } = useI18n();
   const [comparison, setComparison] = useState<TransportComparison | null>(null),
     [state, setState] = useState<'loading' | 'ready' | 'failed'>('loading');
   useEffect(() => {
@@ -59,7 +54,7 @@ export function GettingThere({
   // Without an answer, still offer the searches that work for any distance.
   const showRoad = comparison ? !!road : state === 'failed';
   const best = (mode: TransportComparison['recommended']) =>
-    comparison?.recommended === mode && <span className="mode-tag">Best way</span>;
+    comparison?.recommended === mode && <span className="mode-tag">{t.getThere.bestWay}</span>;
 
   const rows: { mode: string; order: number; node: React.ReactNode }[] = [];
   if (flight)
@@ -73,18 +68,20 @@ export function GettingThere({
           </span>
           <div className="mode-body">
             <div className="mode-head">
-              <strong>Plane</strong>
+              <strong>{t.getThere.plane}</strong>
               {best('flight')}
             </div>
             <p className="mode-note">
-              {flight.from} → {flight.to} on {day(flight.date)}.
-              {flight.landBy
-                ? ` Pick a flight landing by ${flight.landBy} local time to make the show, or fly the day before.`
-                : ' Fly the day before if the show starts early.'}
+              {t.getThere.flightNote(
+                place(flight.from),
+                place(flight.to),
+                f.dayMonth(flight.date),
+                flight.landBy,
+              )}
             </p>
             <div className="mode-links">
-              <Link href={flight.searchUrl}>Live flight prices on Google Flights</Link>
-              {flight.omioUrl && <Link href={flight.omioUrl}>Compare flights on Omio</Link>}
+              <Link href={flight.searchUrl}>{t.getThere.googleFlights}</Link>
+              {flight.omioUrl && <Link href={flight.omioUrl}>{t.getThere.omioFlights}</Link>}
             </div>
           </div>
         </>
@@ -101,30 +98,38 @@ export function GettingThere({
           </span>
           <div className="mode-body">
             <div className="mode-head">
-              <strong>Train</strong>
+              <strong>{t.getThere.train}</strong>
               {best('train')}
             </div>
             {train.status === 'served' ? (
               <>
                 <ul className="route-list">
-                  {train.routes.map((route) => (
-                    <li key={route.station}>
-                      <span>
-                        {route.carriers.join(', ')} to <strong>{route.station}</strong>
-                      </span>
-                      <small>{route.lastMileKm} km from the venue</small>
-                      {route.bookingUrl && route.stationCity && (
-                        <Link href={route.bookingUrl}>
-                          Live times and prices {origin} → {route.stationCity} on Omio
-                        </Link>
-                      )}
-                    </li>
-                  ))}
+                  {train.routes.map((route) => {
+                    const [carriers, to] = t.getThere.routeTo(
+                      route.carriers.join(', '),
+                      route.station,
+                    );
+                    return (
+                      <li key={route.station}>
+                        <span>
+                          {carriers}
+                          {to}
+                          <strong>{route.station}</strong>
+                        </span>
+                        <small>{t.getThere.fromVenue(f.number(route.lastMileKm))}</small>
+                        {route.bookingUrl && route.stationCity && (
+                          <Link href={route.bookingUrl}>
+                            {t.getThere.omioTrain(place(origin), route.stationCity)}
+                          </Link>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
-                <Link href="https://www.sncf-connect.com/">Or book on SNCF Connect</Link>
+                <Link href="https://www.sncf-connect.com/">{t.getThere.sncf}</Link>
               </>
             ) : (
-              <p className="mode-note">{train.reason}</p>
+              <p className="mode-note">{s(train.reason)}</p>
             )}
           </div>
         </>
@@ -141,12 +146,10 @@ export function GettingThere({
           </span>
           <div className="mode-body">
             <div className="mode-head">
-              <strong>Car</strong>
+              <strong>{t.getThere.car}</strong>
               {best('road')}
             </div>
-            <Link href={directionsUrl(origin, city, venue, 'driving')}>
-              Driving time, route and tolls on Google Maps
-            </Link>
+            <Link href={directionsUrl(origin, city, venue, 'driving')}>{t.getThere.driving}</Link>
           </div>
         </>
       ),
@@ -162,10 +165,10 @@ export function GettingThere({
             </span>
             <div className="mode-body">
               <div className="mode-head">
-                <strong>Coach</strong>
+                <strong>{t.getThere.coach}</strong>
               </div>
               <Link href={road.coachUrl}>
-                Live coach times and prices {road.coachRoute} on Omio
+                {t.getThere.omioCoach(road.coachRoute ?? `${place(origin)} → ${place(city)}`)}
               </Link>
             </div>
           </>
@@ -182,10 +185,10 @@ export function GettingThere({
         </span>
         <div className="mode-body">
           <div className="mode-head">
-            <strong>To the venue</strong>
+            <strong>{t.getThere.venue}</strong>
           </div>
           <Link href={directionsUrl(origin, city, venue, 'transit')}>
-            Public transport to {venue}
+            {t.getThere.transit(venue)}
           </Link>
         </div>
       </>
@@ -195,31 +198,29 @@ export function GettingThere({
   return (
     <section className="getting-there" aria-labelledby="getting-there-title">
       <div className="getting-there-head">
-        <h2 id="getting-there-title">Getting there</h2>
+        <h2 id="getting-there-title">{t.getThere.title}</h2>
         <span>
-          {origin} → {city}
-          {comparison && ` · ${comparison.distanceKm.toLocaleString('en-GB')} km`}
+          {place(origin)} → {place(city)}
+          {comparison && ` · ${f.number(comparison.distanceKm)} km`}
         </span>
       </div>
-      {state === 'loading' && <p className="getting-there-status">Finding the best ways there…</p>}
-      {state === 'failed' && (
-        <p className="getting-there-status">
-          Routes could not be loaded. The links below still open each live search.
-        </p>
-      )}
+      {state === 'loading' && <p className="getting-there-status">{t.getThere.loading}</p>}
+      {state === 'failed' && <p className="getting-there-status">{t.getThere.failed}</p>}
       <ul className="mode-list">
         {rows
           .sort((a, b) => a.order - b.order)
-          .map((row) => (
-            <li key={row.mode} className="mode-row" data-mode={row.mode}>
+          .map((row, i) => (
+            <li
+              key={row.mode}
+              className="mode-row"
+              data-mode={row.mode}
+              style={{ '--i': i } as React.CSSProperties}
+            >
               {row.node}
             </li>
           ))}
       </ul>
-      <p className="getting-there-sources">
-        Prices come from each seller&apos;s live search; Encore never estimates them. Train routes:
-        SNCF Voyageurs open data (ODbL).
-      </p>
+      <p className="getting-there-sources">{t.getThere.sources}</p>
     </section>
   );
 }

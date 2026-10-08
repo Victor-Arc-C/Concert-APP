@@ -9,7 +9,12 @@ import { getAppData } from '../src/server/data';
 import { storeEvent } from '../src/server/providers/ticketmaster';
 import { normalizeTicketmaster } from '../src/domain/normalization';
 import { defaults } from '../src/domain/catalog';
-import { money } from '../src/components/ui';
+import { formatters } from '../src/i18n/format';
+import { en } from '../src/i18n/en';
+
+// What the app shows for a price: the formatted amount, or the explicit unknown label.
+const money = (amount: number | null, currency: string | null) =>
+  formatters('en').money(amount, currency) ?? en.common.priceNotListed;
 
 const now = new Date();
 const raw = {

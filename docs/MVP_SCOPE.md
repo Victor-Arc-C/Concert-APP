@@ -1,10 +1,10 @@
 # MVP scope and launch metrics (CON-5)
 
-This is the launch contract for the private Encore pilot. Linear controls delivery order; the earlier product and technical plan remains background research. Scope below does not claim that every launch gate is implemented.
+This is the launch contract for the private Showbound pilot. Linear controls delivery order; the earlier product and technical plan remains background research. Scope below does not claim that every launch gate is implemented.
 
 ## Product test
 
-Can a listener bring their artist preferences into Encore, find a relevant upcoming concert, understand the recommendation, and continue to a trusted ticket seller?
+Can a listener bring their artist preferences into Showbound, find a relevant upcoming concert, understand the recommendation, and continue to a trusted ticket seller?
 
 ## In scope
 

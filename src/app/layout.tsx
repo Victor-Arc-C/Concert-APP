@@ -1,26 +1,28 @@
-import type { Metadata } from 'next';
-import '@fontsource/manrope/400.css';
-import '@fontsource/manrope/500.css';
-import '@fontsource/manrope/600.css';
-import '@fontsource/manrope/700.css';
-import '@fontsource/manrope/800.css';
-import '@fontsource/barlow-condensed/800.css';
-import '@fontsource/jetbrains-mono/400.css';
-import '@fontsource/jetbrains-mono/600.css';
+import type { Metadata, Viewport } from 'next';
+import '@fontsource-variable/bricolage-grotesque/opsz.css';
 import './globals.css';
-export const metadata: Metadata = {
-  title: 'Encore — your next great night',
-  description:
-    'A personal shortlist of concerts by the artists you love. Explore the Encore pilot.',
-  // Home-screen app on iPhone: full screen, no Safari chrome, dark status bar over the board.
-  appleWebApp: { capable: true, title: 'Encore', statusBarStyle: 'black' },
-};
-export const viewport = { themeColor: '#0b0d12' };
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+import { I18nProvider } from '@/i18n/client';
+import { dictionaries } from '@/i18n/messages';
+import { getLocale } from '@/i18n/server';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = dictionaries[await getLocale()];
+  return {
+    title: t.meta.appTitle,
+    description: t.meta.appDescription,
+    applicationName: 'Showbound',
+    // Home-screen app on iPhone: full screen, light status bar over the haze.
+    appleWebApp: { capable: true, title: 'Showbound', statusBarStyle: 'default' },
+  };
+}
+export const viewport: Viewport = { themeColor: '#e4dcf8', colorScheme: 'light' };
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await getLocale();
   return (
-    <html lang="en">
+    <html lang={locale}>
       <body>
-        {children}
+        <I18nProvider initial={locale}>{children}</I18nProvider>
         <p
           style={{
             margin: 0,

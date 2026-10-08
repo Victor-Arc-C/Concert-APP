@@ -1,11 +1,14 @@
 'use client';
+import { useI18n } from '@/i18n/client';
+
 export default function ErrorPage({ reset }: { reset: () => void }) {
+  const { t } = useI18n();
   return (
     <main className="failure">
-      <h1>Encore couldn’t load this page.</h1>
-      <p>Try again. Your saved concerts are still in your account.</p>
+      <h1>{t.shell.errorTitle}</h1>
+      <p>{t.shell.errorBody}</p>
       <button className="button primary" onClick={reset}>
-        Try again
+        {t.common.tryAgain}
       </button>
     </main>
   );

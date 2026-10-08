@@ -4,6 +4,9 @@ import { query } from './db';
 import { env, pushAvailable } from './env';
 import { reportError } from './monitoring';
 import { HttpError } from './security';
+import { resolveLocale, type Locale } from '../i18n/config';
+import { formatters } from '../i18n/format';
+import { translate, translateAlertTitle } from '../i18n/server-text';
 
 // The server POSTs to the endpoint a browser hands us, so only accept the browser vendors'
 // push services. Anything else could point the server at an arbitrary URL.
@@ -131,6 +134,27 @@ async function sendToUser(userId: string, payloads: PushPayload[], send: PushSen
   return delivered;
 }
 
+/** The language the user last chose in the app; English when they never chose. */
+async function userLocale(userId: string): Promise<Locale> {
+  const [row] = await query<{ locale: string | null }>(
+    "SELECT preferences->>'locale' AS locale FROM users WHERE id=$1",
+    [userId],
+  );
+  return resolveLocale(row?.locale);
+}
+/** Alerts are stored in English; notifications go out in the user's language. */
+function localized(payload: PushPayload, locale: Locale): PushPayload {
+  if (locale === 'en') return payload;
+  const f = formatters(locale);
+  return {
+    ...payload,
+    title: translateAlertTitle(payload.title, locale),
+    body: translate(payload.body, locale).replace(/\b\d{4}-\d{2}-\d{2}\b/g, (iso) =>
+      f.dateLong(iso),
+    ),
+  };
+}
+
 /** Push the user's unread live alerts created since `since` (database time) to their devices. */
 export async function pushNewAlerts(userId: string, since: string, send = vapidSender()) {
   if (!send) return 0;
@@ -151,24 +175,33 @@ export async function pushNewAlerts(userId: string, since: string, send = vapidS
   if (rest > 0)
     payloads.push({
       title: `${rest} more concert${rest === 1 ? '' : 's'} for you`,
-      body: 'Open Encore to see every new match.',
+      body: 'Open Showbound to see every new match.',
       url: '/app/alerts',
       tag: 'alert-summary',
     });
-  return sendToUser(userId, payloads, send);
+  const locale = await userLocale(userId);
+  return sendToUser(
+    userId,
+    payloads.map((payload) => localized(payload, locale)),
+    send,
+  );
 }
 
 export async function sendTestPush(userId: string, send = vapidSender()) {
   if (!send) throw new HttpError(503, 'Push notifications are not set up on this server yet.');
+  const locale = await userLocale(userId);
   const delivered = await sendToUser(
     userId,
     [
-      {
-        title: 'Encore notifications are on',
-        body: 'New shows by the artists you follow will arrive here.',
-        url: '/app/alerts',
-        tag: 'test',
-      },
+      localized(
+        {
+          title: 'Showbound notifications are on',
+          body: 'New shows by the artists you follow will arrive here.',
+          url: '/app/alerts',
+          tag: 'test',
+        },
+        locale,
+      ),
     ],
     send,
   );

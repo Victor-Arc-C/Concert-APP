@@ -3,6 +3,7 @@ import { useMemo, useState, useSyncExternalStore } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 import { cities as catalogCities } from '@/domain/catalog';
 import { distanceKm, type PublicCity } from '@/domain/marketing';
+import { useI18n } from '@/i18n/client';
 import { useGigs } from './gigs-context';
 import styles from './marketing.module.css';
 
@@ -32,9 +33,6 @@ const range = (from: number, to: number) =>
     { length: Math.floor(to / 5) - Math.ceil(from / 5) + 1 },
     (_, i) => (Math.ceil(from / 5) + i) * 5,
   );
-const plural = new Intl.PluralRules('en');
-const count = (n: number, one: string, other: string) =>
-  `${n} ${plural.select(n) === 'one' ? one : other}`;
 
 type Box = { x0: number; y0: number; x1: number; y1: number };
 type Label = { x: number; y: number; anchor: 'start' | 'end' | 'middle' };
@@ -120,12 +118,9 @@ function useLabelSize() {
 }
 const cityKey = (c: PublicCity) => `${c.name}|${c.country}`;
 
-const dateLabel = (date: string) =>
-  new Date(`${date}T12:00:00Z`)
-    .toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' })
-    .toUpperCase();
-
 export function GigMap() {
+  const { t, f, city: place } = useI18n();
+  const m = t.marketing;
   const { status, data, retry, home } = useGigs();
   const reduce = useReducedMotion();
   const [picked, setPicked] = useState<string | null>(null);
@@ -148,7 +143,7 @@ export function GigMap() {
             x,
             y,
             size: nodeSize(c),
-            text: `${c.name.toUpperCase()} ${c.total}`,
+            text: `${place(c.name)} ${c.total}`,
             priority: (selected && cityKey(c) === cityKey(selected) ? 1e9 : 0) + c.total,
           };
         }),
@@ -156,25 +151,27 @@ export function GigMap() {
         W,
         H,
       ),
-    [cities, frame, H, labelSize, selected],
+    [cities, frame, H, labelSize, selected, place],
   );
 
   return (
     <section id="shows" className={styles.mapSection} aria-labelledby="map-title">
       <header className={styles.mapHead} data-reveal>
-        <h2 id="map-title">Who is playing where.</h2>
-        <p>
-          {data?.mode === 'sample'
-            ? 'Sample listings for now. Once live data is connected, this map shows every upcoming show Encore tracks.'
-            : 'Every upcoming show Encore tracks across Europe, refreshed every night. Lines run from your home city.'}
-        </p>
+        <h2 id="map-title">{m.mapTitle}</h2>
+        <p>{data?.mode === 'sample' ? m.mapSample : m.mapLive}</p>
+        {status === 'ready' && data && data.stats.shows > 0 && (
+          <p className={styles.counts}>
+            {m.counts(data.stats.shows, data.stats.artists, data.stats.cities)}
+            {data.waitlist != null && ` · ${m.waitlistCount(data.waitlist)}`}
+          </p>
+        )}
       </header>
       <div className={styles.mapBody} data-reveal style={{ '--i': 1 } as React.CSSProperties}>
         <div className={styles.mapCanvas}>
           <svg
             viewBox={`0 0 ${W} ${H}`}
             role="img"
-            aria-label={`Map of ${cities.length} cities with upcoming shows, seen from ${home}`}
+            aria-label={m.mapAria(cities.length, place(home))}
           >
             {range(frame.west, frame.east).map((lon) => {
               const [x] = project(frame, 0, lon);
@@ -237,7 +234,7 @@ export function GigMap() {
                   key={key}
                   role="button"
                   tabIndex={-1}
-                  aria-label={`${city.name}, ${count(city.total, 'show', 'shows')}`}
+                  aria-label={`${place(city.name)}, ${m.showCount(city.total)}`}
                   className={styles.node}
                   data-selected={(selected && key === cityKey(selected)) || undefined}
                   onClick={() => setPicked(key)}
@@ -257,7 +254,7 @@ export function GigMap() {
                       textAnchor={label.anchor}
                       style={{ fontSize: labelSize, strokeWidth: labelSize / 3 }}
                     >
-                      {city.name.toUpperCase()} {city.total}
+                      {place(city.name)} {city.total}
                     </text>
                   )}
                 </motion.g>
@@ -265,7 +262,7 @@ export function GigMap() {
             })}
           </svg>
         </div>
-        <aside className={styles.mapPanel} aria-label="Shows by city">
+        <aside className={styles.mapPanel} aria-label={m.byCity}>
           {status === 'loading' && (
             <div className={styles.skeletonList} aria-hidden="true">
               {Array.from({ length: 6 }, (_, i) => (
@@ -275,20 +272,16 @@ export function GigMap() {
           )}
           {status === 'error' && (
             <p className={styles.mapState}>
-              The shows could not load.{' '}
+              {m.mapError}{' '}
               <button type="button" onClick={retry}>
-                Try again
+                {t.common.tryAgain}
               </button>
             </p>
           )}
-          {status === 'ready' && !cities.length && (
-            <p className={styles.mapState}>
-              No upcoming shows on the board yet. New dates appear here after the nightly refresh.
-            </p>
-          )}
+          {status === 'ready' && !cities.length && <p className={styles.mapState}>{m.mapEmpty}</p>}
           {status === 'ready' && cities.length > 0 && (
             <>
-              <p className={styles.cityCount}>{count(cities.length, 'city', 'cities')}</p>
+              <p className={styles.cityCount}>{m.cityCount(cities.length)}</p>
               <ul className={styles.cityList}>
                 {cities.map((city) => {
                   const km = distanceKm(origin, city);
@@ -299,8 +292,8 @@ export function GigMap() {
                         aria-pressed={!!selected && cityKey(city) === cityKey(selected)}
                         onClick={() => setPicked(cityKey(city))}
                       >
-                        <span>{city.name}</span>
-                        <span>{km < 40 ? 'Home' : `${km} km`}</span>
+                        <span>{place(city.name)}</span>
+                        <span>{km < 40 ? m.home : `${f.number(km)} km`}</span>
                         <data value={city.total}>{city.total}</data>
                       </button>
                     </li>
@@ -309,23 +302,20 @@ export function GigMap() {
               </ul>
               {selected && (
                 <div className={styles.cityDetail} aria-live="polite">
-                  <h3>{selected.name}</h3>
+                  <h3>{place(selected.name)}</h3>
                   <ul>
                     {selected.gigs.map((gig, i) => (
                       <li key={`${gig.artist}-${i}`}>
                         <strong>{gig.artist}</strong>
                         <span>
                           {gig.venue}
-                          {gig.date && <time dateTime={gig.date}> {dateLabel(gig.date)}</time>}
+                          {gig.date && <time dateTime={gig.date}> {f.dateShort(gig.date)}</time>}
                         </span>
                       </li>
                     ))}
                   </ul>
                   {selected.total > selected.gigs.length && (
-                    <p>
-                      {count(selected.total - selected.gigs.length, 'more show', 'more shows')} in
-                      the app.
-                    </p>
+                    <p>{m.moreShows(selected.total - selected.gigs.length)}</p>
                   )}
                 </div>
               )}

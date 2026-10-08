@@ -1,225 +1,513 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-07T00:00:00Z",
-  "title": "Design System: Encore",
+  "generatedAt": "2026-10-08T02:22:11.226Z",
+  "title": "Design System: Showbound",
   "extensions": {
     "colorMeta": {
-      "board-black": {
+      "haze": {
         "role": "neutral",
-        "displayName": "Board Black",
+        "displayName": "Haze",
+        "canonical": "#efeafb",
         "tonalRamp": [
-          "#0b0d12",
-          "#11141b",
-          "#12151d",
-          "#171b24",
-          "#252b38",
-          "#353d4f",
-          "#80879a",
-          "#eceae4"
+          "#0d0914",
+          "#25222e",
+          "#413d4b",
+          "#5f5b69",
+          "#827d8d",
+          "#a6a2b1",
+          "#ccc7d8",
+          "#f0ebfc"
         ]
       },
-      "panel": {
+      "haze-deep": {
         "role": "neutral",
-        "displayName": "Panel"
+        "displayName": "Haze Deep",
+        "canonical": "#e4dcf8",
+        "tonalRamp": [
+          "#0d0719",
+          "#262034",
+          "#423b52",
+          "#605971",
+          "#837c95",
+          "#a7a0ba",
+          "#cdc6e1",
+          "#f0ebfd"
+        ]
       },
-      "panel-raised": {
+      "haze-floor": {
         "role": "neutral",
-        "displayName": "Panel Raised"
+        "displayName": "Haze Floor",
+        "canonical": "#f6e8f3",
+        "tonalRamp": [
+          "#10080f",
+          "#2a2028",
+          "#473c45",
+          "#655963",
+          "#887c86",
+          "#ada0aa",
+          "#d3c6d0",
+          "#f8eaf5"
+        ]
       },
-      "slat": {
+      "card": {
         "role": "neutral",
-        "displayName": "Slat"
+        "displayName": "Card",
+        "canonical": "#faf8ff",
+        "tonalRamp": [
+          "#0c0a0f",
+          "#252328",
+          "#403f44",
+          "#5e5c62",
+          "#817f85",
+          "#a5a3aa",
+          "#cbc9d0",
+          "#efedf4"
+        ]
       },
-      "hairline": {
+      "white": {
         "role": "neutral",
-        "displayName": "Hairline"
+        "displayName": "White",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#242424",
+          "#404040",
+          "#5d5d5d",
+          "#808080",
+          "#a4a4a4",
+          "#cacaca",
+          "#eeeeee"
+        ]
       },
-      "hairline-strong": {
+      "line": {
         "role": "neutral",
-        "displayName": "Hairline Strong"
+        "displayName": "Line",
+        "canonical": "#ddd5f2",
+        "tonalRamp": [
+          "#0d071a",
+          "#262035",
+          "#423b52",
+          "#605972",
+          "#837b96",
+          "#a7a0bb",
+          "#cdc5e2",
+          "#f0ebfe"
+        ]
       },
-      "porcelain": {
+      "line-strong": {
         "role": "neutral",
-        "displayName": "Porcelain"
+        "displayName": "Line Strong",
+        "canonical": "#c4b9e6",
+        "tonalRamp": [
+          "#0f0322",
+          "#271c3f",
+          "#43385e",
+          "#61567e",
+          "#8379a2",
+          "#a89dc9",
+          "#cec3f0",
+          "#efecfd"
+        ]
       },
-      "dim": {
-        "role": "neutral",
-        "displayName": "Dim"
+      "ink": {
+        "role": "primary",
+        "displayName": "Stage Ink",
+        "canonical": "#15122b",
+        "tonalRamp": [
+          "#0a071e",
+          "#22203a",
+          "#3e3c58",
+          "#5b5a78",
+          "#7e7c9d",
+          "#a2a1c2",
+          "#c7c6ea",
+          "#edecfe"
+        ]
       },
-      "faint": {
+      "ink-hover": {
+        "role": "primary",
+        "displayName": "Ink Lift",
+        "canonical": "#2b2650",
+        "tonalRamp": [
+          "#0b0328",
+          "#221d46",
+          "#3d3965",
+          "#5a5786",
+          "#7c7aab",
+          "#a09ed1",
+          "#c6c4f9",
+          "#edecff"
+        ]
+      },
+      "ink-soft": {
         "role": "neutral",
-        "displayName": "Faint"
+        "displayName": "Ink Soft",
+        "canonical": "#4a4566",
+        "tonalRamp": [
+          "#0c0520",
+          "#241f3c",
+          "#403a5b",
+          "#5d587b",
+          "#807b9f",
+          "#a49fc5",
+          "#cac5ec",
+          "#eeecff"
+        ]
+      },
+      "ink-mute": {
+        "role": "neutral",
+        "displayName": "Ink Mute",
+        "canonical": "#6b6687",
+        "tonalRamp": [
+          "#0c061f",
+          "#241f3b",
+          "#403b59",
+          "#5e5979",
+          "#807b9d",
+          "#a49fc3",
+          "#cac5ea",
+          "#eeecfc"
+        ]
+      },
+      "on-ink-soft": {
+        "role": "neutral",
+        "displayName": "On-Ink Soft",
+        "canonical": "#d6d2ee",
+        "tonalRamp": [
+          "#0c081a",
+          "#242035",
+          "#403c53",
+          "#5e5a72",
+          "#807c96",
+          "#a5a1bb",
+          "#cac7e2",
+          "#eeecfd"
+        ]
+      },
+      "truss": {
+        "role": "neutral",
+        "displayName": "Truss",
+        "canonical": "#2b2840",
+        "tonalRamp": [
+          "#0b071c",
+          "#232038",
+          "#3f3c55",
+          "#5c5a75",
+          "#7f7c99",
+          "#a3a1bf",
+          "#c9c6e6",
+          "#edecfe"
+        ]
+      },
+      "truss-light": {
+        "role": "neutral",
+        "displayName": "Truss Light",
+        "canonical": "#4a4468",
+        "tonalRamp": [
+          "#0c0522",
+          "#251e3e",
+          "#403a5d",
+          "#5e587d",
+          "#807aa2",
+          "#a49fc8",
+          "#cac4ef",
+          "#eeecfe"
+        ]
+      },
+      "truss-edge": {
+        "role": "neutral",
+        "displayName": "Truss Edge",
+        "canonical": "#3d3858",
+        "tonalRamp": [
+          "#0c0520",
+          "#241f3c",
+          "#3f3b5b",
+          "#5d587b",
+          "#807b9f",
+          "#a49fc5",
+          "#cac5ec",
+          "#eeecff"
+        ]
+      },
+      "rose": {
+        "role": "secondary",
+        "displayName": "Rose Gel",
+        "canonical": "#ff3d7f",
+        "tonalRamp": [
+          "#1f0007",
+          "#49001c",
+          "#780434",
+          "#ac054d",
+          "#e51a6b",
+          "#fe6c93",
+          "#feb2c1",
+          "#ffe8ec"
+        ]
+      },
+      "cyan": {
+        "role": "secondary",
+        "displayName": "Cyan Gel",
+        "canonical": "#1fb6ff",
+        "tonalRamp": [
+          "#000d18",
+          "#01273b",
+          "#014565",
+          "#006591",
+          "#068ac4",
+          "#11b1f9",
+          "#91d4ff",
+          "#dff2fe"
+        ]
       },
       "amber": {
-        "role": "primary",
-        "displayName": "Departure Amber",
-        "tonalRamp": [
-          "oklch(15% 0.11 70)",
-          "oklch(25% 0.11 70)",
-          "oklch(35% 0.11 70)",
-          "oklch(45% 0.11 70)",
-          "oklch(55% 0.11 70)",
-          "oklch(68% 0.11 70)",
-          "oklch(82% 0.11 70)",
-          "oklch(95% 0.11 70)"
-        ]
-      },
-      "amber-ink": {
-        "role": "primary",
-        "displayName": "Amber Ink"
-      },
-      "amber-soft": {
-        "role": "primary",
-        "displayName": "Amber Wash"
-      },
-      "amber-line": {
-        "role": "primary",
-        "displayName": "Amber Rule"
-      },
-      "platform-green": {
         "role": "secondary",
-        "displayName": "Platform Green",
+        "displayName": "Amber Gel",
+        "canonical": "#ffaa00",
         "tonalRamp": [
-          "oklch(15% 0.14 158)",
-          "oklch(25% 0.14 158)",
-          "oklch(35% 0.14 158)",
-          "oklch(45% 0.14 158)",
-          "oklch(55% 0.14 158)",
-          "oklch(68% 0.14 158)",
-          "oklch(82% 0.14 158)",
-          "oklch(95% 0.14 158)"
+          "#140800",
+          "#341f00",
+          "#573805",
+          "#7f5304",
+          "#ad7208",
+          "#dc930e",
+          "#febd63",
+          "#feebd5"
         ]
       },
-      "platform-green-soft": {
+      "lime": {
         "role": "secondary",
-        "displayName": "Platform Green Wash"
-      },
-      "signal-red": {
-        "role": "tertiary",
-        "displayName": "Signal Red",
+        "displayName": "Lime Gel",
+        "canonical": "#7be03a",
         "tonalRamp": [
-          "oklch(15% 0.17 28)",
-          "oklch(25% 0.17 28)",
-          "oklch(35% 0.17 28)",
-          "oklch(45% 0.17 28)",
-          "oklch(55% 0.17 28)",
-          "oklch(68% 0.17 28)",
-          "oklch(82% 0.17 28)",
-          "oklch(95% 0.17 28)"
+          "#021000",
+          "#102c00",
+          "#224c03",
+          "#336e01",
+          "#489603",
+          "#5fc008",
+          "#83e945",
+          "#d0ffba"
         ]
       },
-      "signal-red-soft": {
+      "violet": {
+        "role": "secondary",
+        "displayName": "Violet Gel",
+        "canonical": "#a58bff",
+        "tonalRamp": [
+          "#0f002d",
+          "#2b0062",
+          "#46218d",
+          "#6344b1",
+          "#8469d9",
+          "#a890fd",
+          "#cbc1fe",
+          "#eeecff"
+        ]
+      },
+      "flame": {
+        "role": "secondary",
+        "displayName": "Flame Gel",
+        "canonical": "#ff6a3d",
+        "tonalRamp": [
+          "#1f0000",
+          "#450e00",
+          "#721f02",
+          "#a23106",
+          "#da4713",
+          "#fe754d",
+          "#fdb7a3",
+          "#fceae4"
+        ]
+      },
+      "alert-ink": {
         "role": "tertiary",
-        "displayName": "Signal Red Wash"
+        "displayName": "Alert Ink",
+        "canonical": "#b0144a",
+        "tonalRamp": [
+          "#1f0006",
+          "#4a0019",
+          "#79022f",
+          "#ac0c47",
+          "#d64168",
+          "#fd6e8d",
+          "#fdb3be",
+          "#fce9eb"
+        ]
+      },
+      "alert-wash": {
+        "role": "tertiary",
+        "displayName": "Alert Wash",
+        "canonical": "#ffe3ec",
+        "tonalRamp": [
+          "#16050b",
+          "#311d24",
+          "#4e3940",
+          "#6d565e",
+          "#917881",
+          "#b79da5",
+          "#ddc2cb",
+          "#fce9ef"
+        ]
+      },
+      "go-ink": {
+        "role": "tertiary",
+        "displayName": "Go Ink",
+        "canonical": "#1d6b15",
+        "tonalRamp": [
+          "#001100",
+          "#002e00",
+          "#054f00",
+          "#23701b",
+          "#499441",
+          "#6eba66",
+          "#94e18b",
+          "#cdffc6"
+        ]
       }
     },
     "typographyMeta": {
+      "display-stage": {
+        "displayName": "Display Stage",
+        "purpose": "The marketing promise and marketing section headings; opsz 96."
+      },
       "display": {
         "displayName": "Display",
-        "purpose": "Screen titles; boarding-pass artist name up to clamp(3rem, 6vw, 5.5rem). Uppercase."
+        "purpose": "The page title of each app screen; trip heads."
       },
       "headline": {
         "displayName": "Headline",
-        "purpose": "Artist names on board rows; 2.75rem on the next-departure row."
+        "purpose": "Section and modal headings, empty states."
       },
       "title": {
         "displayName": "Title",
-        "purpose": "Section, modal, side-pane and itinerary-step headings."
+        "purpose": "Artist names on act cards; grows for the next show."
+      },
+      "title-small": {
+        "displayName": "Title Small",
+        "purpose": "h3 and trip step headers."
+      },
+      "wordmark": {
+        "displayName": "Wordmark",
+        "purpose": "Lowercase \"showbound\" beside the Mark."
       },
       "body": {
         "displayName": "Body",
-        "purpose": "Prose in Dim, capped at 65ch."
-      },
-      "body-small": {
-        "displayName": "Body small",
-        "purpose": "Venue lines, notes, fine print."
+        "purpose": "Running text; intros held to 44 to 52ch."
       },
       "label": {
         "displayName": "Label",
-        "purpose": "Buttons, nav, filter tabs, back links. Uppercase."
+        "purpose": "Buttons (16px), field labels, cue filters, back links."
       },
-      "data": {
-        "displayName": "Data",
-        "purpose": "Status flaps, weekday/month/time, chips, context strips. Uppercase, tabular."
-      },
-      "data-figure": {
-        "displayName": "Data figure",
-        "purpose": "Row day number and ticket price, in amber."
-      },
-      "data-caption": {
-        "displayName": "Data caption",
-        "purpose": "Board column headers and pass field labels, in Faint."
+      "meta": {
+        "displayName": "Meta",
+        "purpose": "Chips, counts, badges; tabular figures."
       }
     },
     "shadows": [
       {
-        "name": "toast-lift",
-        "value": "0 18px 40px #00000080",
-        "purpose": "Amber confirmation toast."
+        "name": "shadow-lift",
+        "value": "0 30px 60px -36px rgb(43 40 64 / 0.55)",
+        "purpose": "Floating layers: modals, toasts, sticky save bar, onboarding footer, loader ring, marketing confirmation and journey photo."
       },
       {
-        "name": "modal-lift",
-        "value": "0 30px 80px #000000b3",
-        "purpose": "Dialogs, over a #05060acc backdrop with 4px blur."
+        "name": "shadow-card",
+        "value": "0 1px 0 rgb(43 40 64 / 0.04), 0 18px 40px -32px rgb(43 40 64 / 0.45)",
+        "purpose": "Active rail item and the ticket panel on show detail."
       },
       {
-        "name": "flap-seam",
-        "value": "inset 0 -1px 0 #ffffff0a",
-        "purpose": "Split-flap fold on status tiles (with a 1px #ffffff12 mid-line gradient)."
+        "name": "tag",
+        "value": "0 6px 14px -8px rgb(21 18 43 / 0.5)",
+        "purpose": "The white date tag on an artist photo."
+      },
+      {
+        "name": "focus-ring",
+        "value": "outline: 3px solid var(--ink); outline-offset: 3px",
+        "purpose": "Every focusable element; white on ink sections."
       },
       {
         "name": "field-focus",
-        "value": "0 0 0 1px #f1b66d",
-        "purpose": "Doubles the amber border on focused inputs."
+        "value": "0 0 0 4px rgb(255 61 127 / 0.22)",
+        "purpose": "Rose halo around a focused field, with an ink border."
       }
     ],
     "motion": [
       {
-        "name": "ease",
-        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
-        "purpose": "All state transitions, 160ms (120ms for button press)."
+        "name": "ease-out",
+        "value": "cubic-bezier(0.23, 1, 0.32, 1)",
+        "purpose": "Default for entrances, presses and the follow-spot pulse."
       },
       {
-        "name": "flap-in",
-        "value": "420ms, rotateX(-70deg) to 0, staggered 40ms per row up to 160ms",
-        "purpose": "Status flap turns once when a row arrives."
+        "name": "ease-in-out",
+        "value": "cubic-bezier(0.77, 0, 0.175, 1)",
+        "purpose": "Slow ambient sweeps (marketing join beams, 7 to 11s)."
       },
       {
-        "name": "blink",
-        "value": "1.6s steps(2) infinite, opacity to 0.25",
-        "purpose": "Live square and unread-alert dot."
+        "name": "ease-drawer",
+        "value": "cubic-bezier(0.32, 0.72, 0, 1)",
+        "purpose": "Phone bottom sheet slide-up (420ms)."
       },
       {
-        "name": "toast-in",
-        "value": "260ms, translateY 12px to 0",
-        "purpose": "Toast entry."
+        "name": "spring-app-beams",
+        "value": "response 0.8s, damping 0.7",
+        "purpose": "App rig beams between cues; interruptible, keeps velocity on retarget."
+      },
+      {
+        "name": "spring-hero-beams",
+        "value": "response 0.75s, damping 0.72",
+        "purpose": "Marketing hero beams finding acts and leaning to the pointer."
+      },
+      {
+        "name": "power-on",
+        "value": "520ms steps(1, end) flicker; stagger 250ms + 180ms per lamp (app), 200ms + 150ms (hero)",
+        "purpose": "Lamps switching on in turn."
+      },
+      {
+        "name": "cue-gel-crossfade",
+        "value": "700ms ease on registered --g1, --g2, --g3",
+        "purpose": "Stage gels changing with a cue."
+      },
+      {
+        "name": "follow-spot",
+        "value": "1100ms ease-out beam; card scale 1.02 over 520ms",
+        "purpose": "Saving a show."
+      },
+      {
+        "name": "act-in",
+        "value": "420ms ease-out, translateY(12px), 40ms stagger",
+        "purpose": "Act cards entering the feed."
+      },
+      {
+        "name": "press",
+        "value": "scale(0.97) over 160ms ease-out",
+        "purpose": "Buttons and controls on press (0.95 to 0.96 for small ones)."
+      },
+      {
+        "name": "screen-swap",
+        "value": "out 140ms ease-in; in 320ms ease-out after 60ms, translateY(14px) with 2px blur",
+        "purpose": "View transitions between screens; photos morph over 420ms."
       },
       {
         "name": "reduced-motion",
-        "value": "animations and transitions collapse to 0.01ms",
-        "purpose": "prefers-reduced-motion: reduce."
+        "value": "prefers-reduced-motion: reduce",
+        "purpose": "Lights set without travel: no flicker, sway or spot sweep; entrances become fades."
       }
     ],
     "breakpoints": [
       {
-        "name": "wide",
-        "value": "1180px",
-        "note": "gutter 28px, rail 208px, side pane 260px"
+        "name": "tablet",
+        "value": "768px"
       },
       {
-        "name": "stack",
-        "value": "960px",
-        "note": "detail, settings, boarding pass and auth stack to one column"
+        "name": "two-up",
+        "value": "900px"
       },
       {
-        "name": "mobile",
-        "value": "820px",
-        "note": "gutter 16px, bottom tab bar replaces rail, h1 2.5rem"
+        "name": "desktop-rail",
+        "value": "1024px"
       },
       {
-        "name": "narrow",
-        "value": "420px",
-        "note": "filter tabs tighten to 0.6875rem"
+        "name": "lineup",
+        "value": "1280px"
       }
     ]
   },
@@ -228,130 +516,138 @@
       "name": "Primary Button",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "The one amber action per view.",
-      "html": "<button class=\"ds-btn-primary\">Explore this show</button>",
-      "css": ".ds-btn-primary{display:inline-flex;align-items:center;min-height:46px;padding:11px 20px;border:1px solid transparent;border-radius:0;background:var(--accent,#f1b66d);color:var(--accent-ink,#191104);font-family:Manrope,system-ui,sans-serif;font-size:.8125rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:background-color 160ms cubic-bezier(.16,1,.3,1),transform 120ms cubic-bezier(.16,1,.3,1)}.ds-btn-primary:hover{background:#f6c88b}.ds-btn-primary:active{transform:translateY(1px)}.ds-btn-primary:focus-visible{outline:2px solid #f1b66d;outline-offset:3px}"
+      "description": "Ink call to action, the default action on every surface.",
+      "html": "<button class=\"ds-btn-primary\">Join the waitlist</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 18px; border: 1px solid transparent; border-radius: var(--r-m); background: var(--ink); color: var(--white); font-family: var(--font); font-weight: 700; font-size: 16px; line-height: 1.15; cursor: pointer; transition: transform 160ms var(--ease-out), background-color 200ms ease; } .ds-btn-primary:hover { background: #2b2650; } .ds-btn-primary:active { transform: scale(0.97); } .ds-btn-primary:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }"
     },
     {
       "name": "Secondary Button",
       "kind": "button",
       "refersTo": "button-secondary",
-      "description": "Hairline-framed action.",
-      "html": "<button class=\"ds-btn-secondary\">Your preferences</button>",
-      "css": ".ds-btn-secondary{display:inline-flex;align-items:center;min-height:46px;padding:11px 20px;border:1px solid var(--line-strong,#353d4f);border-radius:0;background:transparent;color:var(--ink,#eceae4);font-family:Manrope,system-ui,sans-serif;font-size:.8125rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:background-color 160ms cubic-bezier(.16,1,.3,1),border-color 160ms cubic-bezier(.16,1,.3,1)}.ds-btn-secondary:hover{background:var(--panel-2,#171b24);border-color:var(--accent-line,#f1b66d66)}.ds-btn-secondary:focus-visible{outline:2px solid #f1b66d;outline-offset:3px}"
+      "description": "White button with a Line Strong border for the second action.",
+      "html": "<button class=\"ds-btn-secondary\">Try the sample</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 18px; border: 1px solid var(--line-strong); border-radius: var(--r-m); background: var(--white); color: var(--ink); font-family: var(--font); font-weight: 700; font-size: 16px; cursor: pointer; transition: transform 160ms var(--ease-out), border-color 200ms ease; } .ds-btn-secondary:hover { border-color: var(--ink); } .ds-btn-secondary:active { transform: scale(0.97); } .ds-btn-secondary:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }"
     },
     {
-      "name": "Search Field",
+      "name": "Text Field",
       "kind": "input",
       "refersTo": "input",
-      "description": "Square slat field with amber focus.",
-      "html": "<input class=\"ds-input\" placeholder=\"Find an artist or city\">",
-      "css": ".ds-input{min-height:46px;padding:11px 13px;width:260px;background:var(--slat,#12151d);border:1px solid var(--line-strong,#353d4f);border-radius:0;color:var(--ink,#eceae4);font-family:Manrope,system-ui,sans-serif;font-size:.9375rem;transition:border-color 160ms cubic-bezier(.16,1,.3,1)}.ds-input::placeholder{color:var(--faint,#80879a)}.ds-input:hover{border-color:var(--faint,#80879a)}.ds-input:focus-visible{outline:none;border-color:#f1b66d;box-shadow:0 0 0 1px #f1b66d}"
+      "description": "White field with a 1.5px border; focus turns the border ink with a rose halo.",
+      "html": "<label class=\"ds-label\">Email<input class=\"ds-input\" type=\"email\" placeholder=\"you@example.com\"></label>",
+      "css": ".ds-label { display: grid; gap: 6px; font-family: var(--font); font-size: 15px; font-weight: 700; color: var(--ink); } .ds-input { width: 100%; min-height: 50px; padding: 0 14px; border: 1.5px solid var(--line-strong); border-radius: var(--r-m); background: var(--white); font: inherit; font-size: 16px; font-weight: 500; color: var(--ink); caret-color: var(--rose); transition: border-color 200ms ease, box-shadow 200ms ease; } .ds-input::placeholder { color: var(--ink-mute); } .ds-input:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 4px rgb(255 61 127 / 0.22); }"
     },
     {
-      "name": "Rail Navigation",
+      "name": "Cue Filters",
       "kind": "nav",
-      "refersTo": "nav-item-active",
-      "description": "Stacked uppercase items between hairlines; active fills amber.",
-      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-item ds-active\" href=\"#\">For you</a><a class=\"ds-nav-item\" href=\"#\">Saved shows <small>1</small></a><a class=\"ds-nav-item\" href=\"#\">Trips</a></nav>",
-      "css": ".ds-nav{display:flex;flex-direction:column;width:204px;border-top:1px solid var(--line,#252b38);background:var(--slat,#12151d)}.ds-nav-item{display:flex;align-items:center;min-height:48px;padding:12px 10px;border-bottom:1px solid var(--line,#252b38);color:var(--dim,#9aa0ad);font-family:Manrope,system-ui,sans-serif;font-size:.8125rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;transition:color 160ms cubic-bezier(.16,1,.3,1),background-color 160ms cubic-bezier(.16,1,.3,1)}.ds-nav-item:hover{color:var(--ink,#eceae4);background:var(--panel,#11141b)}.ds-nav-item.ds-active{background:var(--accent,#f1b66d);color:var(--accent-ink,#191104)}.ds-nav-item small{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:.75rem;padding:1px 6px;border:1px solid var(--line-strong,#353d4f);background:var(--panel-2,#171b24);color:var(--ink,#eceae4)}.ds-nav-item:focus-visible{outline:2px solid #f1b66d;outline-offset:3px}"
+      "refersTo": "cue-filter",
+      "description": "Feed filters as lighting cues; the pressed cue fills ink and turns its gel square.",
+      "html": "<div class=\"ds-cues\"><button class=\"ds-cue\" aria-pressed=\"true\" style=\"--c:#ffaa00\"><i></i>Near you <span>12</span></button><button class=\"ds-cue\" aria-pressed=\"false\" style=\"--c:#1fb6ff\"><i></i>Worth the trip <span>5</span></button><button class=\"ds-cue\" aria-pressed=\"false\" style=\"--c:#ff3d7f\"><i></i>Saved <span>3</span></button></div>",
+      "css": ".ds-cues { display: flex; flex-wrap: wrap; gap: 8px; font-family: var(--font); } .ds-cue { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--white); color: var(--ink); font: inherit; font-weight: 700; font-size: 15px; cursor: pointer; transition: background-color 220ms ease, color 220ms ease, border-color 220ms ease, transform 160ms var(--ease-out); } .ds-cue i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); transition: transform 300ms var(--ease-out); } .ds-cue span { color: var(--ink-soft); font-weight: 600; font-variant-numeric: tabular-nums; } .ds-cue[aria-pressed='true'] { background: var(--ink); border-color: var(--ink); color: var(--white); } .ds-cue[aria-pressed='true'] i { transform: rotate(45deg) scale(1.1); } .ds-cue[aria-pressed='true'] span { color: #d6d2ee; } .ds-cue[aria-pressed='false']:hover { border-color: var(--ink); } .ds-cue:active { transform: scale(0.96); } .ds-cue:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }"
     },
     {
-      "name": "Filter Tabs",
+      "name": "Status Chips",
       "kind": "chip",
-      "refersTo": "filter-tab-selected",
-      "description": "Joined tab strip in the board header.",
-      "html": "<div class=\"ds-tabs\"><button class=\"ds-sel\">For you</button><button>Close to home</button><button>Worth the trip</button></div>",
-      "css": ".ds-tabs{display:inline-flex;border:1px solid var(--line-strong,#353d4f)}.ds-tabs button{min-height:42px;padding:8px 16px;border:0;border-right:1px solid var(--line-strong,#353d4f);background:none;color:var(--dim,#9aa0ad);font-family:Manrope,system-ui,sans-serif;font-size:.75rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}.ds-tabs button:last-child{border-right:0}.ds-tabs button:hover{color:var(--ink,#eceae4);background:var(--panel,#11141b)}.ds-tabs button.ds-sel{background:var(--accent,#f1b66d);color:var(--accent-ink,#191104)}.ds-tabs button:focus-visible{outline:2px solid #f1b66d;outline-offset:3px}"
+      "refersTo": "chip",
+      "description": "Haze chips with a gel status square; cancelled inverts to ink.",
+      "html": "<div class=\"ds-chips\"><span class=\"ds-chip\" style=\"--c:#7be03a\"><i></i>On sale</span><span class=\"ds-chip\" style=\"--c:#ffaa00\"><i></i>Price not listed</span><span class=\"ds-chip ds-chip-stop\">Cancelled</span></div>",
+      "css": ".ds-chips { display: flex; flex-wrap: wrap; gap: 6px; font-family: var(--font); } .ds-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 3px 9px; border-radius: 9px; background: var(--haze); border: 1px solid var(--line); color: var(--ink); font-size: 13px; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; } .ds-chip i { width: 9px; height: 9px; border-radius: 3px; background: var(--c); } .ds-chip-stop { background: var(--ink); border-color: var(--ink); color: var(--white); }"
     },
     {
-      "name": "Status Flaps",
-      "kind": "chip",
-      "refersTo": "status-flap",
-      "description": "Split-flap status tiles in four tones.",
-      "html": "<span class=\"ds-flap ds-go\">On sale</span> <span class=\"ds-flap ds-wait\">Next</span> <span class=\"ds-flap ds-stop\">Cancelled</span> <span class=\"ds-flap ds-quiet\">No price</span>",
-      "css": ".ds-flap{display:inline-block;padding:4px 9px;background:#07080b linear-gradient(transparent calc(50% - .5px),#ffffff12 50%,transparent calc(50% + .5px));border:1px solid var(--line-strong,#353d4f);box-shadow:inset 0 -1px 0 #ffffff0a;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;animation:ds-flap 420ms cubic-bezier(.16,1,.3,1) both;transform-origin:top center}.ds-go{color:#63d69e}.ds-wait{color:#f1b66d}.ds-stop{color:#ff7a6b}.ds-quiet{color:#9aa0ad}@keyframes ds-flap{from{transform:perspective(300px) rotateX(-70deg);opacity:0}}@media (prefers-reduced-motion:reduce){.ds-flap{animation:none}}"
-    },
-    {
-      "name": "Departure Row",
+      "name": "Act Card",
       "kind": "card",
-      "refersTo": "board-row",
-      "description": "One concert on the board: date block, destination, fare and flap, save toggle.",
-      "html": "<div class=\"ds-row\"><div class=\"ds-when\"><span class=\"ds-wd\">SUN</span><span class=\"ds-day\">15</span><span class=\"ds-mo\">NOV</span><span class=\"ds-tm\">20:00</span></div><div class=\"ds-what\"><h2>Fred again..</h2><p><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z\"/><circle cx=\"12\" cy=\"10\" r=\"3\"/></svg><strong>Paris</strong><i></i>Accor Arena</p></div><div class=\"ds-fare\"><span class=\"ds-price\"><small>From</small>€79</span><span class=\"ds-flap ds-go\">On sale</span></div><button class=\"ds-save\" aria-label=\"Save\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z\"/></svg></button></div>",
-      "css": ".ds-row{display:grid;grid-template-columns:96px minmax(0,1fr) 150px 46px;gap:20px;align-items:center;padding:16px 18px;background:var(--bg,#0b0d12);border-bottom:1px solid var(--line,#252b38);color:var(--ink,#eceae4);transition:background-color 160ms cubic-bezier(.16,1,.3,1)}.ds-row:hover{background:var(--panel-2,#171b24)}.ds-when{display:grid;grid-template-columns:auto 1fr;column-gap:8px;font-family:'JetBrains Mono',monospace;line-height:1.1}.ds-wd,.ds-mo,.ds-tm{font-size:.75rem;letter-spacing:.06em;color:#9aa0ad}.ds-wd{grid-column:1/-1}.ds-day{grid-row:2/4;font-size:2.25rem;font-weight:600;line-height:.9;color:#f1b66d;font-variant-numeric:tabular-nums}.ds-mo{align-self:end;color:#eceae4}.ds-what h2{margin:0;font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:800;font-size:2rem;line-height:.95;text-transform:uppercase}.ds-what p{display:flex;align-items:center;gap:6px;margin:6px 0 0;font-family:Manrope,sans-serif;font-size:.8125rem;color:#9aa0ad}.ds-what p svg{color:#80879a}.ds-what strong{color:#eceae4}.ds-what i{width:4px;height:4px;background:#80879a}.ds-fare{display:flex;flex-direction:column;align-items:flex-end;gap:8px}.ds-price{font-family:'JetBrains Mono',monospace;font-weight:600;font-variant-numeric:tabular-nums}.ds-price small{font-size:.6875rem;font-weight:400;color:#80879a;text-transform:uppercase;margin-right:6px}.ds-flap{padding:4px 9px;background:#07080b;border:1px solid #353d4f;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase}.ds-go{color:#63d69e}.ds-save{width:46px;height:46px;display:grid;place-items:center;background:transparent;border:1px solid #353d4f;color:#9aa0ad;border-radius:0;cursor:pointer}.ds-save:hover{color:#eceae4;border-color:#80879a}.ds-save:focus-visible{outline:2px solid #f1b66d;outline-offset:3px}"
+      "refersTo": "concert-card",
+      "description": "A show card: gel-lit photo with a date tag, name, when and where, chips and the save button; the artist gel washes the card.",
+      "html": "<article class=\"ds-act\" style=\"--gel:#ff3d7f\"><span class=\"ds-photo\"><b>BE</b><span class=\"ds-date\"><b>14</b><small>Mar</small></span></span><div class=\"ds-act-body\"><h2>Billie Eilish</h2><p class=\"ds-when\">Sat 14 Mar, 20:00</p><p class=\"ds-where\">Accor Arena, Paris</p><div class=\"ds-act-row\"><span class=\"ds-chip-mini\">Price not listed</span><button class=\"ds-save\">Save</button></div></div></article>",
+      "css": ".ds-act { position: relative; display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 14px; max-width: 460px; padding: 12px; border-radius: var(--r-xl); background: var(--white); border: 1px solid var(--line); overflow: hidden; isolation: isolate; font-family: var(--font); color: var(--ink); } .ds-act::before { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(170deg, var(--gel) 0%, transparent 70%); opacity: 0.16; transition: opacity 400ms ease; } .ds-act:hover::before { opacity: 0.38; } .ds-photo { position: relative; display: grid; place-items: center; width: 96px; height: 96px; border-radius: 20px; background: var(--gel); } .ds-photo > b { font-weight: 800; font-size: 26px; letter-spacing: -0.03em; translate: 0 -12px; } .ds-date { position: absolute; left: 6px; bottom: 6px; display: grid; justify-items: center; min-width: 40px; padding: 4px 6px 5px; border-radius: 10px; background: var(--white); line-height: 1; font-variant-numeric: tabular-nums; box-shadow: 0 6px 14px -8px rgb(21 18 43 / 0.5); } .ds-date b { font-size: 18px; font-weight: 800; } .ds-date small { margin-top: 2px; font-size: 11px; font-weight: 700; text-transform: uppercase; } .ds-act h2 { margin: 0; font-size: 22px; font-weight: 800; line-height: 1.02; letter-spacing: -0.03em; } .ds-when { margin: 5px 0 0; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; } .ds-where { margin: 1px 0 0; font-size: 14px; color: var(--ink-soft); } .ds-act-row { display: flex; align-items: center; gap: 6px; padding-top: 10px; } .ds-chip-mini { min-height: 28px; display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 9px; background: var(--haze); border: 1px solid var(--line); font-size: 13px; font-weight: 700; } .ds-save { margin-left: auto; min-height: 44px; padding: 0 13px; border: 1.5px solid var(--ink); border-radius: var(--r-m); background: var(--white); color: var(--ink); font: inherit; font-weight: 800; font-size: 14px; cursor: pointer; }"
     },
     {
-      "name": "Boarding Pass Fields",
+      "name": "Save Button",
+      "kind": "button",
+      "refersTo": "save-button",
+      "description": "Ink-bordered save; saved fills ink and the bookmark drops while the follow spot lands.",
+      "html": "<button class=\"ds-save-btn\" aria-pressed=\"false\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z\"/></svg><span>Save</span></button> <button class=\"ds-save-btn\" aria-pressed=\"true\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"currentColor\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z\"/></svg><span>Saved</span></button>",
+      "css": ".ds-save-btn { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 13px 0 11px; border: 1.5px solid var(--ink); border-radius: var(--r-m); background: var(--white); color: var(--ink); font-family: var(--font); font-weight: 800; font-size: 14px; cursor: pointer; transition: background-color 220ms ease, color 220ms ease, transform 160ms var(--ease-out); } .ds-save-btn[aria-pressed='true'] { background: var(--ink); color: var(--white); } .ds-save-btn:active { transform: scale(0.95); } .ds-save-btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }"
+    },
+    {
+      "name": "Truss and Lamps",
       "kind": "custom",
-      "refersTo": "panel",
-      "description": "Concert detail header fields, torn off by a dashed rule under a 4px amber edge.",
-      "html": "<dl class=\"ds-pass\"><div><dt>Where</dt><dd>Paris · home city</dd></div><div><dt>Why</dt><dd class=\"ds-why\">Artist you follow</dd></div><div><dt>Date</dt><dd>15 November 2026</dd></div><div><dt>Show</dt><dd>20:00 local time</dd></div></dl>",
-      "css": ".ds-pass{margin:0;display:grid;grid-template-columns:1fr 1fr;background:var(--panel,#11141b);border:1px solid var(--line-strong,#353d4f);border-top:4px solid #f1b66d;border-left:1px dashed #353d4f;max-width:460px}.ds-pass>div{padding:20px 22px;border-bottom:1px solid #252b38;border-right:1px solid #252b38}.ds-pass>div:nth-child(2n){border-right:0}.ds-pass>div:nth-last-child(-n+2){border-bottom:0}.ds-pass dt{font-family:'JetBrains Mono',monospace;font-size:.6875rem;letter-spacing:.12em;text-transform:uppercase;color:#80879a;margin-bottom:8px}.ds-pass dd{margin:0;font-family:'JetBrains Mono',monospace;font-weight:600;font-size:1rem;text-transform:uppercase;color:#eceae4}.ds-pass .ds-why{color:#f1b66d}"
+      "refersTo": "stage",
+      "description": "The rig: a lattice truss with moving heads whose gel beams multiply into the haze behind content.",
+      "html": "<div class=\"ds-rig\"><div class=\"ds-truss\"></div><span class=\"ds-lamp\" style=\"left:20%;--c:#ffaa00;--a:-14deg\"><i></i></span><span class=\"ds-lamp\" style=\"left:50%;--c:#ff6a3d;--a:4deg\"><i></i></span><span class=\"ds-lamp\" style=\"left:80%;--c:#ffaa00;--a:16deg\"><i></i></span></div>",
+      "css": ".ds-rig { position: relative; height: 220px; overflow: hidden; background: linear-gradient(180deg, var(--haze-deep), var(--haze)); border-radius: var(--r-xl); } .ds-truss { position: absolute; top: 0; left: 0; right: 0; height: 12px; background: repeating-linear-gradient(60deg, transparent 0 5px, var(--truss-light) 5px 7px), repeating-linear-gradient(-60deg, transparent 0 5px, var(--truss-light) 5px 7px), var(--truss); box-shadow: inset 0 2px 0 var(--truss-edge), inset 0 -2px 0 var(--truss-edge); } .ds-lamp { position: absolute; top: 9px; width: 24px; height: 28px; translate: -50% 0; border-radius: 8px 8px 10px 10px; background: linear-gradient(#3a3556, var(--truss)); rotate: calc(var(--a) * 0.7); transform-origin: 50% 30%; } .ds-lamp::after { content: ''; position: absolute; left: 50%; bottom: 3px; width: 15px; height: 15px; translate: -50% 0; border-radius: 50%; background: radial-gradient(circle, #fff 0 30%, var(--c) 62%); } .ds-lamp i { position: absolute; top: 24px; left: 50%; width: 220px; height: 200px; margin-left: -110px; clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%); background: linear-gradient(90deg, color-mix(in srgb, var(--c) 30%, transparent), var(--c) 50%, color-mix(in srgb, var(--c) 30%, transparent)); mix-blend-mode: multiply; opacity: 0.5; transform-origin: 50% 0; rotate: calc(var(--a) * 0.3); -webkit-mask-image: linear-gradient(#000, transparent); mask-image: linear-gradient(#000, transparent); transition: rotate 800ms var(--ease-out); } .ds-rig:hover .ds-lamp i { rotate: 0deg; }"
     }
   ],
   "narrative": {
-    "northStar": "The Night Departures Board",
-    "overview": "Encore is the board of a station that only serves your artists. Every concert is a departure: a mono date block, a condensed uppercase destination, a city and venue line with the reason it is on your board, a fare, and a status flap. The screen is read the way a traveller reads a board at night: one glance down a column of rows, amber where the eye should land, everything else porcelain and grey on near-black.\n\nDensity is moderate and tabular. Content is organised as rows separated by hairlines, not as a grid of cards. The boarding pass (concert detail), the itinerary (trips) and the coupon wallet (saved shows) are the same board material bent into travel documents: dashed tear lines, labelled fields, a heavy amber top edge. Corners are square everywhere. Depth comes from tonal slats and hairlines; shadows exist only under things that float.\n\nThe marketing site (src/components/marketing) is one brand with this app: it carries the same token values on its own CSS-module scope. Values here and there should move together; this file documents the signed-in app and onboarding only.",
+    "northStar": "The Lit Stage in Daylight Haze",
+    "overview": "Every screen is a stage seen in daylight: a lavender haze room, a dark lattice truss across the top with moving heads hanging from it, and coloured gel beams falling into the haze behind the content. The artists are the acts. They stand in the light as grey prints tinted by their own gel, and the interface around them is ink on haze, plain and readable. Light is the only decoration, and light always means something: a cue, a save, a result.\n\nThe density is calm and phone-first. One column of lit act cards on phones, two columns and a rail on desktop, generous 26px card corners, 14px control corners, and large Bricolage Grotesque 800 headings that carry the character so the rest of the type can stay quiet. Motion is lighting: lamps power on in turn, beams swing on interruptible springs between cues, a white follow spot lands on what you saved, and every beam converges on a result.\n\nThe world replaces a dark departures-board identity (Encore). It is light, soft-cornered and colourful, but the colour lives in light (beams, washes, pools, photo tints), never in text and never as flat coloured blocks behind words.",
     "keyCharacteristics": [
-      "Near-black board with alternating slats and 1px hairline row rules.",
-      "One warm accent (amber) for times, prices, the primary action, the selected state and the live signal.",
-      "Three voices of type: condensed uppercase for names, tabular mono for every figure and status, Manrope for prose.",
-      "Square corners, no exceptions.",
-      "Status as split-flap tiles in green / amber / red / grey."
+      "Lavender haze room, ink rig and words, six gels for light only.",
+      "A truss with three moving heads tops the app (six on the marketing hero); beams multiply into the haze behind content.",
+      "Artist photos printed grey and lit by the artist's gel; initials on the gel when the photo is missing.",
+      "One display face, Bricolage Grotesque, 800 at -0.04em for display, optical sizing everywhere.",
+      "Soft corners from 8px to 26px; no pill-shaped controls.",
+      "Motion as lighting: power on, cues, follow spot, converge; reduced motion keeps the light and drops the travel."
     ],
     "rules": [
       {
-        "name": "The One Lamp Rule",
-        "body": "Amber is the only warm colour on the board. It marks what to read first (the date, the price) or what to press; it never decorates.",
+        "name": "The Gels Are Light Rule",
+        "body": "A gel colour is never a text colour on a light background and never a flat fill behind words. Gels arrive as beams, washes at 6 to 42% opacity, pools, tints on grey photos, or 9 to 10px status squares beside ink text.",
         "section": "colors"
       },
       {
-        "name": "The Signals Are Status Rule",
-        "body": "Green and red appear only to report state (on sale, saved, confirmed; cancelled, postponed, error). Never use them as brand or decoration.",
+        "name": "The One Gel Per Artist Rule",
+        "body": "An artist is lit by the same gel on every screen and every visit; always pass the artist name through `gelFor`, never pick a gel by hand outside the fixed sample map.",
         "section": "colors"
       },
       {
-        "name": "The Amber Ink Rule",
-        "body": "Anything filled amber carries amber-ink text. White on amber is not used.",
+        "name": "The Ink Carries Meaning Rule",
+        "body": "Selected, primary and confirmed states turn ink (filled ink, white text). Colour never replaces the ink state; it accompanies it.",
         "section": "colors"
       },
       {
-        "name": "The Mono Figures Rule",
-        "body": "Every date, time, price, distance, count and status is set in JetBrains Mono with tabular numerals. Figures never appear in Manrope or Barlow on the board.",
+        "name": "The Loud Head, Quiet Body Rule",
+        "body": "800 weight with negative tracking (-0.02em to -0.04em) is for headings, artist names, the wordmark and big numbers only. Everything else is 400 to 700 with zero tracking.",
         "section": "typography"
       },
       {
-        "name": "The Condensed Names Rule",
-        "body": "Barlow Condensed is for names of things (artists, cities, screens, sections), always uppercase at weight 800. It is never used for sentences.",
+        "name": "The Tabular Truth Rule",
+        "body": "Dates, times, prices, counts and distances use tabular figures so columns of facts line up and never jitter.",
         "section": "typography"
       },
       {
-        "name": "The Flat Board Rule",
-        "body": "Rows, panels and passes sit flat on the board. Only toasts and modals cast a shadow.",
+        "name": "The Beams Behind Rule",
+        "body": "Beams live in a fixed layer under the content (`mix-blend-mode: multiply`, about 0.42 to 0.5 opacity, masked to fade downwards). They colour the page; they never sit over text. Content scrolling under the rig fades into a Haze Deep gradient instead of colliding with the lamps.",
         "section": "elevation"
       },
       {
-        "name": "The Square Corner Rule",
-        "body": "Nothing on the board is rounded. If a new element needs softness, it gets a quieter colour, not a radius.",
+        "name": "The Float Only Rule",
+        "body": "A shadow means the element floats above the stage. Cards on the page use a border and their gel wash, not a shadow; the ticket panel is the one resting exception.",
+        "section": "elevation"
+      },
+      {
+        "name": "The No-Pill Rule",
+        "body": "Controls are rounded rectangles, never full pills: 14px for buttons, fields and filters, up to 20px for card-sized choices such as trip plan options. The founder asked for \"not everything as pills\".",
         "section": "shapes"
       }
     ],
     "dos": [
-      "Do build new lists as board rows on the four-column grid with alternating Board Black / Slat slats and 1px hairline rules.",
-      "Do set every date, time, price, distance, count and status in JetBrains Mono with tabular numerals.",
-      "Do report state with status flaps in the four tones (green go, amber wait, red stop, dim quiet).",
-      "Do keep amber for what to read first or press: the day number, prices, the primary action, the selected state, the live square.",
-      "Do mark emphasis with an amber top edge (2px / 3px / 4px) and tear-line dashes, not with radius or shadow.",
-      "Do ease state changes with cubic-bezier(0.16, 1, 0.3, 1) at 160ms and honour reduced motion.",
-      "Do keep sample and unknown data visibly labelled in the board's own voice (mono captions, NO PRICE flaps, the amber sample banner)."
+      "Do put every word on light surfaces in ink, Ink Soft, or the text-safe Alert Ink and Go Ink.",
+      "Do light artists with `gelFor(name)` through the ArtistPhoto component, so a missing photo shows initials on the artist's gel.",
+      "Do make a new filter or screen a cue: give it three gels on the stage and let the beams move there on springs.",
+      "Do use Bricolage Grotesque 800 at -0.04em and opsz 96 for display sizes, and tabular figures for dates, times, prices and counts.",
+      "Do keep controls at 44px or taller and corners within the rounded scale (14px for controls, 20px for option cards, 26px for cards).",
+      "Do give every motion a reduced-motion version that keeps the light state and drops the travel.",
+      "Do label sample data as sample and show \"Price not listed\" when a price is unknown."
     ],
     "donts": [
-      "Don't round any corner.",
-      "Don't turn the feed into a grid of poster-thumbnail cards or a dashboard of KPI tiles; it is a board of rows.",
-      "Don't use green or red outside of status.",
-      "Don't put white text on amber; use amber ink.",
-      "Don't cast shadows from rows, panels or the boarding pass; only toasts and modals float.",
-      "Don't set sentences in Barlow Condensed or figures in Manrope."
+      "Don't set text in a gel colour on a light background, or fill a block behind words with a gel.",
+      "Don't put beams, washes or spots over text; they live in the layer behind content.",
+      "Don't make controls full pills; a button, field or filter never rounds past 14px.",
+      "Don't shadow act cards or panels that rest on the page; shadows are for modals, toasts, sticky bars and other floating layers.",
+      "Don't replace a missing artist photo with a blank box or a generic placeholder icon.",
+      "Don't add a second typeface or set \"showbound\" in anything but the wordmark style.",
+      "Don't bring back the departures-board look: no dark full-screen app surfaces, no flap or split-flap type, no condensed board lettering. Ink surfaces stay local (rig, buttons, toasts, the trip total, the join section).",
+      "Don't use em dashes in interface copy."
     ]
   }
 }
