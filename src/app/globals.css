@@ -1885,6 +1885,79 @@ legend {
   box-shadow: 0 0 0 4px rgb(255 170 0 / 0.25);
 }
 /* Your artists, as a lineup. */
+/* Other dates of the artists above, grouped, so the main list stays one card per artist. */
+.more-dates {
+  margin-top: 28px;
+  padding: 20px;
+  border-radius: var(--r-xl);
+  background: var(--card);
+  border: 1px solid var(--line);
+}
+.more-dates > h2 {
+  font-size: 18px;
+}
+.more-dates > ul {
+  display: grid;
+  gap: 18px;
+  margin-top: 14px;
+  list-style: none;
+  padding: 0;
+}
+.more-dates h3 {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-size: 16px;
+}
+.more-dates h3 a {
+  color: var(--ink);
+}
+.more-dates h3 small {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-mute);
+}
+.date-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  list-style: none;
+  padding: 0;
+}
+.date-chips a {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 44px;
+  padding: 6px 12px;
+  border-radius: var(--r-m);
+  background: var(--white);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  line-height: 1.25;
+  text-decoration: none;
+}
+.date-chips a strong {
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.date-chips a span {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.date-chips .more-link {
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .date-chips a:hover {
+    border-color: var(--line-strong);
+    background: var(--haze);
+  }
+}
 .lineup-panel {
   padding: 20px;
   border-radius: var(--r-xl);
