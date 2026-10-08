@@ -574,6 +574,23 @@ export const fr: Messages = {
     stayUnavailable: 'Hébergements indisponibles',
     noHotelQuote: 'Aucun tarif d’hôtel actuel pour ces dates.',
     totalLabel: 'Total estimé du voyage',
+    knownSoFar: 'Voyage, à ce stade',
+    noPriceYet: 'Pas encore de prix',
+    soFar: (amount: string) => `${amount} à ce stade`,
+    costPart: { ticket: 'Billet', transport: 'Trajet', stay: 'Hôtel' } as Record<
+      'ticket' | 'transport' | 'stay',
+      string
+    >,
+    costMissing: {
+      ticket: 'Non affiché : voir le vendeur',
+      transport: 'Prix en direct dans « Y aller »',
+      stay: 'Pas de prix d’hôtel actuel',
+    } as Record<'ticket' | 'transport' | 'stay', string>,
+    partialMark: {
+      ticket: '+ frais',
+      transport: '+ suppléments',
+      stay: '+ taxe de séjour',
+    } as Record<'ticket' | 'transport' | 'stay', string>,
     totalUnavailable: 'Total pas encore disponible',
     sampleTotal: 'Itinéraire fictif de démo. Aucune réservation ni disponibilité proposée.',
     notReservation:

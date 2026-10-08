@@ -3733,6 +3733,29 @@ legend {
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
 }
+.cost-parts {
+  display: grid;
+  gap: 2px;
+  margin: 4px 0 2px;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+}
+.cost-parts li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+.cost-parts strong {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.cost-parts li[data-missing] strong {
+  font-weight: 500;
+  color: #d6d2ee;
+}
 .total-fineprint {
   font-size: 13px;
   color: #d6d2ee;

@@ -216,6 +216,13 @@ test('lists the real ways there, best first, each linked to a live search and no
   expect(driving.searchParams.get('origin')).toBe('Paris');
   await getThere.screenshot({ path: 'test-results/getting-there-desktop.png' });
   await expect(page.getByText('Overall unavailable', { exact: false })).toBeVisible();
+  // The total adds what is priced and names what is missing, instead of "not available".
+  const total = page.locator('.trip-total');
+  await expect(total.locator('.total-label')).toHaveText('Trip so far');
+  await expect(total.locator('.total-price')).toHaveText('€63.18');
+  await expect(total.getByText('Not listed: check the seller')).toBeVisible();
+  await expect(total.getByText('Live fares in Getting there')).toBeVisible();
+  await expect(page.getByRole('button', { name: /€63\.18 so far/ }).first()).toBeVisible();
   await expect(page.getByText('0.5 km from GALAXIE · Room only · Non-refundable')).toBeVisible();
   await expect(
     page.getByText('Room availability confirmed with the hotel supplier at', { exact: false }),

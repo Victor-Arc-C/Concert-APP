@@ -272,3 +272,71 @@ export function assignTripLabels(options: TripOption[], now = new Date()): TripO
     return { ...option, label };
   });
 }
+
+export type CostPart = {
+  kind: 'ticket' | 'transport' | 'stay';
+  /** Current price, or null when the seller lists none or it is no longer current. */
+  price: number | null;
+  /** True when the price leaves something out (hotel taxes paid on site, partial fare). */
+  partial: boolean;
+};
+export type KnownCost = {
+  /** Sum of the current prices we have, or null when there are none or currencies differ. */
+  sum: number | null;
+  currency: string | null;
+  /** Every part priced, complete and current: the sum is the whole trip. */
+  complete: boolean;
+  parts: CostPart[];
+};
+
+/**
+ * What the trip costs as far as current prices go. Missing parts are listed as missing, never
+ * guessed, so "Known so far" can show a real figure before every price exists.
+ */
+export function knownTripCost(option: {
+  ticketPrice: number | null;
+  ticketCurrency: string | null;
+  ticketPriceState: string;
+  transport: { price: number | null; currency: string | null; priceComplete: boolean } | null;
+  transportState: string;
+  accommodation: { price: number | null; currency: string | null; priceComplete: boolean } | null;
+  accommodationState: string;
+}): KnownCost {
+  const usable = (price: number | null | undefined, state: string) =>
+    state === 'ready' && typeof price === 'number' && Number.isFinite(price) && price >= 0
+      ? price
+      : null;
+  const parts: (CostPart & { currency: string | null })[] = [
+    {
+      kind: 'ticket',
+      price: usable(option.ticketPrice, option.ticketPriceState),
+      currency: option.ticketCurrency,
+      partial: false,
+    },
+    {
+      kind: 'transport',
+      price: usable(option.transport?.price, option.transportState),
+      currency: option.transport?.currency ?? null,
+      partial: option.transport ? !option.transport.priceComplete : false,
+    },
+    {
+      kind: 'stay',
+      price: usable(option.accommodation?.price, option.accommodationState),
+      currency: option.accommodation?.currency ?? null,
+      partial: option.accommodation ? !option.accommodation.priceComplete : false,
+    },
+  ];
+  const priced = parts.filter((part) => part.price !== null);
+  const currencies = new Set(priced.map((part) => part.currency));
+  const currency = currencies.size === 1 ? [...currencies][0] : null;
+  const sum =
+    priced.length && currency && /^[A-Z]{3}$/.test(currency)
+      ? Math.round(priced.reduce((total, part) => total + part.price!, 0) * 100) / 100
+      : null;
+  return {
+    sum,
+    currency: sum === null ? null : currency,
+    complete: sum !== null && priced.length === parts.length && priced.every((p) => !p.partial),
+    parts: parts.map(({ kind, price, partial }) => ({ kind, price, partial })),
+  };
+}

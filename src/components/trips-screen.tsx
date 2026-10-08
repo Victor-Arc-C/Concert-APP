@@ -17,7 +17,7 @@ import {
 import type { SavedTrip, TripOption } from '@/domain/trip-types';
 import { currentTripView, scheduleOnly } from '@/domain/trip-safety';
 import { tripSourceLabel } from '@/domain/trip-sources';
-import { assignTripLabels } from '@/domain/trip-scoring';
+import { assignTripLabels, knownTripCost } from '@/domain/trip-scoring';
 import { hotelSearchUrl, withinSncfTimetableWindow } from '@/domain/trip-search';
 import { useI18n } from '@/i18n/client';
 import { api, useApp } from './context';
@@ -146,6 +146,7 @@ export function TripPlanner({ eventId }: { eventId: string }) {
     );
   }
 
+  const known = selectedTrip ? knownTripCost(selectedTrip) : null!;
   const travelExpired = selectedTrip?.transportState === 'stale';
   const stayExpired = selectedTrip?.accommodationState === 'stale';
   const externalSearchAllowed =
@@ -288,14 +289,14 @@ export function TripPlanner({ eventId }: { eventId: string }) {
                   </div>
                   <div className="pill-bottom">
                     <strong>
-                      {opt.estimatedTotal !== null
-                        ? money(opt.estimatedTotal, opt.totalCurrency)
-                        : opt.accommodation?.price !== null &&
-                            opt.accommodation?.price !== undefined
-                          ? t.trips.stayPrice(
-                              money(opt.accommodation.price, opt.accommodation.currency),
-                            )
-                          : t.trips.travelUnavailable}
+                      {(() => {
+                        const cost = knownTripCost(opt);
+                        return cost.sum === null
+                          ? t.trips.travelUnavailable
+                          : cost.complete
+                            ? money(cost.sum, cost.currency)
+                            : t.trips.soFar(money(cost.sum, cost.currency));
+                      })()}
                     </strong>
                     <small>{opt.transport && f.duration(opt.transport.durationMinutes)}</small>
                   </div>
@@ -570,12 +571,25 @@ export function TripPlanner({ eventId }: { eventId: string }) {
               {t.trips.checkAgain}
             </button>
             <div className="trip-total">
-              <span className="total-label">{t.trips.totalLabel}</span>
+              <span className="total-label">
+                {known.complete ? t.trips.totalLabel : t.trips.knownSoFar}
+              </span>
               <div className="total-price">
-                {selectedTrip.estimatedTotal !== null
-                  ? money(selectedTrip.estimatedTotal, selectedTrip.totalCurrency)
-                  : t.trips.totalUnavailable}
+                {known.sum !== null ? money(known.sum, known.currency) : t.trips.noPriceYet}
               </div>
+              <ul className="cost-parts">
+                {known.parts.map((part) => (
+                  <li key={part.kind} data-missing={part.price === null ? '' : undefined}>
+                    <span>{t.trips.costPart[part.kind]}</span>
+                    <strong>
+                      {part.price !== null
+                        ? money(part.price, known.currency ?? undefined) +
+                          (part.partial ? ` ${t.trips.partialMark[part.kind]}` : '')
+                        : t.trips.costMissing[part.kind]}
+                    </strong>
+                  </li>
+                ))}
+              </ul>
               <span className="total-fineprint">
                 {selectedTrip.mode === 'sample' ? t.trips.sampleTotal : t.trips.notReservation}
               </span>
@@ -606,9 +620,6 @@ export function TripPlanner({ eventId }: { eventId: string }) {
                   )}
                 </span>
               </p>
-              {selectedTrip.estimatedTotal === null && (
-                <p className="trip-search-note">{t.trips.totalNeeds}</p>
-              )}
             </div>
           </div>
         </div>

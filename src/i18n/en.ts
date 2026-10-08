@@ -569,6 +569,23 @@ export const en = {
     stayUnavailable: 'Stay options unavailable',
     noHotelQuote: 'No current hotel quote is available for these dates.',
     totalLabel: 'Estimated trip total',
+    knownSoFar: 'Trip so far',
+    noPriceYet: 'No price yet',
+    soFar: (amount: string) => `${amount} so far`,
+    costPart: { ticket: 'Ticket', transport: 'Getting there', stay: 'Hotel' } as Record<
+      'ticket' | 'transport' | 'stay',
+      string
+    >,
+    costMissing: {
+      ticket: 'Not listed: check the seller',
+      transport: 'Live fares in Getting there',
+      stay: 'No current hotel price',
+    } as Record<'ticket' | 'transport' | 'stay', string>,
+    partialMark: {
+      ticket: '+ fees',
+      transport: '+ extras',
+      stay: '+ local taxes',
+    } as Record<'ticket' | 'transport' | 'stay', string>,
     totalUnavailable: 'Total not yet available',
     sampleTotal: 'Fictional sample itinerary. No booking or availability is offered.',
     notReservation:
