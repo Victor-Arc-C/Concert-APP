@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import type { Artist, Intent, Preferences } from '@/domain/types';
 import { cities } from '@/domain/catalog';
+import { groupByArtist } from '@/domain/feed-groups';
 import { useI18n } from '@/i18n/client';
 import { useApp, api } from './context';
 import { ArtistPhoto, Avatar, ConcertCard, Empty, Modal, photoName } from './ui';
@@ -69,18 +70,14 @@ export function Feed() {
     (e) => (tab !== 'local' || e.city === home) && (tab !== 'away' || e.city !== home),
   );
   const localCount = searched.filter((e) => e.city === home).length;
-  // One opportunity per artist in discovery; full tour stays available in the artist/detail views.
-  const seen = new Set<string>();
-  const shortlist = filtered
-    .filter((e) => {
-      if (seen.has(e.artistIds[0])) return false;
-      seen.add(e.artistIds[0]);
-      return true;
-    })
-    .slice(0, 8);
-  const expanded = showAll || !!query || !!month || tab !== 'all';
-  const candidates = expanded ? filtered : shortlist;
+  // One card per artist (their soonest date), so a long tour never buries the next artist.
+  // Their other dates follow in their own section. A search, or "Show all", lists every date.
+  const groups = groupByArtist(filtered);
+  const flat = showAll || !!query;
+  const candidates = flat ? filtered : groups.map((g) => g.next);
   const unique = candidates.slice(0, pageSize);
+  const laterDates = flat ? [] : groups.filter((g) => g.later.length > 0);
+  const expanded = flat || !!month || tab !== 'all';
   const months = [...new Set(data.events.map((e) => e.date.slice(0, 7)))].sort();
   const scope = data.user?.preferences.scope ?? 'europe';
   const firstName = data.user ? data.user.name.split(' ')[0] : null;
@@ -278,6 +275,38 @@ export function Feed() {
                 </button>
               )}
             </div>
+          )}
+          {laterDates.length > 0 && (
+            <section className="more-dates" aria-labelledby="more-dates-title">
+              <h2 id="more-dates-title">{t.feed.moreDates}</h2>
+              <ul>
+                {laterDates.map((group) => (
+                  <li key={group.artistId}>
+                    <h3>
+                      <Link href={`/app/artists/${group.artistId}`}>{group.next.artist}</Link>
+                      <small>{t.feed.laterCount(group.later.length)}</small>
+                    </h3>
+                    <ul className="date-chips">
+                      {group.later.slice(0, 6).map((e) => (
+                        <li key={e.id}>
+                          <Link href={`/app/events/${e.id}`}>
+                            <strong>{f.dateWithDay(e.date)}</strong>
+                            <span>{city(e.city)}</span>
+                          </Link>
+                        </li>
+                      ))}
+                      {group.later.length > 6 && (
+                        <li>
+                          <Link href={`/app/artists/${group.artistId}`} className="more-link">
+                            {t.feed.allTourDates}
+                          </Link>
+                        </li>
+                      )}
+                    </ul>
+                  </li>
+                ))}
+              </ul>
+            </section>
           )}
         </section>
         {followed.length > 0 && (
