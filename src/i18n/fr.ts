@@ -574,6 +574,23 @@ export const fr: Messages = {
     stayUnavailable: 'Hébergements indisponibles',
     noHotelQuote: 'Aucun tarif d’hôtel actuel pour ces dates.',
     totalLabel: 'Total estimé du voyage',
+    knownSoFar: 'Voyage, à ce stade',
+    noPriceYet: 'Pas encore de prix',
+    soFar: (amount: string) => `${amount} à ce stade`,
+    costPart: { ticket: 'Billet', transport: 'Trajet', stay: 'Hôtel' } as Record<
+      'ticket' | 'transport' | 'stay',
+      string
+    >,
+    costMissing: {
+      ticket: 'Non affiché : voir le vendeur',
+      transport: 'Prix en direct dans « Y aller »',
+      stay: 'Pas de prix d’hôtel actuel',
+    } as Record<'ticket' | 'transport' | 'stay', string>,
+    partialMark: {
+      ticket: '+ frais',
+      transport: '+ suppléments',
+      stay: '+ taxe de séjour',
+    } as Record<'ticket' | 'transport' | 'stay', string>,
     totalUnavailable: 'Total pas encore disponible',
     sampleTotal: 'Itinéraire fictif de démo. Aucune réservation ni disponibilité proposée.',
     notReservation:
@@ -629,6 +646,13 @@ export const fr: Messages = {
     venue: 'Jusqu’à la salle',
     flightNote: (from, to, day, landBy) =>
       `${from} → ${to} le ${day}.${landBy ? ` Prends un vol qui atterrit avant ${landBy} heure locale pour être à l’heure, ou pars la veille.` : ' Pars la veille si le concert commence tôt.'}`,
+    flightTimes: (departs: string, lands: string | null, transfers: number | null) =>
+      `départ ${departs}${lands ? `, arrivée ${lands} heure locale` : ''}${transfers === 0 ? ' · direct' : transfers ? ` · ${transfers} escale${transfers > 1 ? 's' : ''}` : ''}`,
+    fareSeen:
+      'Tarif le moins cher qui arrive à temps, trouvé par des voyageurs Aviasales ces dernières 48 heures. La page de réservation confirme le prix.',
+    fareLandingUnknown:
+      'Tarif le moins cher ce jour-là, trouvé par des voyageurs Aviasales ces dernières 48 heures. Vérifie l’heure d’arrivée ; la page de réservation confirme le prix.',
+    bookFlight: 'Réserver ce vol sur Aviasales',
     googleFlights: 'Prix des vols en direct sur Google Flights',
     omioFlights: 'Comparer les vols sur Omio',
     routeTo: (carriers, station) => [carriers, ' jusqu’à ', station],
@@ -642,7 +666,7 @@ export const fr: Messages = {
     failed:
       'Les trajets n’ont pas pu être chargés. Les liens ci-dessous ouvrent quand même chaque recherche.',
     sources:
-      'Les prix viennent de la recherche en direct de chaque vendeur ; Showbound ne les estime jamais. Trajets en train : données ouvertes SNCF Voyageurs (ODbL).',
+      'Les prix viennent de la recherche en direct de chaque vendeur ou, pour les vols, des tarifs trouvés par des voyageurs Aviasales ces dernières 48 heures ; Showbound ne les estime jamais. Trajets en train : données ouvertes SNCF Voyageurs (ODbL).',
   },
   privacy: {
     title: 'Confidentialité et conditions de la bêta',

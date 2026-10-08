@@ -4,6 +4,7 @@ import { airportCities, type AirportCity } from '../domain/airport-cities';
 import { trainRoutes } from './providers/rail';
 import { distanceKm } from './providers/liteapi';
 import { omioRouteUrl } from './providers/omio';
+import { cheapestFlight, landingDeadline } from './providers/travelpayouts';
 import { reportError } from './monitoring';
 import { tripSearchContext } from './trips';
 
@@ -60,8 +61,25 @@ export async function transportComparison(
       ? homeAirport.omio
       : originCity;
 
+  const flies =
+    km >= FLIGHT_FROM_KM && homeAirport && venueAirport && homeAirport.iata !== venueAirport.iata;
+  let found: Awaited<ReturnType<typeof cheapestFlight>> = null;
+  if (flies)
+    try {
+      found = await cheapestFlight(
+        homeAirport.iata,
+        venueAirport.iata,
+        event.date,
+        landingDeadline(event.date, event.localTime, event.timezone, LANDING_MARGIN_HOURS),
+        fetcher,
+        now,
+      );
+    } catch {
+      // No fare is better than a wrong one: the live search link still works.
+      reportError('provider_failed');
+    }
   const flight =
-    km >= FLIGHT_FROM_KM && homeAirport && venueAirport && homeAirport.iata !== venueAirport.iata
+    flies && homeAirport && venueAirport
       ? {
           from: homeAirport.name,
           to: venueAirport.name,
@@ -72,6 +90,8 @@ export async function transportComparison(
               : null,
           date: event.date,
           landBy: landBy(event.localTime),
+          fare: found?.fare ?? null,
+          fareOnTime: found?.onTime ?? null,
         }
       : null;
 

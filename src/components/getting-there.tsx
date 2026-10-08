@@ -23,11 +23,17 @@ export function GettingThere({
   origin,
   city,
   venue,
+  timeZone,
+  onFlightFare,
 }: {
   eventId: string;
   origin: string;
   city: string;
   venue: string;
+  /** The concert's timezone, to show the landing time as local time there. */
+  timeZone?: string | null;
+  /** Hands the flight fare to the trip total. */
+  onFlightFare?: (fare: NonNullable<TransportComparison['flight']>['fare']) => void;
 }) {
   const { t, f, s, city: place } = useI18n();
   const [comparison, setComparison] = useState<TransportComparison | null>(null),
@@ -40,12 +46,14 @@ export function GettingThere({
       .then((result) => {
         if (!active) return;
         setComparison(result.comparison);
+        onFlightFare?.(result.comparison?.flight?.fare ?? null);
         setState('ready');
       })
       .catch(() => active && setState('failed'));
     return () => {
       active = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- onFlightFare is a setter
   }, [eventId]);
 
   const flight = comparison?.flight ?? null,
@@ -70,7 +78,36 @@ export function GettingThere({
             <div className="mode-head">
               <strong>{t.getThere.plane}</strong>
               {best('flight')}
+              {flight.fare && (
+                <span className="mode-price">{f.money(flight.fare.price, 'EUR')}</span>
+              )}
             </div>
+            {flight.fare && (
+              <div className="fare-found">
+                <p>
+                  <strong>
+                    {[flight.fare.airline, flight.fare.flightNumber].filter(Boolean).join(' ')}
+                  </strong>{' '}
+                  {t.getThere.flightTimes(
+                    flight.fare.departureAt.slice(11, 16),
+                    flight.fare.arrivalAt
+                      ? new Intl.DateTimeFormat('en-GB', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          timeZone: timeZone || undefined,
+                        }).format(new Date(flight.fare.arrivalAt))
+                      : null,
+                    flight.fare.transfers,
+                  )}
+                </p>
+                <small>
+                  {flight.fareOnTime === false || flight.fareOnTime === null
+                    ? t.getThere.fareLandingUnknown
+                    : t.getThere.fareSeen}
+                </small>
+                <Link href={flight.fare.bookingUrl}>{t.getThere.bookFlight}</Link>
+              </div>
+            )}
             <p className="mode-note">
               {t.getThere.flightNote(
                 place(flight.from),
