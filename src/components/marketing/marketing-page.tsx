@@ -23,11 +23,16 @@ function Logo({ label }: { label: string }) {
   );
 }
 
+const TRAVELPAYOUTS_DRIVE = 'https://emrld.ltd/NTgyODk5.js?t=582899';
+
 export function MarketingPage({ locale }: { locale: Locale }) {
   const t = dictionaries[locale];
   const m = t.marketing;
   return (
     <div className={styles.root} data-marketing-root>
+      {/* Travelpayouts Drive (site validation). React hoists this async script into <head>;
+          it is the file Travelpayouts' installer loads. Home page only: see next.config.ts. */}
+      <script async src={TRAVELPAYOUTS_DRIVE} data-cmp-ab="2" />
       <RevealObserver />
       <GigsProvider>
         <a href="#main" className={styles.skip}>

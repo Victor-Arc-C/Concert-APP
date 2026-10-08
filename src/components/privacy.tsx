@@ -112,6 +112,12 @@ export function Privacy() {
             conditions de traitement de ces prestataires. Demande-nous si tu veux connaître les
             régions actuelles ou les garanties de transfert.
           </p>
+          <p>
+            Sur la page d’accueil publique uniquement, un script de Travelpayouts (réseau
+            d’affiliation voyage, partenaire d’Aviasales) est chargé : il peut transformer des liens
+            de voyage en liens affiliés et utiliser ses propres cookies, selon sa politique de
+            confidentialité. Il ne tourne pas dans l’app et n’a pas accès à ton compte.
+          </p>
           <h2>Combien de temps</h2>
           <ul>
             <li>
@@ -238,6 +244,12 @@ export function Privacy() {
             of writing, Showbound&apos;s application servers run in the United States, so your data
             may be processed outside the European Union, under these providers&apos; data processing
             terms. Ask us if you want the current regions or the transfer safeguards.
+          </p>
+          <p>
+            On the public home page only, a script from Travelpayouts (a travel affiliate network,
+            Aviasales&apos; partner programme) is loaded: it may turn travel links into affiliate
+            links and use its own cookies, under its own privacy policy. It does not run inside the
+            app and has no access to your account.
           </p>
           <h2>How long</h2>
           <ul>
