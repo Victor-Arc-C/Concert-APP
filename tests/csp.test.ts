@@ -26,3 +26,20 @@ it('picks a real Ticketmaster attraction photo from its own host, never the gene
   expect(attractionImage(undefined)).toBeNull();
   expect(attractionImage([{ url: `${host}/only.jpg`, fallback: true }])).toBeNull();
 });
+
+it('allows Travelpayouts Drive on the public home page only', async () => {
+  const headers = (await config.headers?.()) ?? [];
+  const csp = (source: string) =>
+    headers
+      .filter((rule) => rule.source === source || rule.source === '/:path*')
+      .flatMap((rule) => rule.headers)
+      .filter((header) => header.key === 'Content-Security-Policy')
+      .at(-1)?.value;
+  expect(csp('/')).toContain("script-src 'self' 'unsafe-inline' 'unsafe-eval' https://emrld.ltd");
+  expect(csp('/')).toContain("connect-src 'self' https://emrld.ltd");
+  // The app (accounts, trips, alerts) keeps the strict policy.
+  expect(headers[0].headers.find((h) => h.key === 'Content-Security-Policy')?.value).not.toContain(
+    'emrld',
+  );
+  expect(headers.findIndex((rule) => rule.source === '/')).toBeGreaterThan(0);
+});
