@@ -641,6 +641,13 @@ export const en = {
     venue: 'To the venue',
     flightNote: (from: string, to: string, day: string, landBy: string | null) =>
       `${from} → ${to} on ${day}.${landBy ? ` Pick a flight landing by ${landBy} local time to make the show, or fly the day before.` : ' Fly the day before if the show starts early.'}`,
+    flightTimes: (departs: string, lands: string | null, transfers: number | null) =>
+      `departs ${departs}${lands ? `, lands ${lands} local time` : ''}${transfers === 0 ? ' · direct' : transfers ? ` · ${transfers} stop${transfers > 1 ? 's' : ''}` : ''}`,
+    fareSeen:
+      'Cheapest fare landing in time, found by Aviasales travellers in the last 48 hours. The booking page confirms the price.',
+    fareLandingUnknown:
+      'Cheapest fare that day, found by Aviasales travellers in the last 48 hours. Check it lands in time; the booking page confirms the price.',
+    bookFlight: 'Book this flight on Aviasales',
     googleFlights: 'Live flight prices on Google Flights',
     omioFlights: 'Compare flights on Omio',
     routeTo: (carriers: string, station: string) => [carriers, ' to ', station] as const,
@@ -654,7 +661,7 @@ export const en = {
     loading: 'Finding the best ways there…',
     failed: 'Routes could not be loaded. The links below still open each live search.',
     sources:
-      'Prices come from each seller’s live search; Showbound never estimates them. Train routes: SNCF Voyageurs open data (ODbL).',
+      'Prices come from each seller’s live search or, for flights, fares Aviasales travellers found in the last 48 hours; Showbound never estimates them. Train routes: SNCF Voyageurs open data (ODbL).',
   },
   privacy: {
     title: 'Privacy and beta terms',
