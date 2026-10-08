@@ -14,7 +14,9 @@ import {
   TrainFront,
   Ticket,
 } from 'lucide-react';
-import type { SavedTrip, TripOption } from '@/domain/trip-types';
+import type { SavedTrip, TransportComparison, TripOption } from '@/domain/trip-types';
+
+type FlightFare = NonNullable<NonNullable<TransportComparison['flight']>['fare']>;
 import { currentTripView, scheduleOnly } from '@/domain/trip-safety';
 import { tripSourceLabel } from '@/domain/trip-sources';
 import { assignTripLabels, knownTripCost } from '@/domain/trip-scoring';
@@ -89,7 +91,7 @@ export function TripPlanner({ eventId }: { eventId: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [revision, setRevision] = useState(0);
-  const [flightFare, setFlightFare] = useState<{ price: number; currency: string } | null>(null);
+  const [flightFare, setFlightFare] = useState<FlightFare | null>(null);
   const [clock, setClock] = useState(() => new Date());
   useEffect(() => {
     const timer = setInterval(() => setClock(new Date()), 1000);
@@ -451,20 +453,64 @@ export function TripPlanner({ eventId }: { eventId: string }) {
                   <li className="trip-step" style={{ '--c': 'var(--cyan)' } as React.CSSProperties}>
                     <span>
                       <span className="step-icon">
-                        <Compass size={20} aria-hidden="true" />
+                        {flightFare ? (
+                          <Plane size={20} aria-hidden="true" />
+                        ) : (
+                          <Compass size={20} aria-hidden="true" />
+                        )}
                       </span>
                       <span className="step-q" aria-hidden="true">
                         Q2
                       </span>
                     </span>
-                    <div className="step-content">
-                      <div className="step-header">
-                        <strong>{t.trips.transportOptions}</strong>
+                    {flightFare ? (
+                      // The cheapest flight landing in time, from Getting there: the same fare the
+                      // total adds, so this step never says "no transport" next to its price.
+                      <div className="step-content">
+                        <div className="step-header">
+                          <strong>
+                            {t.getThere.plane} ·{' '}
+                            {[flightFare.airline, flightFare.flightNumber]
+                              .filter(Boolean)
+                              .join(' ')}
+                          </strong>
+                          <span className="step-price">
+                            {money(flightFare.price, flightFare.currency)}
+                          </span>
+                        </div>
+                        <p className="step-details">
+                          {t.getThere.flightTimes(
+                            flightFare.departureAt.slice(11, 16),
+                            flightFare.arrivalAt
+                              ? new Intl.DateTimeFormat('en-GB', {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                  timeZone: event.timezone || undefined,
+                                }).format(new Date(flightFare.arrivalAt))
+                              : null,
+                            flightFare.transfers,
+                          )}
+                        </p>
+                        <span className="step-source">{t.getThere.fareSeen}</span>
+                        <a
+                          href={flightFare.bookingUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="external-link"
+                        >
+                          {t.getThere.bookFlight} <ExternalLink size={12} aria-hidden="true" />
+                        </a>
                       </div>
-                      <p className="step-details">
-                        {travelExpired ? t.trips.timetableExpired : travelMessage}
-                      </p>
-                    </div>
+                    ) : (
+                      <div className="step-content">
+                        <div className="step-header">
+                          <strong>{t.trips.transportOptions}</strong>
+                        </div>
+                        <p className="step-details">
+                          {travelExpired ? t.trips.timetableExpired : travelMessage}
+                        </p>
+                      </div>
+                    )}
                   </li>
                 )}
 

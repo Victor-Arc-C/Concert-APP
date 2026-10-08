@@ -355,5 +355,11 @@ test('a far-away show offers the plane first, with the landing deadline, and no 
   ).toHaveAttribute('href', 'https://www.aviasales.com/search/PAR2001ATH1?marker=123456');
   const total = page.locator('.trip-total');
   await expect(total.locator('.total-price')).toHaveText('€142.18');
+  // The itinerary step shows that same flight instead of "no timetable".
+  const step = page.locator('.trip-step', { hasText: 'Plane · TO 3500' });
+  await expect(step).toContainText('€79');
+  await expect(step).toContainText('departs 09:20, lands 12:35 local time · direct');
+  await expect(step.getByRole('link', { name: 'Book this flight on Aviasales' })).toBeVisible();
+  await expect(page.getByText('No verified round-trip timetable', { exact: false })).toHaveCount(0);
   await getThere.screenshot({ path: 'test-results/getting-there-far.png' });
 });
