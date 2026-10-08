@@ -11,6 +11,9 @@ const exact: Record<string, string> = {
   'Must see': 'Incontournable',
   'A favourite, live': 'Un favori, en live',
   'Artist you follow': 'Artiste suivi',
+  'You follow this artist': 'Tu suis cet artiste',
+  'Shares a genre with artists you follow': 'Un style proche des artistes que tu suis',
+  'Discover a concert in your chosen region': 'Découvre un concert dans la zone que tu as choisie',
   Discover: 'À découvrir',
   'On your must-see list': 'Sur ta liste des incontournables',
   'One of your favourites': 'Un de tes favoris',
@@ -56,12 +59,15 @@ const exact: Record<string, string> = {
     'Cet artiste a trop de fiches liées pour ce pilote. Contacte le support.',
   'Concert provider retry is scheduled. Please try again later.':
     'Une nouvelle vérification est prévue. Réessaie plus tard.',
-  'The provider did not respond. Try again later.': 'Le fournisseur n’a pas répondu. Réessaie plus tard.',
+  'The provider did not respond. Try again later.':
+    'Le fournisseur n’a pas répondu. Réessaie plus tard.',
   'The provider has reached its request limit. Try again later.':
     'Le fournisseur a atteint sa limite de requêtes. Réessaie plus tard.',
-  'The provider returned an unreadable response.': 'Le fournisseur a renvoyé une réponse illisible.',
+  'The provider returned an unreadable response.':
+    'Le fournisseur a renvoyé une réponse illisible.',
   // Alerts (src/server/data.ts)
-  'Check the official seller for sale details.': 'Vérifie les détails de la vente chez le vendeur officiel.',
+  'Check the official seller for sale details.':
+    'Vérifie les détails de la vente chez le vendeur officiel.',
   'A new opportunity for an artist you follow.': 'Une nouvelle date pour un artiste que tu suis.',
   // Errors (src/server/api.ts and friends)
   'Add your name.': 'Ajoute ton prénom.',
@@ -89,14 +95,19 @@ const exact: Record<string, string> = {
     'Ce compte n’a pas pu être créé. Essaie de te connecter.',
   'This request is too large.': 'Cette requête est trop lourde.',
   'Cannot save an inactive concert plan.': 'Impossible de garder un plan de concert inactif.',
-  'Check the seller for changes before buying.': 'Vérifie les changements chez le vendeur avant d’acheter.',
-  'Reload your Spotify artists and choose again.': 'Recharge tes artistes Spotify et choisis à nouveau.',
-  'This concert changed. Check again before saving.': 'Ce concert a changé. Vérifie à nouveau avant de le garder.',
-  'This option is no longer current. Check again.': 'Cette option n’est plus à jour. Vérifie à nouveau.',
+  'Check the seller for changes before buying.':
+    'Vérifie les changements chez le vendeur avant d’acheter.',
+  'Reload your Spotify artists and choose again.':
+    'Recharge tes artistes Spotify et choisis à nouveau.',
+  'This concert changed. Check again before saving.':
+    'Ce concert a changé. Vérifie à nouveau avant de le garder.',
+  'This option is no longer current. Check again.':
+    'Cette option n’est plus à jour. Vérifie à nouveau.',
   'Too many attempts. Please try again later.': 'Trop de tentatives. Réessaie plus tard.',
   'Add a Ticketmaster API key to search the live artist catalogue.':
     'Ajoute une clé API Ticketmaster pour chercher dans le catalogue réel.',
-  'Music connection encryption is not configured.': 'Le chiffrement de la connexion musicale n’est pas configuré.',
+  'Music connection encryption is not configured.':
+    'Le chiffrement de la connexion musicale n’est pas configuré.',
   'Push notifications are not set up on this server yet.':
     'Les notifications ne sont pas encore configurées sur ce serveur.',
   'This invite code is not valid. Ask the person who invited you.':
@@ -113,13 +124,15 @@ const exact: Record<string, string> = {
     'Spotify n’a pas donné d’accès durable. Reconnecte-toi et accepte l’accès.',
   'Spotify access expired or was revoked. Reconnect Spotify in Settings.':
     'L’accès Spotify a expiré ou a été retiré. Reconnecte Spotify dans les réglages.',
-  'Spotify artist identity could not be materialized.': 'Cet artiste Spotify n’a pas pu être importé.',
+  'Spotify artist identity could not be materialized.':
+    'Cet artiste Spotify n’a pas pu être importé.',
   'Enter a valid email address.': 'Saisis une adresse e-mail valide.',
   'Pick a city from the list.': 'Choisis une ville dans la liste.',
   'Keep feedback under 2,000 characters.': 'Reste sous 2 000 caractères.',
   'Write a few words before sending.': 'Écris quelques mots avant d’envoyer.',
   'Use at least 12 characters': 'Utilise au moins 12 caractères',
-  'This browser push service is not supported.': 'Le service de notifications de ce navigateur n’est pas pris en charge.',
+  'This browser push service is not supported.':
+    'Le service de notifications de ce navigateur n’est pas pris en charge.',
   'Check the form and try again.': 'Vérifie le formulaire et réessaie.',
   'The request could not be completed. Please try again.': 'La requête n’a pas abouti. Réessaie.',
   'Choose a supported home city': 'Choisis une ville prise en charge',
@@ -135,7 +148,7 @@ const exact: Record<string, string> = {
 
 type Rule = [RegExp, (...groups: string[]) => string];
 const patterns: Rule[] = [
-  [/^In your home city, (.+)$/, (city) => `Dans ta ville, ${city}`],
+  [/^In your home city, (.+)$/, (city) => `Dans ta ville, ${cityName(city, 'fr')}`],
   [/^About (\d+) km between city centres$/, (km) => `Environ ${km} km entre les centres-villes`],
   [
     /^Choose (.+) from the live artist search to confirm its identity\.$/,
@@ -146,7 +159,10 @@ const patterns: Rule[] = [
     (n) => (n === '1' ? '1 artiste de démo ignoré.' : `${n} artistes de démo ignorés.`),
   ],
   [/^(.+): sale within 24 hours$/, (artist) => `${artist} : vente dans moins de 24 h`],
-  [/^(\d+) more concerts? for you$/, (n) => (n === '1' ? '1 autre concert pour toi' : `${n} autres concerts pour toi`)],
+  [
+    /^(\d+) more concerts? for you$/,
+    (n) => (n === '1' ? '1 autre concert pour toi' : `${n} autres concerts pour toi`),
+  ],
   [
     /^(Sample event\. )?(.+), (\d{4}-\d{2}-\d{2})\. (.+)$/,
     (sample, venue, date, tail) =>
@@ -172,7 +188,7 @@ export function translate(text: string | null | undefined, locale: Locale): stri
   if (whole !== null) return whole;
   const sentences = text.split(/(?<=[.!?])\s+/);
   const out: string[] = [];
-  for (let i = 0; i < sentences.length; ) {
+  for (let i = 0; i < sentences.length;) {
     let matched = false;
     for (let j = sentences.length; j > i; j--) {
       const found = one(sentences.slice(i, j).join(' '));

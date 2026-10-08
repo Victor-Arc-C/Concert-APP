@@ -8,7 +8,6 @@ import { WaitlistForm } from './waitlist-form';
 import { CueSheet } from './cue-sheet';
 import { Journey } from './journey';
 import { GigMap } from './gig-map';
-import { Proof } from './proof';
 import { RevealObserver } from './reveal-observer';
 import { DataToggle } from './data-toggle';
 import styles from './marketing.module.css';
@@ -53,7 +52,6 @@ export function MarketingPage({ locale }: { locale: Locale }) {
           <CueSheet />
           <Journey />
           <GigMap />
-          <Proof />
           <section id="join" className={styles.join} aria-labelledby="join-title">
             <div className={styles.joinBeams} aria-hidden="true">
               <span />

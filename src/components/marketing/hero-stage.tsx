@@ -20,7 +20,7 @@ const LAMPS = [
 ] as const;
 const BEAM_TOP = 52;
 
-type Act = { artist: string; city: string; date: string | null };
+type Act = { artist: string; city: string; date: string | null; image: string | null };
 
 /**
  * The signature moment: the promise on a lit stage. Lamps power on in turn, their beams find the
@@ -50,7 +50,12 @@ export function HeroStage() {
       for (const gig of place.gigs) {
         if (picked.length === 3 || seen.has(gig.artist)) continue;
         seen.add(gig.artist);
-        picked.push({ artist: gig.artist, city: place.name, date: gig.date });
+        picked.push({
+          artist: gig.artist,
+          city: place.name,
+          date: gig.date,
+          image: gig.image ?? null,
+        });
       }
     return picked;
   }, [data]);
@@ -143,7 +148,8 @@ export function HeroStage() {
   // Pointer lean (fine pointers only): the rig follows the visitor a little.
   useEffect(() => {
     const el = stage.current;
-    if (!el || !window.matchMedia('(hover: hover) and (pointer: fine)').matches || reduced()) return;
+    if (!el || !window.matchMedia('(hover: hover) and (pointer: fine)').matches || reduced())
+      return;
     let frame = 0;
     const move = (event: PointerEvent) => {
       const box = el.getBoundingClientRect();
@@ -239,7 +245,7 @@ export function HeroStage() {
                 }}
               >
                 <span className={styles.pool} aria-hidden="true" />
-                <ArtistPhoto name={act.artist} className={styles.actPhoto} />
+                <ArtistPhoto name={act.artist} image={act.image} className={styles.actPhoto} />
                 <b>{act.artist}</b>
                 <small>
                   {act.date ? f.dateWithDay(act.date) : m.sampleAct} · {city(act.city)}

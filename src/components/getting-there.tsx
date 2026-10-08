@@ -72,7 +72,12 @@ export function GettingThere({
               {best('flight')}
             </div>
             <p className="mode-note">
-              {t.getThere.flightNote(place(flight.from), place(flight.to), f.dayMonth(flight.date), flight.landBy)}
+              {t.getThere.flightNote(
+                place(flight.from),
+                place(flight.to),
+                f.dayMonth(flight.date),
+                flight.landBy,
+              )}
             </p>
             <div className="mode-links">
               <Link href={flight.searchUrl}>{t.getThere.googleFlights}</Link>
@@ -100,7 +105,10 @@ export function GettingThere({
               <>
                 <ul className="route-list">
                   {train.routes.map((route) => {
-                    const [carriers, to] = t.getThere.routeTo(route.carriers.join(', '), route.station);
+                    const [carriers, to] = t.getThere.routeTo(
+                      route.carriers.join(', '),
+                      route.station,
+                    );
                     return (
                       <li key={route.station}>
                         <span>
@@ -179,7 +187,9 @@ export function GettingThere({
           <div className="mode-head">
             <strong>{t.getThere.venue}</strong>
           </div>
-          <Link href={directionsUrl(origin, city, venue, 'transit')}>{t.getThere.transit(venue)}</Link>
+          <Link href={directionsUrl(origin, city, venue, 'transit')}>
+            {t.getThere.transit(venue)}
+          </Link>
         </div>
       </>
     ),

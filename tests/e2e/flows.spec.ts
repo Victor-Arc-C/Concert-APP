@@ -93,6 +93,7 @@ test('founder flow: register, choose artists, save, persist, must-see, alert, di
   expect(oldSession.sameSite).toBe('Lax');
   expect(oldSession.expires).toBeGreaterThan(Date.now() / 1000);
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+  await expect(page).toHaveURL(`${origin}/`);
   await expect
     .poll(async () => (await (await page.request.get('/api/state')).json()).user)
     .toBeNull();
@@ -663,4 +664,7 @@ test('manual live onboarding without Spotify: search, retry, demo opt-in, live s
     mode: 'live',
     source: 'manual',
   });
+  // The loader refreshes /api/state after submission. Wait for that response before
+  // Playwright disposes the page's request context (a teardown race in WebKit).
+  await expect(page.getByRole('button', { name: 'See your shows' })).toBeVisible();
 });

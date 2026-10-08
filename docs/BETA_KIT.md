@@ -1,4 +1,4 @@
-# Kit bêta privée Encore (CON-40)
+# Kit bêta privée Showbound (CON-40)
 
 Ce kit sert à recruter et suivre 10 à 20 vrais utilisateurs pendant 2 semaines. C'est Victor qui envoie les invitations : rien ici n'est envoyé ni activé automatiquement.
 
@@ -27,7 +27,7 @@ Ce kit sert à recruter et suivre 10 à 20 vrais utilisateurs pendant 2 semaines
 
 À envoyer en message privé, pas dans un groupe : chaque personne reçoit le code de son groupe (section 3). L'app est en anglais pour l'instant ; le message le dit pour éviter la surprise.
 
-> Salut [prénom] ! Je lance **Encore**, une petite app qui te montre les concerts de TES artistes près de chez toi (ou un peu plus loin 👀) et t'envoie vers la billetterie officielle.
+> Salut [prénom] ! Je lance **Showbound**, une petite app qui te montre les concerts de TES artistes près de chez toi (ou un peu plus loin 👀) et t'envoie vers la billetterie officielle.
 >
 > Je cherche 15 personnes pour la tester pendant 2 semaines. Ça prend 3 minutes pour démarrer :
 > 1. Va sur https://concert-app-drab.vercel.app/signup
@@ -40,7 +40,7 @@ Ce kit sert à recruter et suivre 10 à 20 vrais utilisateurs pendant 2 semaines
 
 **Relance J+2** (seulement si pas de réponse) :
 
-> Petit rappel pour Encore 🙂 Si tu as 3 minutes cette semaine : https://concert-app-drab.vercel.app/signup, code **[CODE]**. Et si ce n'est pas ton truc, pas de souci, dis-le-moi !
+> Petit rappel pour Showbound 🙂 Si tu as 3 minutes cette semaine : https://concert-app-drab.vercel.app/signup, code **[CODE]**. Et si ce n'est pas ton truc, pas de souci, dis-le-moi !
 
 ---
 
@@ -127,11 +127,11 @@ L'app ne réserve **aucun** transport ni hôtel (hors scope du MVP). On teste l'
 
 **Pendant l'interview**, quand la personne regarde un concert dans une autre ville :
 
-> « Imagine qu'Encore te propose, pour ce concert, le train et un logement pas cher à côté de la salle, avec le prix total. Tu ferais le déplacement ? Jusqu'à combien tu serais prêt(e) à mettre en tout, billet compris ? »
+> « Imagine qu'Showbound te propose, pour ce concert, le train et un logement pas cher à côté de la salle, avec le prix total. Tu ferais le déplacement ? Jusqu'à combien tu serais prêt(e) à mettre en tout, billet compris ? »
 
 **Puis, par WhatsApp à J7** (à tous les testeurs actifs) :
 
-> Question rapide 🙂 Parmi les concerts que tu as vus dans Encore, il y en a un pour lequel tu ferais le voyage (autre ville / autre pays) ? Si oui, lequel, et avec quel budget total max ? Je peux te faire un plan (train + logement) à la main, juste pour voir si c'est utile, sans engagement.
+> Question rapide 🙂 Parmi les concerts que tu as vus dans Showbound, il y en a un pour lequel tu ferais le voyage (autre ville / autre pays) ? Si oui, lequel, et avec quel budget total max ? Je peux te faire un plan (train + logement) à la main, juste pour voir si c'est utile, sans engagement.
 
 **Si quelqu'un dit oui** :
 1. Fais le plan à la main sur les sites officiels (SNCF Connect, Booking…).

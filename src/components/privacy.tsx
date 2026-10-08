@@ -49,8 +49,7 @@ export function Privacy() {
           {configured ? (
             <p>
               Le responsable du traitement est {contact!.controller}. Pour toute question ou demande
-              liée à tes données, écris à{' '}
-              <a href={`mailto:${contact!.email}`}>{contact!.email}</a>.
+              liée à tes données, écris à <a href={`mailto:${contact!.email}`}>{contact!.email}</a>.
             </p>
           ) : (
             <p className="inline-note" role="note">
@@ -82,8 +81,13 @@ export function Privacy() {
             </li>
             <li>Les avis que tu choisis d’envoyer, avec l’écran d’où tu les envoies.</li>
             <li>Des statistiques d’usage facultatives, seulement si tu les actives.</li>
-            <li>Si tu connectes Spotify : des jetons d’accès chiffrés et les artistes que tu confirmes.</li>
-            <li>Les sessions de connexion (7 jours) et les tentatives de connexion musicale en cours.</li>
+            <li>
+              Si tu connectes Spotify : des jetons d’accès chiffrés et les artistes que tu
+              confirmes.
+            </li>
+            <li>
+              Les sessions de connexion (7 jours) et les tentatives de connexion musicale en cours.
+            </li>
             <li>
               Pour la sécurité : des compteurs de limitation indexés par une empreinte de ton e-mail
               ou de ton identifiant de compte, et des journaux d’erreurs sans donnée personnelle.
@@ -103,10 +107,10 @@ export function Privacy() {
           <h2>Où</h2>
           <p>
             L’app est hébergée par Vercel et la base de données par Neon (PostgreSQL géré). Au
-            moment de la rédaction, les serveurs de l’application Showbound tournent aux États-Unis :
-            tes données peuvent donc être traitées hors de l’Union européenne, selon les conditions
-            de traitement de ces prestataires. Demande-nous si tu veux connaître les régions
-            actuelles ou les garanties de transfert.
+            moment de la rédaction, les serveurs de l’application Showbound tournent aux États-Unis
+            : tes données peuvent donc être traitées hors de l’Union européenne, selon les
+            conditions de traitement de ces prestataires. Demande-nous si tu veux connaître les
+            régions actuelles ou les garanties de transfert.
           </p>
           <h2>Combien de temps</h2>
           <ul>
@@ -132,8 +136,8 @@ export function Privacy() {
             corriger (Réglages), retirer ton consentement (Réglages) et supprimer ton compte et ses
             données (Réglages → Supprimer le compte). La suppression retire immédiatement de la base
             active les données liées au compte. Tu peux aussi nous contacter pour l’accès, la
-            rectification, l’effacement, la limitation ou l’opposition, et tu as le droit de
-            déposer une réclamation auprès de la CNIL ({cnil}).
+            rectification, l’effacement, la limitation ou l’opposition, et tu as le droit de déposer
+            une réclamation auprès de la CNIL ({cnil}).
           </p>
           <h2>Spotify</h2>
           <p>
@@ -154,8 +158,8 @@ export function Privacy() {
               Vérifie toujours chez le vendeur avant d’acheter ou de partir.
             </li>
             <li>
-              Showbound ne vend aucun billet et ne réserve aucun voyage. Tout achat se fait entre toi
-              et le vendeur.
+              Showbound ne vend aucun billet et ne réserve aucun voyage. Tout achat se fait entre
+              toi et le vendeur.
             </li>
             <li>Ton code d’invitation est propre à ton groupe. Ne le partage pas publiquement.</li>
           </ul>
@@ -169,8 +173,8 @@ export function Privacy() {
           <h2>Photographie</h2>
           <p>
             Ambiance de concert générique issue d’{unsplash('Unsplash')}, utilisée sous la{' '}
-            {licence('licence Unsplash')}. Ces images ne représentent pas les concerts de démo
-            cités et n’impliquent aucun soutien d’artiste.
+            {licence('licence Unsplash')}. Ces images ne représentent pas les concerts de démo cités
+            et n’impliquent aucun soutien d’artiste.
           </p>
         </>
       ) : (
@@ -225,14 +229,14 @@ export function Privacy() {
             Your account, settings, artists, saves, alerts, trips and ticket-link records are needed
             to provide the service you signed up for (contract). Usage analytics and the Spotify
             connection rely on your consent, which you can withdraw in settings at any time. Beta
-            feedback, security counters and error logs rely on our legitimate interest in running and
-            improving a safe pilot. We do not sell personal data or listening profiles.
+            feedback, security counters and error logs rely on our legitimate interest in running
+            and improving a safe pilot. We do not sell personal data or listening profiles.
           </p>
           <h2>Where</h2>
           <p>
-            The app is hosted by Vercel and the database by Neon (managed PostgreSQL). At the time of
-            writing, Showbound&apos;s application servers run in the United States, so your data may
-            be processed outside the European Union, under these providers&apos; data processing
+            The app is hosted by Vercel and the database by Neon (managed PostgreSQL). At the time
+            of writing, Showbound&apos;s application servers run in the United States, so your data
+            may be processed outside the European Union, under these providers&apos; data processing
             terms. Ask us if you want the current regions or the transfer safeguards.
           </p>
           <h2>How long</h2>
@@ -270,7 +274,9 @@ export function Privacy() {
           </p>
           <h2>Beta terms</h2>
           <ul>
-            <li>The pilot is free, may change or stop at any time, and comes without any guarantee.</li>
+            <li>
+              The pilot is free, may change or stop at any time, and comes without any guarantee.
+            </li>
             <li>
               Listings, dates and prices come from third parties and may be incomplete or out of
               date. Always check the seller before buying or travelling.

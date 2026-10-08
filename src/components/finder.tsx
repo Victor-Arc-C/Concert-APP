@@ -148,7 +148,9 @@ function FinderBody({
           {percent}
           <small>%</small>
         </b>
-        {live.length > 0 && <span>{t.loader.count(state === 'ready' ? live.length : checked, live.length)}</span>}
+        {live.length > 0 && (
+          <span>{t.loader.count(state === 'ready' ? live.length : checked, live.length)}</span>
+        )}
       </div>
       <div className="say" aria-hidden="true">
         <p key={`${state}-${line}-${current?.id ?? ''}`}>{text}</p>

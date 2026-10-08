@@ -1,6 +1,6 @@
 # Project conventions
 
-Encore is a modular Next.js monolith. Keep this structure unless a verified requirement needs a change; do not introduce another frontend, service layer or ORM just to match a generic template.
+Showbound is a modular Next.js monolith. Keep this structure unless a verified requirement needs a change; do not introduce another frontend, service layer or ORM just to match a generic template.
 
 - `src/domain`: types, validation, sample data, normalization and recommendation rules. Keep business calculations testable without database or network access. Server-only normalization may use Node crypto; do not import it into client components.
 - `src/server`: database access, authentication, environment validation, jobs and API orchestration. Use parameterized SQL. Keep secrets and raw provider payloads here.

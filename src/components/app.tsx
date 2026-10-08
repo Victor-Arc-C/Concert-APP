@@ -2,7 +2,18 @@
 import { useCallback, useEffect, useState, ViewTransition } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { ArrowUpRight, Bell, Bookmark, Compass, Heart, LogOut, MapPin, Route, Settings, X } from 'lucide-react';
+import {
+  ArrowUpRight,
+  Bell,
+  Bookmark,
+  Compass,
+  Heart,
+  LogOut,
+  MapPin,
+  Route,
+  Settings,
+  X,
+} from 'lucide-react';
 
 import type { AppData } from '@/domain/types';
 import { useI18n } from '@/i18n/client';
@@ -299,7 +310,9 @@ export function ShowboundApp() {
                   {data.saved.length}
                 </span>
               )}
-              {item.url === '/app/alerts' && unread && <span className="tab-dot" aria-hidden="true" />}
+              {item.url === '/app/alerts' && unread && (
+                <span className="tab-dot" aria-hidden="true" />
+              )}
             </Link>
           ))}
         </nav>
@@ -314,7 +327,11 @@ export function ShowboundApp() {
         {notice && (
           <div className="toast" role="status">
             <span>{notice}</span>
-            <button onClick={() => setNotice('')} className="icon-button" aria-label={t.common.close}>
+            <button
+              onClick={() => setNotice('')}
+              className="icon-button"
+              aria-label={t.common.close}
+            >
               <X size={16} />
             </button>
           </div>

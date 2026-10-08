@@ -149,7 +149,8 @@ export function statusOf(event: RankedConcert): {
 } {
   if (event.status === 'cancelled') return { key: 'cancelled', tone: 'stop' };
   if (event.status === 'postponed') return { key: 'postponed', tone: 'stop' };
-  if (event.saleAt && Date.parse(event.saleAt) > Date.now()) return { key: 'saleSoon', tone: 'wait' };
+  if (event.saleAt && Date.parse(event.saleAt) > Date.now())
+    return { key: 'saleSoon', tone: 'wait' };
   if (event.status === 'onsale') return { key: 'onsale', tone: 'go' };
   if (event.status === 'offsale') return { key: 'offsale', tone: 'stop' };
   return { key: 'check', tone: 'quiet' };
@@ -205,7 +206,8 @@ export function ConcertCard({
   const price = f.money(event.price, event.currency);
   const status = statusOf(event);
   const off = event.status === 'cancelled' || event.status === 'postponed';
-  const special = event.tier === 'Must see' ? t.card.tiers['Must see'] : favorite ? t.card.favourite : null;
+  const special =
+    event.tier === 'Must see' ? t.card.tiers['Must see'] : favorite ? t.card.favourite : null;
   async function toggle() {
     const saving = !event.saved;
     const done = await act(
@@ -218,7 +220,7 @@ export function ConcertCard({
   return (
     <article
       ref={card}
-      className={`concert-card ${featured ? 'is-next' : ''} ${event.saved ? 'is-saved' : ''} ${off ? 'is-off' : ''}`}
+      className={`concert-card ${featured ? 'is-next' : ''} ${event.saved ? 'is-saved' : ''} ${off ? 'is-off' : ''} ${event.artist.length > 32 ? 'is-long' : ''}`}
       style={{ '--gel': gelFor(event.artist), '--i': index } as React.CSSProperties}
     >
       <Link
@@ -236,10 +238,13 @@ export function ConcertCard({
         </span>
       </Link>
       <div className="act-body">
-        {featured && <span className="next-label">{t.card.nextUp}</span>}
-        {special && !featured && (
+        {special && (
           <span className="act-tier">
-            {event.tier === 'Must see' ? <Heart size={12} fill="currentColor" /> : <Sparkles size={12} />}
+            {event.tier === 'Must see' ? (
+              <Heart size={12} fill="currentColor" />
+            ) : (
+              <Sparkles size={12} />
+            )}
             {special}
           </span>
         )}
@@ -272,11 +277,18 @@ export function ConcertCard({
             data-on={event.saved || undefined}
             onClick={toggle}
           >
-            <Bookmark size={17} strokeWidth={2.4} fill={event.saved ? 'currentColor' : 'none'} aria-hidden="true" />
+            <Bookmark
+              size={17}
+              strokeWidth={2.4}
+              fill={event.saved ? 'currentColor' : 'none'}
+              aria-hidden="true"
+            />
             <span aria-hidden="true">{event.saved ? t.card.savedShort : t.card.saveShort}</span>
           </button>
         </div>
-        {event.provider === 'sample' && featured && <small className="board-sample">{t.card.sampleTag}</small>}
+        {event.provider === 'sample' && featured && (
+          <small className="board-sample">{t.card.sampleTag}</small>
+        )}
       </div>
     </article>
   );

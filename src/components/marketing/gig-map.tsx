@@ -118,7 +118,6 @@ function useLabelSize() {
 }
 const cityKey = (c: PublicCity) => `${c.name}|${c.country}`;
 
-
 export function GigMap() {
   const { t, f, city: place } = useI18n();
   const m = t.marketing;
@@ -160,6 +159,12 @@ export function GigMap() {
       <header className={styles.mapHead} data-reveal>
         <h2 id="map-title">{m.mapTitle}</h2>
         <p>{data?.mode === 'sample' ? m.mapSample : m.mapLive}</p>
+        {status === 'ready' && data && data.stats.shows > 0 && (
+          <p className={styles.counts}>
+            {m.counts(data.stats.shows, data.stats.artists, data.stats.cities)}
+            {data.waitlist != null && ` · ${m.waitlistCount(data.waitlist)}`}
+          </p>
+        )}
       </header>
       <div className={styles.mapBody} data-reveal style={{ '--i': 1 } as React.CSSProperties}>
         <div className={styles.mapCanvas}>
@@ -273,9 +278,7 @@ export function GigMap() {
               </button>
             </p>
           )}
-          {status === 'ready' && !cities.length && (
-            <p className={styles.mapState}>{m.mapEmpty}</p>
-          )}
+          {status === 'ready' && !cities.length && <p className={styles.mapState}>{m.mapEmpty}</p>}
           {status === 'ready' && cities.length > 0 && (
             <>
               <p className={styles.cityCount}>{m.cityCount(cities.length)}</p>

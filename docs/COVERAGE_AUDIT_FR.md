@@ -1,6 +1,6 @@
 # Audit de couverture des concerts en France (CON-38)
 
-**Question** : quand un bêta-testeur suit ses artistes, Encore lui montre-t-il les concerts réellement annoncés en France ? Ticketmaster est aujourd'hui la seule source live.
+**Question** : quand un bêta-testeur suit ses artistes, Showbound lui montre-t-il les concerts réellement annoncés en France ? Ticketmaster est aujourd'hui la seule source live.
 
 **Mise à jour au 2026-10-07**
 

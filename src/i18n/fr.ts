@@ -55,7 +55,8 @@ export const fr: Messages = {
     findYourOwn: 'Trouver tes concerts',
     sampleMode: 'Mode démo. Concerts, dates et prix sont fictifs.',
     dataSettings: 'Réglages des données',
-    spotifyDenied: 'L’accès Spotify a été refusé. Tu peux te reconnecter ou choisir tes artistes à la main.',
+    spotifyDenied:
+      'L’accès Spotify a été refusé. Tu peux te reconnecter ou choisir tes artistes à la main.',
     spotifyFailed: 'La connexion Spotify n’a pas pu être vérifiée. Relance-la depuis les réglages.',
     footerLive: 'Concerts issus de Ticketmaster. Vérifie chez le vendeur avant de partir.',
     footerSample: 'Concerts et prix de démo. Aucun vrai billet.',
@@ -93,7 +94,8 @@ export const fr: Messages = {
     showMore: 'Voir plus de concerts',
     emptyFiltered: 'Aucun concert ne correspond à ces filtres.',
     emptyNone: 'Ton prochain concert n’est pas encore annoncé.',
-    emptyHint: 'Essaie une autre ville, suis un autre artiste ou fais revenir les concerts écartés.',
+    emptyHint:
+      'Essaie une autre ville, suis un autre artiste ou fais revenir les concerts écartés.',
     clearFilters: 'Effacer les filtres',
     chooseArtists: 'Choisir des artistes',
     restoreDismissed: 'Faire revenir les concerts écartés',
@@ -114,7 +116,6 @@ export const fr: Messages = {
     saveShort: 'Garder',
     savedShort: 'Gardé',
     sampleTag: 'Exemple fictif',
-    nextUp: 'Le prochain',
     explore: 'Découvrir ce concert',
     tiers: {
       'Must see': 'Incontournable',
@@ -143,7 +144,8 @@ export const fr: Messages = {
     scopeCountry: 'Partout dans mon pays',
     scopeEurope: 'Partout en Europe',
     radius: 'Rayon préféré (km), facultatif',
-    radiusHint: 'Distance entre centres-villes. Avec un rayon, les concerts à distance inconnue sont exclus.',
+    radiusHint:
+      'Distance entre centres-villes. Avec un rayon, les concerts à distance inconnue sont exclus.',
     noLimit: 'Pas de limite',
     dateFrom: 'Concerts à partir du',
     dateTo: 'Concerts jusqu’au',
@@ -162,7 +164,8 @@ export const fr: Messages = {
   },
   intent: {
     title: (name) => `Faire de ${name} un incontournable`,
-    intro: 'Dis-nous ce qui rendrait ce concert possible pour toi. On note ton envie, sans réserver de billets.',
+    intro:
+      'Dis-nous ce qui rendrait ce concert possible pour toi. On note ton envie, sans réserver de billets.',
     cities: 'Les villes où tu irais',
     maxPrice: 'Maximum par billet (€)',
     tickets: 'Nombre de billets',
@@ -186,7 +189,8 @@ export const fr: Messages = {
     reasonsNote: 'Un classement fondé sur tes choix, pas une prédiction de ton plaisir.',
     explore: (name) => `Découvrir ${name}`,
     otherDates: 'Même artiste, autres dates',
-    otherDatesNote: 'Compare les prix de départ des billets. Le trajet et le lit restent à vérifier.',
+    otherDatesNote:
+      'Compare les prix de départ des billets. Le trajet et le lit restent à vérifier.',
     cityAndDate: 'Ville et date',
     ticketFrom: 'Billet dès',
     tripTotal: 'Total du voyage',
@@ -252,12 +256,14 @@ export const fr: Messages = {
     importedFrom: 'Importé de Spotify',
     spotifyFailed: 'Les artistes Spotify n’ont pas pu être chargés.',
     liveTitle: 'Trouver un artiste dans le catalogue réel',
-    liveBody: 'Cherche sur Ticketmaster et choisis l’artiste exact, pour ne jamais confondre deux homonymes.',
+    liveBody:
+      'Cherche sur Ticketmaster et choisis l’artiste exact, pour ne jamais confondre deux homonymes.',
     liveLabel: 'Chercher des artistes réels',
     livePlaceholder: 'Nom de l’artiste',
     search: 'Chercher',
     searching: 'Recherche…',
-    needsKey: 'La recherche réelle demande une clé API Ticketmaster. Le catalogue de démo marche sans.',
+    needsKey:
+      'La recherche réelle demande une clé API Ticketmaster. Le catalogue de démo marche sans.',
     noneFound: 'Aucun artiste trouvé. Essaie le nom complet.',
     confirmFor: (name) =>
       `Confirme quel artiste réel correspond à ${name} sur Spotify. Ton choix est enregistré et l’artiste suivi.`,
@@ -316,7 +322,10 @@ export const fr: Messages = {
     notification: {
       off: ['Coupées', 'Aucune nouvelle alerte.'],
       critical: ['Essentielles', 'Horaires de vente vérifiés dans les 24 heures.'],
-      important: ['Importantes', 'Concerts dans ta ville, favoris, incontournables et rappels de vente.'],
+      important: [
+        'Importantes',
+        'Concerts dans ta ville, favoris, incontournables et rappels de vente.',
+      ],
       everything: ['Tout', 'Tous les nouveaux concerts pertinents et rappels de vente.'],
     },
     dataTitle: 'Tes données restent à toi',
@@ -335,7 +344,8 @@ export const fr: Messages = {
     musicTitle: 'Ta connexion musicale',
     spotifyConnected: 'Spotify est connecté. Choisis des artistes dans ta liste importée.',
     spotifyAvailable: 'Spotify est disponible pour les comptes pilotes validés.',
-    spotifyPending: 'Spotify attend la validation du fournisseur pour ce pilote. Le choix manuel des artistes est prêt.',
+    spotifyPending:
+      'Spotify attend la validation du fournisseur pour ce pilote. Le choix manuel des artistes est prêt.',
     chooseSpotify: 'Choisir des artistes Spotify',
     disconnect: 'Déconnecter Spotify',
     disconnected: 'Spotify déconnecté ; jetons supprimés',
@@ -353,7 +363,8 @@ export const fr: Messages = {
     findLive: 'Trouver des artistes réels',
     autoOn:
       'Les vérifications automatiques tournent tant que Showbound est lancé sur cet ordinateur. Les nouveaux artistes sont vérifiés sous cinq minutes, les autres environ toutes les heures. Les alertes arrivent dans Tes alertes.',
-    autoOff: 'Les vérifications automatiques locales sont coupées. Utilise Actualiser ou programme une vérification.',
+    autoOff:
+      'Les vérifications automatiques locales sont coupées. Utilise Actualiser ou programme une vérification.',
     lastFailed: (message) => `Dernier essai raté. ${message}`,
     checkedAt: (when) => `Vérifié le ${when}`,
     waiting: 'En attente de la première vérification',
@@ -372,21 +383,24 @@ export const fr: Messages = {
   },
   push: {
     title: 'Sur cet appareil',
-    iosIntro: 'Pour recevoir les notifications sur iPhone, ajoute Showbound à ton écran d’accueil, puis ouvre-le depuis là :',
+    iosIntro:
+      'Pour recevoir les notifications sur iPhone, ajoute Showbound à ton écran d’accueil, puis ouvre-le depuis là :',
     iosShare: 'Partager',
     iosTap: 'Touche',
     iosInSafari: 'dans Safari.',
     iosStep2: 'Choisis Sur l’écran d’accueil.',
     iosStep3: 'Ouvre Showbound depuis la nouvelle icône et reviens sur cette page.',
     unsupported: 'Ce navigateur ne reçoit pas les notifications. Tes alertes restent dans l’app.',
-    denied: 'Les notifications sont bloquées pour Showbound. Autorise-les dans les réglages du navigateur ou du téléphone, puis recharge la page.',
+    denied:
+      'Les notifications sont bloquées pour Showbound. Autorise-les dans les réglages du navigateur ou du téléphone, puis recharge la page.',
     on: 'Les nouvelles alertes arrivent sur cet appareil après chaque vérification des concerts.',
     test: 'Envoyer un test',
     turnOff: 'Désactiver sur cet appareil',
     offIntro: 'Reçois tes alertes en notifications, même quand Showbound est fermé.',
     turnOn: 'Activer les notifications',
     turningOn: 'Activation…',
-    registerFailed: 'Ce navigateur n’a pas pu s’inscrire aux notifications. Tes alertes restent dans l’app.',
+    registerFailed:
+      'Ce navigateur n’a pas pu s’inscrire aux notifications. Tes alertes restent dans l’app.',
     onToast: 'Notifications activées sur cet appareil',
     offToast: 'Notifications désactivées sur cet appareil',
     testToast: 'Test envoyé. Il devrait arriver dans quelques secondes.',
@@ -435,8 +449,10 @@ export const fr: Messages = {
     whereTitle: 'Jusqu’où la musique doit-elle t’emmener ?',
     whereIntro: 'Commence près de chez toi, ou garde de la place pour un week-end ailleurs.',
     whoTitle: 'Qui aimerais-tu voir ?',
-    whoIntroDemo: 'Choisis quelques favoris dans le catalogue de démo. Tu pourras changer quand tu veux.',
-    whoIntroLive: 'Cherche les artistes que tu aimes. Spotify est facultatif, et tu pourras changer quand tu veux.',
+    whoIntroDemo:
+      'Choisis quelques favoris dans le catalogue de démo. Tu pourras changer quand tu veux.',
+    whoIntroLive:
+      'Cherche les artistes que tu aimes. Spotify est facultatif, et tu pourras changer quand tu veux.',
     spotifyOptional: 'Spotify est facultatif. Tu peux changer ces préférences quand tu veux.',
     analytics: 'Aider à améliorer Showbound avec des statistiques d’usage facultatives.',
     locationStep: 'Lieu et préférences',
@@ -456,7 +472,8 @@ export const fr: Messages = {
     cantImport: 'Cet artiste Spotify n’a pas pu être importé',
     demoMode: 'Mode démo : concerts, dates et prix sont fictifs.',
     searchReal: 'Chercher plutôt de vrais artistes',
-    liveUnavailable: 'Les concerts réels ne sont pas disponibles pour le moment : tu peux explorer la démo avec des concerts fictifs.',
+    liveUnavailable:
+      'Les concerts réels ne sont pas disponibles pour le moment : tu peux explorer la démo avec des concerts fictifs.',
     chooseManually: 'Choisir à la main',
     manualLabel: 'Chercher des artistes à choisir',
     manualPlaceholder: 'Chercher des artistes',
@@ -501,7 +518,8 @@ export const fr: Messages = {
     badge: 'Trip Intelligence',
     fromHome: (city) => `Depuis ${city}`,
     sampleTrip: 'Voyage de démo : trajets, hébergements, prix et distances sont fictifs.',
-    homeCityTravel: 'Ce concert est dans ta ville. Regarde les transports en commun ou un itinéraire en voiture jusqu’à la salle.',
+    homeCityTravel:
+      'Ce concert est dans ta ville. Regarde les transports en commun ou un itinéraire en voiture jusqu’à la salle.',
     sncfWindow:
       'La SNCF publie les horaires exacts 23 jours à l’avance : ceux de cette date ne sont pas encore sortis. Compare les façons d’y aller ci-dessus.',
     noTimetable: 'Aucun horaire aller-retour vérifié. Compare les façons d’y aller ci-dessus.',
@@ -536,7 +554,8 @@ export const fr: Messages = {
     sncfPrices: 'Voir les prix sur SNCF Connect',
     checkBooking: 'Voir la réservation du transport',
     transportOptions: 'Options de transport',
-    timetableExpired: 'Les horaires précédents ont expiré. Vérifie à nouveau pour les options actuelles.',
+    timetableExpired:
+      'Les horaires précédents ont expiré. Vérifie à nouveau pour les options actuelles.',
     excludesTaxes: 'Hors taxes payées à l’hôtel',
     nights: (n) => (n <= 1 ? `${n} nuit` : `${n} nuits`),
     distanceUnknown: 'Distance indisponible',
@@ -547,13 +566,15 @@ export const fr: Messages = {
     checkIn: (date) => `Arrivée : ${date}`,
     bookHotel: 'Réserver cet hôtel à ce prix',
     findHotel: 'Trouver cet hôtel sur Booking.com',
-    hotelNote: 'Cherche cet hôtel avec tes dates. Les prix Booking.com peuvent différer du tarif LiteAPI ci-dessus.',
+    hotelNote:
+      'Cherche cet hôtel avec tes dates. Les prix Booking.com peuvent différer du tarif LiteAPI ci-dessus.',
     stayUnavailable: 'Hébergements indisponibles',
     noHotelQuote: 'Aucun tarif d’hôtel actuel pour ces dates.',
     totalLabel: 'Total estimé du voyage',
     totalUnavailable: 'Total pas encore disponible',
     sampleTotal: 'Itinéraire fictif de démo. Aucune réservation ni disponibilité proposée.',
-    notReservation: 'Un plan gardé n’est pas une réservation. Vérifie les prix et la disponibilité chez le fournisseur.',
+    notReservation:
+      'Un plan gardé n’est pas une réservation. Vérifie les prix et la disponibilité chez le fournisseur.',
     musicMatch: (n) => `${n} % d’affinité musicale`,
     convenience: (value) => `Praticité ${value}`,
     value: (value) => `Rapport ${value}`,
@@ -615,7 +636,8 @@ export const fr: Messages = {
     omioCoach: (route) => `Horaires et prix des cars en direct ${route} sur Omio`,
     transit: (venue) => `Transports en commun jusqu’à ${venue}`,
     loading: 'On cherche les meilleures façons d’y aller…',
-    failed: 'Les trajets n’ont pas pu être chargés. Les liens ci-dessous ouvrent quand même chaque recherche.',
+    failed:
+      'Les trajets n’ont pas pu être chargés. Les liens ci-dessous ouvrent quand même chaque recherche.',
     sources:
       'Les prix viennent de la recherche en direct de chaque vendeur ; Showbound ne les estime jamais. Trajets en train : données ouvertes SNCF Voyageurs (ODbL).',
   },
@@ -690,26 +712,24 @@ export const fr: Messages = {
     ],
     shotNote: 'Écrans de l’app en mode démo, avec des concerts fictifs.',
     mapTitle: 'Qui joue où.',
-    mapSample: 'Concerts de démo pour l’instant. Une fois les données réelles connectées, cette carte montre chaque concert suivi par Showbound.',
-    mapLive: 'Chaque concert suivi par Showbound en Europe, actualisé chaque nuit. Les lignes partent de ta ville.',
-    mapAria: (count, home) => `Carte de ${count} villes avec des concerts à venir, vue depuis ${home}`,
+    mapSample:
+      'Concerts de démo pour l’instant. Une fois les données réelles connectées, cette carte montre chaque concert suivi par Showbound.',
+    mapLive:
+      'Chaque concert suivi par Showbound en Europe, actualisé chaque nuit. Les lignes partent de ta ville.',
+    mapAria: (count, home) =>
+      `Carte de ${count} villes avec des concerts à venir, vue depuis ${home}`,
     byCity: 'Concerts par ville',
     cityCount: (n) => (n <= 1 ? `${n} ville` : `${n} villes`),
     showCount: (n) => (n <= 1 ? `${n} concert` : `${n} concerts`),
-    moreShows: (n) => (n <= 1 ? `${n} autre concert dans l’app.` : `${n} autres concerts dans l’app.`),
+    moreShows: (n) =>
+      n <= 1 ? `${n} autre concert dans l’app.` : `${n} autres concerts dans l’app.`,
     home: 'Chez toi',
     mapError: 'Les concerts n’ont pas pu être chargés.',
-    mapEmpty: 'Aucun concert à venir pour l’instant. Les nouvelles dates arrivent après l’actualisation de la nuit.',
-    proofTitle: 'Dans la lumière en ce moment.',
-    proofSample: 'Comptés sur les concerts de démo tant que les données réelles ne sont pas connectées.',
-    proofLive: 'Comptés sur les mêmes concerts que l’app, actualisés chaque nuit.',
-    stats: {
-      shows: 'Concerts à venir',
-      artists: 'Artistes en tournée',
-      cities: 'Villes',
-      countries: 'Pays',
-      waitlist: 'Fans sur la liste d’attente',
-    },
+    mapEmpty:
+      'Aucun concert à venir pour l’instant. Les nouvelles dates arrivent après l’actualisation de la nuit.',
+    counts: (shows, artists, cities) =>
+      `${shows} ${shows <= 1 ? 'concert' : 'concerts'} à venir · ${artists} ${artists <= 1 ? 'artiste' : 'artistes'} · ${cities} ${cities <= 1 ? 'ville' : 'villes'}`,
+    waitlistCount: (n) => `${n} fans sur la liste d’attente`,
     joinTitle: 'Ta place t’attend.',
     joinBody:
       'Showbound est un petit pilote sur invitation. Laisse ton e-mail et ta ville, on t’envoie ton invitation dès qu’il y a de la place.',

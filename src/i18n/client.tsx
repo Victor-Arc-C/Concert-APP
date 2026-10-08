@@ -30,7 +30,13 @@ export function clientLocale(): Locale {
   return resolveLocale(match?.[1]);
 }
 
-export function I18nProvider({ initial, children }: { initial: Locale; children: React.ReactNode }) {
+export function I18nProvider({
+  initial,
+  children,
+}: {
+  initial: Locale;
+  children: React.ReactNode;
+}) {
   const [locale, setLocaleState] = useState(initial);
   const router = useRouter();
   const setLocale = useCallback(

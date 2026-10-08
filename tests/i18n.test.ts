@@ -15,7 +15,9 @@ function leaves(value: unknown, path = ''): [string, string][] {
   }
   if (Array.isArray(value)) return value.flatMap((item, i) => leaves(item, `${path}[${i}]`));
   if (value && typeof value === 'object')
-    return Object.entries(value).flatMap(([key, item]) => leaves(item, path ? `${path}.${key}` : key));
+    return Object.entries(value).flatMap(([key, item]) =>
+      leaves(item, path ? `${path}.${key}` : key),
+    );
   return [];
 }
 
@@ -29,7 +31,22 @@ describe('dictionaries', () => {
   });
   it('keep French free of untranslated English sentences', () => {
     // Brand names, provider names and labels identical in both languages are allowed.
-    const same = new Set(['Showbound', 'Trip Intelligence', 'Flexible', 'Direct', 'Train', 'Date', 'Transport', 'Site', '© 2026 Showbound', 'English', 'Français', 'Concerts', 'Pop', 'Hip-hop']);
+    const same = new Set([
+      'Showbound',
+      'Trip Intelligence',
+      'Flexible',
+      'Direct',
+      'Train',
+      'Date',
+      'Transport',
+      'Site',
+      '© 2026 Showbound',
+      'English',
+      'Français',
+      'Concerts',
+      'Pop',
+      'Hip-hop',
+    ]);
     const english = new Map(leaves(en));
     const leftovers = leaves(fr).filter(
       ([path, text]) => english.get(path) === text && text.includes(' ') && !same.has(text),
@@ -37,7 +54,8 @@ describe('dictionaries', () => {
     expect(leftovers.filter(([, text]) => !/^(Email|E-mail)$/.test(text))).toEqual([]);
   });
   it('never use em dashes in interface copy', () => {
-    for (const [path, text] of [...leaves(en), ...leaves(fr)]) expect(text, path).not.toContain('—');
+    for (const [path, text] of [...leaves(en), ...leaves(fr)])
+      expect(text, path).not.toContain('—');
   });
 });
 
@@ -71,7 +89,9 @@ describe('server text', () => {
     expect(translate('About 430 km between city centres', 'fr')).toBe(
       'Environ 430 km entre les centres-villes',
     );
-    expect(translate('Email or password is incorrect.', 'fr')).toBe('E-mail ou mot de passe incorrect.');
+    expect(translate('Email or password is incorrect.', 'fr')).toBe(
+      'E-mail ou mot de passe incorrect.',
+    );
     expect(
       translate(
         'Concert listings are up to date. Coverage is limited to Ticketmaster. 2 sample artists were skipped.',
@@ -80,7 +100,9 @@ describe('server text', () => {
     ).toBe(
       'Les concerts sont à jour. La couverture se limite à Ticketmaster. 2 artistes de démo ignorés.',
     );
-    expect(translate('Email or password is incorrect.', 'en')).toBe('Email or password is incorrect.');
+    expect(translate('Email or password is incorrect.', 'en')).toBe(
+      'Email or password is incorrect.',
+    );
   });
   it('keeps unknown provider wording rather than guessing', () => {
     expect(translate('Upstream said no.', 'fr')).toBe('Upstream said no.');
@@ -96,7 +118,9 @@ describe('server text', () => {
         'Sample event. Accor Arena, 2026-11-15. A new opportunity for an artist you follow.',
         'fr',
       ),
-    ).toBe('Concert fictif. Accor Arena, 2026-11-15. Une nouvelle date pour un artiste que tu suis.');
+    ).toBe(
+      'Concert fictif. Accor Arena, 2026-11-15. Une nouvelle date pour un artiste que tu suis.',
+    );
   });
   it('names catalogue cities and genres in French only for display', () => {
     expect(cityName('London', 'fr')).toBe('Londres');

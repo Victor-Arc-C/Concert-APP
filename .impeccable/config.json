@@ -149,6 +149,45 @@
         ],
         "createdAt": "2026-10-07T17:53:50.661Z",
         "reason": "Claude: h1 clamp(52px, 7vw, 112px) and h2 up to 72px over 20px body; static read misses the clamp"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "src/components/marketing/marketing.module.css",
+          "src/app/globals.css"
+        ],
+        "createdAt": "2026-10-07T22:04:00.069Z",
+        "reason": "Claude: the inset top and bottom rails belong to the lighting truss, a full-width stage element, not a card side-tab"
+      },
+      {
+        "rule": "ai-color-palette",
+        "value": "*",
+        "files": [
+          "src/app/globals.css",
+          "src/components/marketing/marketing.module.css"
+        ],
+        "createdAt": "2026-10-07T22:04:00.069Z",
+        "reason": "Claude: coloured gel beams and gel-lit cards are the chosen Showbound world (brief: bright, energetic colours, stage lights); gels are fixed per artist and per cue, not decoration"
+      },
+      {
+        "rule": "repeating-stripes-gradient",
+        "value": "*",
+        "files": [
+          "src/app/globals.css",
+          "src/components/marketing/marketing.module.css"
+        ],
+        "createdAt": "2026-10-07T22:04:00.069Z",
+        "reason": "Claude: the repeating gradient draws the truss lattice, the rig's material"
+      },
+      {
+        "rule": "body-text-viewport-edge",
+        "value": "*",
+        "files": [
+          "src/app/layout.tsx"
+        ],
+        "createdAt": "2026-10-07T22:04:00.069Z",
+        "reason": "Claude: full-width Impact-Site-Verification line required by the Omio/Impact partner check; its text is padded 20px"
       }
     ]
   }

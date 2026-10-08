@@ -1,7 +1,7 @@
 'use client';
 import { safeTicketUrl } from '../domain/ticket-links';
 import Link from 'next/link';
-import { useEffect, useRef, useState, ViewTransition } from 'react';
+import { Fragment, useEffect, useRef, useState, ViewTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowUpRight,
@@ -59,7 +59,10 @@ export function Feed() {
   const home = data.user?.preferences.home ?? 'Paris';
   const searched = data.events.filter(
     (e) =>
-      (!query || `${e.artist} ${e.city} ${city(e.city)} ${e.venue}`.toLowerCase().includes(query.toLowerCase())) &&
+      (!query ||
+        `${e.artist} ${e.city} ${city(e.city)} ${e.venue}`
+          .toLowerCase()
+          .includes(query.toLowerCase())) &&
       (!month || e.date.startsWith(month)),
   );
   const filtered = searched.filter(
@@ -84,18 +87,32 @@ export function Feed() {
   const alerts = expanded ? [] : data.alerts.filter((a) => !a.read_at).slice(0, 3);
   const cues = [
     { value: 'all' as const, label: t.feed.forYou, count: searched.length, color: 'var(--rose)' },
-    { value: 'local' as const, label: t.feed.local(city(home)), count: localCount, color: 'var(--amber)' },
-    { value: 'away' as const, label: t.feed.away, count: searched.length - localCount, color: 'var(--cyan)' },
+    {
+      value: 'local' as const,
+      label: t.feed.local(city(home)),
+      count: localCount,
+      color: 'var(--amber)',
+    },
+    {
+      value: 'away' as const,
+      label: t.feed.away,
+      count: searched.length - localCount,
+      color: 'var(--cyan)',
+    },
   ];
   return (
     <>
       <header className="page-head">
         <h1>{t.feed.title}</h1>
-        <p className="page-intro">{t.feed.intro(firstName)}</p>
+        <p className="page-intro feed-intro">{t.feed.intro(firstName)}</p>
         <div className="page-actions">
-          <button className="button secondary compact" onClick={() => setEdit(true)}>
-            <SlidersHorizontal size={16} aria-hidden="true" />
-            {t.feed.preferences}
+          <button
+            className="icon-button"
+            onClick={() => setEdit(true)}
+            aria-label={t.feed.preferences}
+            title={t.feed.preferences}
+          >
+            <SlidersHorizontal size={18} aria-hidden="true" />
           </button>
         </div>
       </header>
@@ -170,21 +187,28 @@ export function Feed() {
           <div className="list-head">
             <h2 id="shows-title">
               {t.feed.matching(filtered.length)}
-              <span className="list-mode"> · {showAll ? t.feed.allDates : t.feed.onePerArtist}</span>
+              <span className="list-mode">
+                {' '}
+                · {showAll ? t.feed.allDates : t.feed.onePerArtist}
+              </span>
             </h2>
-            <button
-              className="text-button"
-              aria-pressed={showAll}
-              onClick={() => {
-                setShowAll(!showAll);
-                setPageSize(8);
-              }}
-            >
-              {showAll ? t.feed.showShortlist : t.feed.showAll(filtered.length)}
-            </button>
+            {filtered.length > 0 && (
+              <button
+                className="text-button"
+                aria-pressed={showAll}
+                onClick={() => {
+                  setShowAll(!showAll);
+                  setPageSize(8);
+                }}
+              >
+                {showAll ? t.feed.showShortlist : t.feed.showAll(filtered.length)}
+              </button>
+            )}
           </div>
           {unique.length === 0 ? (
-            <Empty title={query || month || tab !== 'all' ? t.feed.emptyFiltered : t.feed.emptyNone}>
+            <Empty
+              title={query || month || tab !== 'all' ? t.feed.emptyFiltered : t.feed.emptyNone}
+            >
               <p>{data.user?.mode === 'live' ? s(data.providerMessage) : t.feed.emptyHint}</p>
               <div className="button-row">
                 <button
@@ -214,37 +238,42 @@ export function Feed() {
             </Empty>
           ) : (
             <div className="acts">
-              {alerts.length > 0 && (
-                <div className="alert-strip">
-                  {alerts.map((a) => (
-                    <Link
-                      key={a.id}
-                      className="alert-ticket"
-                      href={`/app/events/${a.event_id}`}
-                      onClick={() => act('alerts/read', { id: a.id })}
-                    >
-                      <span className="alert-bulb" aria-hidden="true" />
-                      <span>
-                        <strong>{alertText.title(a.title)}</strong>
-                        <small>{alertText.body(a.body)}</small>
-                      </span>
-                      <span className="chip">{t.feed.newBadge}</span>
-                    </Link>
-                  ))}
-                </div>
-              )}
+              {/* New alerts sit after the first show, so the first screen opens on a lit card. */}
               {unique.map((e, index) => (
-                <ConcertCard
-                  key={e.id}
-                  event={e}
-                  index={index}
-                  featured={!expanded && index === 0}
-                  source={query ? 'search' : 'feed'}
-                  trackImpression
-                />
+                <Fragment key={e.id}>
+                  <ConcertCard
+                    event={e}
+                    index={index}
+                    featured={!expanded && index === 0}
+                    source={query ? 'search' : 'feed'}
+                    trackImpression
+                  />
+                  {index === 0 && alerts.length > 0 && (
+                    <div className="alert-strip">
+                      {alerts.map((a) => (
+                        <Link
+                          key={a.id}
+                          className="alert-ticket"
+                          href={`/app/events/${a.event_id}`}
+                          onClick={() => act('alerts/read', { id: a.id })}
+                        >
+                          <span className="alert-bulb" aria-hidden="true" />
+                          <span>
+                            <strong>{alertText.title(a.title)}</strong>
+                            <small>{alertText.body(a.body)}</small>
+                          </span>
+                          <span className="chip">{t.feed.newBadge}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </Fragment>
               ))}
               {candidates.length > unique.length && (
-                <button className="button secondary" onClick={() => setPageSize((size) => size + 8)}>
+                <button
+                  className="button secondary"
+                  onClick={() => setPageSize((size) => size + 8)}
+                >
                   {t.feed.showMore}
                 </button>
               )}
@@ -263,7 +292,9 @@ export function Feed() {
                     <span>
                       <strong>{a.name}</strong>
                       <small>
-                        {data.intents.some((i) => i.artistId === a.id) ? t.feed.mustSeeNote : genre(a.genre)}
+                        {data.intents.some((i) => i.artistId === a.id)
+                          ? t.feed.mustSeeNote
+                          : genre(a.genre)}
                       </small>
                     </span>
                   </Link>
@@ -354,7 +385,9 @@ export function IntentForm({ artist, onClose }: { artist: Artist; onClose: () =>
                   onClick={() =>
                     setIntent({
                       ...intent,
-                      cities: on ? intent.cities.filter((n) => n !== c.name) : [...intent.cities, c.name],
+                      cities: on
+                        ? intent.cities.filter((n) => n !== c.name)
+                        : [...intent.cities, c.name],
                     })
                   }
                 >
@@ -467,7 +500,10 @@ export function EventDetail({ id }: { id: string }) {
         <ArrowLeft size={16} aria-hidden="true" />
         {t.detail.backToShortlist}
       </Link>
-      <header className="show-hero" style={{ '--gel': gelFor(event.artist) } as React.CSSProperties}>
+      <header
+        className="show-hero"
+        style={{ '--gel': gelFor(event.artist) } as React.CSSProperties}
+      >
         <ViewTransition name={photoName(event.id)} share="photo-morph" default="none">
           <ArtistPhoto name={event.artist} image={artist?.image} className="show-photo" />
         </ViewTransition>
@@ -540,7 +576,10 @@ export function EventDetail({ id }: { id: string }) {
           <section className="panel" aria-labelledby="tour-title">
             <h2 id="tour-title">{t.detail.otherDates}</h2>
             <p className="subtle">{t.detail.otherDatesNote}</p>
-            <div className="tour-table" style={{ '--gel': gelFor(event.artist) } as React.CSSProperties}>
+            <div
+              className="tour-table"
+              style={{ '--gel': gelFor(event.artist) } as React.CSSProperties}
+            >
               <div className="tour-row tour-header">
                 <span>{t.detail.cityAndDate}</span>
                 <span>{t.detail.ticketFrom}</span>
@@ -656,7 +695,11 @@ export function EventDetail({ id }: { id: string }) {
             {event.saved ? t.detail.saved : t.detail.save}
           </button>
           {!inactive && (
-            <Link href={`/app/trips/${event.id}`} className="button secondary full" transitionTypes={['nav-forward']}>
+            <Link
+              href={`/app/trips/${event.id}`}
+              className="button secondary full"
+              transitionTypes={['nav-forward']}
+            >
               <Compass size={17} aria-hidden="true" />
               {t.detail.plan}
             </Link>
@@ -876,7 +919,10 @@ export function Artists() {
               enterKeyHint="search"
             />
           </label>
-          <button className="button secondary" disabled={searching || !data.user || !data.liveAvailable}>
+          <button
+            className="button secondary"
+            disabled={searching || !data.user || !data.liveAvailable}
+          >
             {searching ? t.artists.searching : t.artists.search}
           </button>
         </form>
@@ -959,7 +1005,9 @@ export function ArtistDetail({ id }: { id: string }) {
                 act(
                   'affinity',
                   { artistId: id, favorite: !affinity?.favorite, hidden: false },
-                  affinity?.favorite ? t.artistDetail.favouriteRemoved : t.artistDetail.favouriteAdded,
+                  affinity?.favorite
+                    ? t.artistDetail.favouriteRemoved
+                    : t.artistDetail.favouriteAdded,
                 )
               }
             >

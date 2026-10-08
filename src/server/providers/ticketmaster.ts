@@ -12,6 +12,7 @@ import {
 } from '../../domain/normalization';
 import type { Artist, Concert } from '../../domain/types';
 import { recordNormalizationReview, resolveArtistIdentity } from '../identity';
+import { attractionImage } from '../../domain/artist-image';
 export interface EventProvider {
   events(artist: Artist): Promise<{ event: Concert; raw: unknown }[]>;
 }
@@ -22,7 +23,9 @@ const responseSchema = z.object({
   _embedded: z
     .object({
       events: z.array(z.unknown()).optional(),
-      attractions: z.array(z.object({ id: z.string(), name: z.string() })).optional(),
+      attractions: z
+        .array(z.object({ id: z.string(), name: z.string(), images: z.unknown().optional() }))
+        .optional(),
     })
     .optional(),
   page: z.object({ totalPages: z.number() }).optional(),
@@ -182,6 +185,16 @@ export async function searchArtists(term: string): Promise<Artist[]> {
       'INSERT INTO artists(id,data) VALUES($1,$2) ON CONFLICT(id) DO UPDATE SET data=artists.data || EXCLUDED.data',
       [id, JSON.stringify(artist)],
     );
+    // A Ticketmaster photo fills the gap only; a photo the artist already has (Spotify) stays.
+    const image = attractionImage(attraction.images);
+    if (image) {
+      const [row] = await query<{ image: string | null }>(
+        `UPDATE artists SET data=jsonb_set(data,'{image}',to_jsonb(COALESCE(data->>'image',$2::text)),TRUE)
+         WHERE id=$1 RETURNING data->>'image' AS image`,
+        [id, image],
+      );
+      if (row?.image) artist.image = row.image;
+    }
     await query(
       'INSERT INTO artist_provider_records(provider,external_id,artist_id) VALUES($1,$2,$3) ON CONFLICT DO NOTHING',
       ['ticketmaster', attraction.id, id],

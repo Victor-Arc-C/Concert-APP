@@ -116,7 +116,6 @@ export const en = {
     saveShort: 'Save',
     savedShort: 'Saved',
     sampleTag: 'Fictional sample',
-    nextUp: 'Next up',
     explore: 'Explore this show',
     tiers: {
       'Must see': 'Must see',
@@ -145,7 +144,8 @@ export const en = {
     scopeCountry: 'Anywhere in my country',
     scopeEurope: 'Across Europe',
     radius: 'Preferred radius (km), optional',
-    radiusHint: 'Distance between city centres. With a radius, shows with an unknown distance are left out.',
+    radiusHint:
+      'Distance between city centres. With a radius, shows with an unknown distance are left out.',
     noLimit: 'No limit set',
     dateFrom: 'Concerts from',
     dateTo: 'Concerts until',
@@ -164,7 +164,8 @@ export const en = {
   },
   intent: {
     title: (name: string) => `Make ${name} a must-see`,
-    intro: 'Tell us what would make this show work for you. This records your interest; it doesn’t reserve tickets.',
+    intro:
+      'Tell us what would make this show work for you. This records your interest; it doesn’t reserve tickets.',
     cities: 'Cities you’d go to',
     maxPrice: 'Maximum per ticket (€)',
     tickets: 'Number of tickets',
@@ -185,7 +186,8 @@ export const en = {
     localTime: (time: string) => `${time} local time`,
     timeTba: 'Time to be announced',
     reasonsTitle: 'Why it’s on your list',
-    reasonsNote: 'A ranking based on your choices, not a prediction of whether you’ll enjoy the show.',
+    reasonsNote:
+      'A ranking based on your choices, not a prediction of whether you’ll enjoy the show.',
     explore: (name: string) => `Explore ${name}`,
     otherDates: 'Same artist, other dates',
     otherDatesNote: 'Compare ticket starting prices. Travel and a bed still need checking.',
@@ -198,11 +200,13 @@ export const en = {
     stay: 'A place to stay',
     stayNote: (venue: string) => `Compare stays near ${venue}.`,
     viewStays: 'View stays',
-    nothingConfirmed: 'No journey time, hotel availability or total price is confirmed. Check them before buying a ticket.',
+    nothingConfirmed:
+      'No journey time, hotel availability or total price is confirmed. Check them before buying a ticket.',
     samplePrice: 'Fictional sample price',
     providerPrice: 'Price from the seller',
     priceObserved: (when: string) => `Price observed ${when}`,
-    priceUnavailable: 'A current verified price is unavailable for this show. Check official tickets for current prices and availability.',
+    priceUnavailable:
+      'A current verified price is unavailable for this show. Check official tickets for current prices and availability.',
     sampleEvent: 'Sample event',
     listedOnSale: 'Listed as on sale',
     notConfirmed: 'Availability not confirmed',
@@ -222,7 +226,8 @@ export const en = {
     plan: 'Plan this trip',
     mustSee: 'I need to see this artist',
     sampleNote: 'Everything on this page is fictional.',
-    sourceNote: 'Source: Ticketmaster. Prices and availability can change; fees may apply. No affiliate commission is active.',
+    sourceNote:
+      'Source: Ticketmaster. Prices and availability can change; fees may apply. No affiliate commission is active.',
     sampleCreated: (when: string) => `Sample created ${when}`,
     lastChecked: (when: string) => `Last checked ${when}`,
     notForMe: 'Not for me',
@@ -251,14 +256,16 @@ export const en = {
     importedFrom: 'Imported from Spotify',
     spotifyFailed: 'Spotify artists could not be loaded.',
     liveTitle: 'Find an artist in the live catalogue',
-    liveBody: 'Search Ticketmaster and choose the exact artist, so two artists with the same name never get mixed up.',
+    liveBody:
+      'Search Ticketmaster and choose the exact artist, so two artists with the same name never get mixed up.',
     liveLabel: 'Search live artists',
     livePlaceholder: 'Artist name',
     search: 'Search artists',
     searching: 'Searching…',
     needsKey: 'Live search needs a Ticketmaster API key. The sample catalogue works without one.',
     noneFound: 'No artists found. Try the full artist name.',
-    confirmFor: (name: string) => `Confirm which live artist matches ${name} on Spotify. This saves your choice and follows the artist.`,
+    confirmFor: (name: string) =>
+      `Confirm which live artist matches ${name} on Spotify. This saves your choice and follows the artist.`,
     confirm: (name: string) => `Confirm ${name}`,
     following: 'Following',
     follow: 'Follow artist',
@@ -278,7 +285,8 @@ export const en = {
     hidden: 'Artist hidden from your feed',
     restored: 'Artist restored',
     emptyTitle: 'No upcoming shows in this catalogue.',
-    emptyBody: 'You can save a must-see before a tour exists. Live coverage depends on connected providers.',
+    emptyBody:
+      'You can save a must-see before a tour exists. Live coverage depends on connected providers.',
   },
   saved: {
     title: 'Nights to keep.',
@@ -295,7 +303,8 @@ export const en = {
     view: 'View show',
     emptyTitle: 'Quiet for now.',
     emptyOff: 'Your alerts are turned off. You can change that in settings.',
-    emptyOn: 'Add a must-see artist or choose “Everything” in alert preferences. New matches appear here after each concert check.',
+    emptyOn:
+      'Add a must-see artist or choose “Everything” in alert preferences. New matches appear here after each concert check.',
     chooseMustSee: 'Choose must-see artists',
     note: 'Alerts land here, and as notifications on devices where you turn them on.',
   },
@@ -307,7 +316,8 @@ export const en = {
     intro: 'Your trips, your alerts, your data.',
     whereTitle: 'Where the music takes you',
     alertsTitle: 'A little less noise',
-    alertsBody: 'Choose which alerts you get. They always appear in your alerts, and as notifications on devices where you turn them on.',
+    alertsBody:
+      'Choose which alerts you get. They always appear in your alerts, and as notifications on devices where you turn them on.',
     notification: {
       off: ['Off', 'No new alerts.'],
       critical: ['Critical only', 'Verified ticket sale times within 24 hours.'],
@@ -316,7 +326,8 @@ export const en = {
     } as Record<string, [string, string]>,
     dataTitle: 'Your data stays yours',
     analytics: 'Share product usage to improve Showbound',
-    analyticsHint: 'Optional. Records in-app actions for up to 30 days. Turning this off and saving deletes existing analytics.',
+    analyticsHint:
+      'Optional. Records in-app actions for up to 30 days. Turning this off and saving deletes existing analytics.',
     dataNote: 'Your explicit choices power your recommendations. We don’t sell listening profiles.',
     languageTitle: 'Language',
     languageBody: 'Showbound remembers your choice on this device.',
@@ -329,7 +340,8 @@ export const en = {
     musicTitle: 'Your music connection',
     spotifyConnected: 'Spotify is connected. Choose artists from your imported list.',
     spotifyAvailable: 'Spotify is available for approved pilot accounts.',
-    spotifyPending: 'Spotify is awaiting provider approval for this pilot. Manual artist selection is ready to use.',
+    spotifyPending:
+      'Spotify is awaiting provider approval for this pilot. Manual artist selection is ready to use.',
     chooseSpotify: 'Choose Spotify artists',
     disconnect: 'Disconnect Spotify',
     disconnected: 'Spotify disconnected; tokens removed',
@@ -345,38 +357,45 @@ export const en = {
     refresh: 'Refresh live concerts',
     checking: 'Checking your artists…',
     findLive: 'Find live artists',
-    autoOn: 'Automatic checks are on while Showbound runs on this computer. New artists are checked within five minutes; existing artists about once an hour. Alerts appear in Your alerts.',
+    autoOn:
+      'Automatic checks are on while Showbound runs on this computer. New artists are checked within five minutes; existing artists about once an hour. Alerts appear in Your alerts.',
     autoOff: 'Automatic local checks are off. Use Refresh, or set up a scheduled check.',
     lastFailed: (message: string) => `Last attempt failed. ${message}`,
     checkedAt: (when: string) => `Checked ${when}`,
     waiting: 'Waiting for first check',
-    refreshNote: 'Follow artists from live search first. Refresh is cached for an hour; listings are not real-time inventory.',
+    refreshNote:
+      'Follow artists from live search first. Refresh is cached for an hour; listings are not real-time inventory.',
     feedbackTitle: 'Help shape the beta',
-    feedbackBody: 'Something confusing, missing or broken? Send it straight to the Showbound team. Your feedback is part of your data export and is deleted with your account.',
+    feedbackBody:
+      'Something confusing, missing or broken? Send it straight to the Showbound team. Your feedback is part of your data export and is deleted with your account.',
     privacy: 'Read the privacy notice',
     deleteTitle: 'Delete your Showbound account?',
-    deleteBody: 'This permanently deletes your preferences, saved concerts, alerts, music connection, analytics, beta feedback and account from the active database.',
+    deleteBody:
+      'This permanently deletes your preferences, saved concerts, alerts, music connection, analytics, beta feedback and account from the active database.',
     confirmPassword: 'Confirm your current password',
     deleteForever: 'Delete my account permanently',
     deleted: 'Account and personal data deleted',
   },
   push: {
     title: 'On this device',
-    iosIntro: 'To get notifications on iPhone, add Showbound to your home screen, then open it from there:',
+    iosIntro:
+      'To get notifications on iPhone, add Showbound to your home screen, then open it from there:',
     iosShare: 'Share',
     iosTap: 'Tap',
     iosInSafari: 'in Safari.',
     iosStep2: 'Choose Add to Home Screen.',
     iosStep3: 'Open Showbound from the new icon and come back to this page.',
     unsupported: 'This browser can’t receive notifications. Your alerts stay in the app.',
-    denied: 'Notifications are blocked for Showbound. Allow them in your browser or phone settings, then reload this page.',
+    denied:
+      'Notifications are blocked for Showbound. Allow them in your browser or phone settings, then reload this page.',
     on: 'New alerts reach this device after each concert check.',
     test: 'Send a test',
     turnOff: 'Turn off on this device',
     offIntro: 'Get your alerts as notifications, even when Showbound is closed.',
     turnOn: 'Turn on notifications',
     turningOn: 'Turning on…',
-    registerFailed: 'This browser could not register for notifications. Your alerts stay in the app.',
+    registerFailed:
+      'This browser could not register for notifications. Your alerts stay in the app.',
     onToast: 'Notifications are on for this device',
     offToast: 'Notifications are off for this device',
     testToast: 'Test sent. It should arrive in a few seconds.',
@@ -385,7 +404,8 @@ export const en = {
   feedback: {
     button: 'Send feedback',
     title: 'Send feedback',
-    intro: (screen: string) => `Tell us what worked, what was missing or what went wrong. Only the Showbound team reads it, together with the screen you’re on (${screen}).`,
+    intro: (screen: string) =>
+      `Tell us what worked, what was missing or what went wrong. Only the Showbound team reads it, together with the screen you’re on (${screen}).`,
     label: 'Your feedback',
     rating: 'How is Showbound so far? (optional)',
     outOf: (n: number) => `${n} out of 5`,
@@ -425,7 +445,8 @@ export const en = {
     whereIntro: 'Start close to home, or leave room for a weekend away.',
     whoTitle: 'Who would you love to see?',
     whoIntroDemo: 'Pick a few favourites from the demo catalogue. You can change them any time.',
-    whoIntroLive: 'Search for the artists you love. Spotify is optional, and you can change them any time.',
+    whoIntroLive:
+      'Search for the artists you love. Spotify is optional, and you can change them any time.',
     spotifyOptional: 'Spotify is optional. You can change these preferences any time.',
     analytics: 'Help improve Showbound with optional in-app usage events.',
     locationStep: 'Location and preferences',
@@ -445,7 +466,8 @@ export const en = {
     cantImport: 'This Spotify artist could not be imported',
     demoMode: 'Demo mode: concerts, dates and prices are fictional.',
     searchReal: 'Search real artists instead',
-    liveUnavailable: 'Live concerts aren’t available right now, so you can explore the demo with fictional concerts.',
+    liveUnavailable:
+      'Live concerts aren’t available right now, so you can explore the demo with fictional concerts.',
     chooseManually: 'Choose manually',
     manualLabel: 'Search artists to choose manually',
     manualPlaceholder: 'Search artists',
@@ -490,9 +512,12 @@ export const en = {
     badge: 'Trip Intelligence',
     fromHome: (city: string) => `From ${city}`,
     sampleTrip: 'Sample trip: all travel, stays, prices and distances are fictional.',
-    homeCityTravel: 'This show is in your home city. Check public transport or a driving route to the venue.',
-    sncfWindow: 'SNCF publishes exact train times 23 days ahead, so times for this date are not out yet. Compare the ways to get there above.',
-    noTimetable: 'No verified round-trip timetable is available. Compare the ways to get there above.',
+    homeCityTravel:
+      'This show is in your home city. Check public transport or a driving route to the venue.',
+    sncfWindow:
+      'SNCF publishes exact train times 23 days ahead, so times for this date are not out yet. Compare the ways to get there above.',
+    noTimetable:
+      'No verified round-trip timetable is available. Compare the ways to get there above.',
     loading: 'Building the night: routes, timings and stays near the venue…',
     loadFailed: 'Could not load travel options. Check again to retry.',
     checkAgain: 'Check again',
@@ -531,27 +556,32 @@ export const en = {
     kmFrom: (km: string, venue: string) => `${km} km from ${venue}`,
     freeCancel: 'Free cancellation',
     nonRefundable: 'Non-refundable',
-    roomConfirmed: (time: string) => `Room availability confirmed with the hotel supplier at ${time}`,
+    roomConfirmed: (time: string) =>
+      `Room availability confirmed with the hotel supplier at ${time}`,
     checkIn: (date: string) => `Check-in: ${date}`,
     bookHotel: 'Book this hotel at this price',
     findHotel: 'Find this hotel on Booking.com',
-    hotelNote: 'Search for this hotel with your dates. Booking.com prices may differ from the LiteAPI quote above.',
+    hotelNote:
+      'Search for this hotel with your dates. Booking.com prices may differ from the LiteAPI quote above.',
     stayUnavailable: 'Stay options unavailable',
     noHotelQuote: 'No current hotel quote is available for these dates.',
     totalLabel: 'Estimated trip total',
     totalUnavailable: 'Total not yet available',
     sampleTotal: 'Fictional sample itinerary. No booking or availability is offered.',
-    notReservation: 'A saved plan is not a reservation. Check current prices and availability with the provider.',
+    notReservation:
+      'A saved plan is not a reservation. Check current prices and availability with the provider.',
     musicMatch: (n: number) => `${n}% music match`,
     convenience: (value: string) => `Convenience ${value}`,
     value: (value: string) => `Value ${value}`,
     overall: (value: string) => `Overall ${value}`,
     unavailable: 'unavailable',
-    totalNeeds: 'A total needs current ticket, transport and hotel prices. Convenience needs a route and a stay; value and overall need a complete total.',
+    totalNeeds:
+      'A total needs current ticket, transport and hotel prices. Convenience needs a route and a stay; value and overall need a complete total.',
     listTitle: 'Trips',
     listIntro: 'Your saved nights out: ticket, travel and a bed.',
     emptyTitle: 'No saved trips yet.',
-    emptyBody: 'Open a show outside your city and choose “Plan this trip” to compare ways to get there and places to stay.',
+    emptyBody:
+      'Open a show outside your city and choose “Plan this trip” to compare ways to get there and places to stay.',
     explore: 'Explore concerts',
     sampleTripShort: 'Fictional sample trip',
     inactive: (status: string) => `Plan inactive: ${status}`,
@@ -595,14 +625,16 @@ export const en = {
     omioFlights: 'Compare flights on Omio',
     routeTo: (carriers: string, station: string) => [carriers, ' to ', station] as const,
     fromVenue: (km: string) => `${km} km from the venue`,
-    omioTrain: (origin: string, city: string) => `Live times and prices ${origin} → ${city} on Omio`,
+    omioTrain: (origin: string, city: string) =>
+      `Live times and prices ${origin} → ${city} on Omio`,
     sncf: 'Or book on SNCF Connect',
     driving: 'Driving time, route and tolls on Google Maps',
     omioCoach: (route: string) => `Live coach times and prices ${route} on Omio`,
     transit: (venue: string) => `Public transport to ${venue}`,
     loading: 'Finding the best ways there…',
     failed: 'Routes could not be loaded. The links below still open each live search.',
-    sources: 'Prices come from each seller’s live search; Showbound never estimates them. Train routes: SNCF Voyageurs open data (ODbL).',
+    sources:
+      'Prices come from each seller’s live search; Showbound never estimates them. Train routes: SNCF Voyageurs open data (ODbL).',
   },
   privacy: {
     title: 'Privacy and beta terms',
@@ -675,9 +707,12 @@ export const en = {
     ],
     shotNote: 'App screens shown in sample mode with fictional listings.',
     mapTitle: 'Who is playing where.',
-    mapSample: 'Sample listings for now. Once live data is connected, this map shows every upcoming show Showbound tracks.',
-    mapLive: 'Every upcoming show Showbound tracks across Europe, refreshed every night. Lines run from your home city.',
-    mapAria: (count: number, home: string) => `Map of ${count} cities with upcoming shows, seen from ${home}`,
+    mapSample:
+      'Sample listings for now. Once live data is connected, this map shows every upcoming show Showbound tracks.',
+    mapLive:
+      'Every upcoming show Showbound tracks across Europe, refreshed every night. Lines run from your home city.',
+    mapAria: (count: number, home: string) =>
+      `Map of ${count} cities with upcoming shows, seen from ${home}`,
     byCity: 'Shows by city',
     cityCount: (n: number) => (n === 1 ? '1 city' : `${n} cities`),
     showCount: (n: number) => (n === 1 ? '1 show' : `${n} shows`),
@@ -685,16 +720,9 @@ export const en = {
     home: 'Home',
     mapError: 'The shows could not load.',
     mapEmpty: 'No upcoming shows yet. New dates appear here after the nightly refresh.',
-    proofTitle: 'Lit up right now.',
-    proofSample: 'Counted from sample listings until live data is connected.',
-    proofLive: 'Counted from the same listings the app uses, refreshed every night.',
-    stats: {
-      shows: 'Upcoming shows',
-      artists: 'Artists playing',
-      cities: 'Cities',
-      countries: 'Countries',
-      waitlist: 'Fans on the waitlist',
-    },
+    counts: (shows: number, artists: number, cities: number) =>
+      `${shows} upcoming ${shows === 1 ? 'show' : 'shows'} · ${artists} ${artists === 1 ? 'artist' : 'artists'} · ${cities} ${cities === 1 ? 'city' : 'cities'}`,
+    waitlistCount: (n: number) => `${n} fans on the waitlist`,
     joinTitle: 'Your seat is waiting.',
     joinBody:
       'Showbound is in a small invite-only pilot. Leave your email and home city and we’ll send your invite when there’s room.',

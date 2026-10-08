@@ -103,7 +103,11 @@ function SettingsForm({ initial }: { initial: Preferences }) {
                 <ShieldCheck size={20} aria-hidden="true" />
                 {t.settings.dataTitle}
               </h2>
-              <label className="checkbox-label" htmlFor="analytics-consent" style={{ marginTop: 14 }}>
+              <label
+                className="checkbox-label"
+                htmlFor="analytics-consent"
+                style={{ marginTop: 14 }}
+              >
                 <input
                   id="analytics-consent"
                   type="checkbox"
@@ -155,7 +159,10 @@ function SettingsForm({ initial }: { initial: Preferences }) {
           </section>
         </div>
         <aside>
-          <section className="panel settings-section connection-panel" aria-labelledby="language-title">
+          <section
+            className="panel settings-section connection-panel"
+            aria-labelledby="language-title"
+          >
             <h2 id="language-title">
               <Languages size={20} aria-hidden="true" />
               {t.settings.languageTitle}
@@ -163,7 +170,10 @@ function SettingsForm({ initial }: { initial: Preferences }) {
             <p>{t.settings.languageBody}</p>
             <LanguageSwitch />
           </section>
-          <section className="panel settings-section connection-panel" aria-labelledby="music-title">
+          <section
+            className="panel settings-section connection-panel"
+            aria-labelledby="music-title"
+          >
             <h2 id="music-title">{t.settings.musicTitle}</h2>
             <p>
               {data.spotifyConnected
@@ -209,7 +219,10 @@ function SettingsForm({ initial }: { initial: Preferences }) {
               {t.settings.manual}
             </Link>
           </section>
-          <section className="panel settings-section connection-panel" aria-labelledby="concert-data-title">
+          <section
+            className="panel settings-section connection-panel"
+            aria-labelledby="concert-data-title"
+          >
             <h2 id="concert-data-title">{t.settings.dataSourceTitle}</h2>
             <p>{s(data.providerMessage)}</p>
             <label>

@@ -1,7 +1,13 @@
 import { cities } from './catalog';
 
 /** Public, account-free snapshot of upcoming shows for the marketing page. */
-export type PublicGig = { artist: string; venue: string; date: string | null };
+export type PublicGig = {
+  artist: string;
+  venue: string;
+  date: string | null;
+  /** Artist photo from an authorised source (Spotify or Ticketmaster), when the artist has one. */
+  image?: string | null;
+};
 export type PublicCity = {
   name: string;
   country: string;

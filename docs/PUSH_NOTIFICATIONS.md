@@ -1,6 +1,6 @@
 # Push notifications and the installable app
 
-Encore is an installable web app (PWA). On iPhone, users add it to the home screen from Safari
+Showbound is an installable web app (PWA). On iPhone, users add it to the home screen from Safari
 (Share → Add to Home Screen); on Android and desktop, browsers offer to install it. Once
 installed on iPhone (iOS 16.4+), or in any modern desktop browser, a user can turn on
 notifications in **Settings → A little less noise → On this device**.
@@ -9,13 +9,13 @@ notifications in **Settings → A little less noise → On this device**.
 
 - The scheduled concert check (`/api/jobs`, see `vercel.json`) evaluates alerts as before, then
   pushes **only the alerts created by that run**, for live accounts, if they are still unread.
-  Alerts created while the user had Encore open are not pushed: they were already on screen.
+  Alerts created while the user had Showbound open are not pushed: they were already on screen.
 - The user's alert level (Off / Critical / Important / Everything) applies unchanged: push only
   delivers what the inbox would show.
 - At most three alerts are pushed individually per run; anything beyond is folded into one
   "N more concerts for you" notification that opens the inbox.
 - Sample (fictional) events are never pushed.
-- Tapping a notification opens the concert in Encore. The service worker only opens same-origin
+- Tapping a notification opens the concert in Showbound. The service worker only opens same-origin
   paths.
 - **Delay:** pushes go out when the scheduled check runs. On Vercel Hobby that is once a day
   (05:00 UTC), so this is not yet a sale-opening alarm. A more frequent schedule needs Vercel Pro

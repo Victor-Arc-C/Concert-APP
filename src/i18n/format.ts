@@ -20,8 +20,7 @@ export function formatters(locale: Locale) {
     dateLong: (date: string) =>
       dateFormat({ day: 'numeric', month: 'long', year: 'numeric' }).format(noon(date)),
     /** 14 November · 14 novembre */
-    dayMonth: (date: string) =>
-      dateFormat({ day: 'numeric', month: 'long' }).format(noon(date)),
+    dayMonth: (date: string) => dateFormat({ day: 'numeric', month: 'long' }).format(noon(date)),
     /** Sat 14 Nov · sam. 14 nov. */
     dateWithDay: (date: string) =>
       dateFormat({ weekday: 'short', day: 'numeric', month: 'short' }).format(noon(date)),
@@ -44,7 +43,9 @@ export function formatters(locale: Locale) {
     day: (instant: string) =>
       new Intl.DateTimeFormat(tag, { dateStyle: 'medium' }).format(new Date(instant)),
     clock: (instant: string) =>
-      new Intl.DateTimeFormat(tag, { hour: '2-digit', minute: '2-digit' }).format(new Date(instant)),
+      new Intl.DateTimeFormat(tag, { hour: '2-digit', minute: '2-digit' }).format(
+        new Date(instant),
+      ),
     /** Null when the amount is unknown or malformed: callers say "price not listed" instead. */
     money: (amount: number | null | undefined, currency: string | null | undefined) => {
       if (

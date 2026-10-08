@@ -390,11 +390,13 @@ export function Onboarding() {
         <LanguageSwitch />
       </header>
       <main className="onboarding-main">
-        <div className="step-track" aria-hidden="true">
-          <i className="complete" />
-          <i className={step === 2 ? 'complete' : ''} />
+        <div className="step-row">
+          <div className="step-track" aria-hidden="true">
+            <i className="complete" />
+            <i className={step === 2 ? 'complete' : ''} />
+          </div>
+          <p className="step-count">{t.onboarding.step(step)}</p>
         </div>
-        <p className="step-count">{t.onboarding.step(step)}</p>
         <div key={step} className="onboarding-step">
           <h1>{step === 1 ? t.onboarding.whereTitle : t.onboarding.whoTitle}</h1>
           <p className="intro">
@@ -507,7 +509,11 @@ export function Onboarding() {
                   {data.liveAvailable ? (
                     <div className="inline-note">
                       {t.onboarding.demoMode}{' '}
-                      <button className="text-button" type="button" onClick={() => switchMode(false)}>
+                      <button
+                        className="text-button"
+                        type="button"
+                        onClick={() => switchMode(false)}
+                      >
                         {t.onboarding.searchReal}
                       </button>
                     </div>
@@ -622,7 +628,9 @@ export function Onboarding() {
                     <ChevronLeft size={17} aria-hidden="true" />
                     <span className="back-text">{t.onboarding.back}</span>
                   </button>
-                  <span aria-live="polite">{selected.length ? t.onboarding.selected(selected.length) : ''}</span>
+                  <span aria-live="polite">
+                    {selected.length ? t.onboarding.selected(selected.length) : ''}
+                  </span>
                   <button className="button primary" disabled={finding || !selected.length}>
                     {t.onboarding.find} <ArrowUpRight size={17} aria-hidden="true" />
                   </button>

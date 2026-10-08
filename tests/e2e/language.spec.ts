@@ -22,7 +22,9 @@ test('language switch: French everywhere, remembered across pages and reloads, t
   await expect(page.getByRole('heading', { name: 'Qui joue' })).toBeVisible();
   await expect(page.getByRole('button', { name: /^Tout voir/ })).toBeVisible();
   await expect(page.getByText('€', { exact: false }).first()).toBeVisible();
-  expect(await page.locator('.chip', { hasText: 'Dès' }).first().textContent()).toMatch(/Dès \d+\s€/);
+  expect(await page.locator('.chip', { hasText: 'Dès' }).first().textContent()).toMatch(
+    /Dès \d+\s€/,
+  );
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Qui joue' })).toBeVisible();
   await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
@@ -32,6 +34,9 @@ test('language switch: French everywhere, remembered across pages and reloads, t
   await expect(page.getByRole('button', { name: 'Garder ce concert' })).toBeVisible();
   await expect(page.getByText(/novembre|décembre|janvier/).first()).toBeVisible();
   await expect(page.getByText('Save this show')).toHaveCount(0);
+  // Recommendation reasons come from the server in English and must be shown in French.
+  await expect(page.locator('.reason-list li').first()).toBeVisible();
+  await expect(page.locator('.reason-list')).not.toContainText(/\b(You|your|In your|One of)\b/);
 
   await page.goto('/privacy');
   await expect(

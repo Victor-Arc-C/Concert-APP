@@ -29,7 +29,7 @@ Verification: unit tests exercise consent suppression, server-derived source pro
 
 ## Beta feedback (CON-36)
 
-Signed-in users can open **Send feedback** from the sidebar, the top bar or **Settings → Help shape the beta**. A message holds free text (max 2,000 characters), an optional 1–5 rating, the in-app screen path (no query string) and the account's sample/live mode. It is stored in the `beta_feedback` table of Encore's own database; no third-party service is involved. It is not product analytics, so it does not depend on the analytics opt-in. It is included in **Export my data** and deleted with the account. Each user can send 5 messages per hour.
+Signed-in users can open **Send feedback** from the sidebar, the top bar or **Settings → Help shape the beta**. A message holds free text (max 2,000 characters), an optional 1–5 rating, the in-app screen path (no query string) and the account's sample/live mode. It is stored in the `beta_feedback` table of Showbound's own database; no third-party service is involved. It is not product analytics, so it does not depend on the analytics opt-in. It is included in **Export my data** and deleted with the account. Each user can send 5 messages per hour.
 
 To read the latest feedback, run this in the Neon SQL editor (Neon console → your project → SQL Editor):
 
@@ -78,7 +78,7 @@ Run it on **Monday or Tuesday**. Analytics are deleted after 30 days. If it runs
 Without `METRICS_DATABASE_URL`, the report reads the local PGlite database (`.data/encore`, or `LOCAL_DATABASE_PATH`). Stop `npm run dev` first: only one process may open that folder. Example output:
 
 ```text
-Encore — weekly beta metrics
+Showbound: weekly beta metrics
 Week: Mon, 28 Sept 2026 → Sun, 4 Oct 2026 (UTC)
 Accounts counted: 12 consented · not consented: 3 · staff/test excluded: 2
 

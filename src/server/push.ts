@@ -149,7 +149,9 @@ function localized(payload: PushPayload, locale: Locale): PushPayload {
   return {
     ...payload,
     title: translateAlertTitle(payload.title, locale),
-    body: translate(payload.body, locale).replace(/\b\d{4}-\d{2}-\d{2}\b/g, (iso) => f.dateLong(iso)),
+    body: translate(payload.body, locale).replace(/\b\d{4}-\d{2}-\d{2}\b/g, (iso) =>
+      f.dateLong(iso),
+    ),
   };
 }
 

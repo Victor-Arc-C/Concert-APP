@@ -5,9 +5,29 @@
 export const GELS = ['#ff3d7f', '#1fb6ff', '#ffaa00', '#7be03a', '#a58bff', '#ff6a3d'] as const;
 export type Gel = (typeof GELS)[number];
 
+/**
+ * The sample catalogue is lit by hand so neighbouring cards never share a colour; every other
+ * artist gets a gel from an FNV-1a hash of the name.
+ */
+const FIXED: Record<string, Gel> = {
+  'Fred again..': '#a58bff',
+  'Billie Eilish': '#ff3d7f',
+  'Charli xcx': '#ff6a3d',
+  'Kendrick Lamar': '#1fb6ff',
+  RAYE: '#ffaa00',
+  'Tame Impala': '#7be03a',
+  'The Weeknd': '#ff3d7f',
+  SZA: '#1fb6ff',
+  'Travis Scott': '#ff6a3d',
+  'Bad Bunny': '#ffaa00',
+  'Dua Lipa': '#a58bff',
+  'Fontaines D.C.': '#7be03a',
+};
+
 export function gelFor(name: string): Gel {
-  let hash = 7;
-  for (const char of name) hash = (hash * 31 + char.codePointAt(0)!) >>> 0;
+  if (FIXED[name]) return FIXED[name];
+  let hash = 0x811c9dc5;
+  for (const char of name) hash = Math.imul(hash ^ char.codePointAt(0)!, 0x01000193) >>> 0;
   return GELS[hash % GELS.length];
 }
 

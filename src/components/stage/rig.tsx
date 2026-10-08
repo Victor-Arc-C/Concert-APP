@@ -1,5 +1,13 @@
 'use client';
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Spring } from './spring';
 
 /**
@@ -119,10 +127,13 @@ export function Stage({
         reduced() ? 0 : 250 + i * 180,
       ),
     );
-    const settle = window.setTimeout(() => {
-      state.current.powered = true;
-      aim();
-    }, reduced() ? 0 : 900);
+    const settle = window.setTimeout(
+      () => {
+        state.current.powered = true;
+        aim();
+      },
+      reduced() ? 0 : 900,
+    );
     // Scrolling sways the beams a little, like an operator riding the fader.
     let frame = 0;
     const onScroll = () => {
@@ -171,11 +182,20 @@ export function Stage({
         beam.style.height = `${Math.hypot(dx, dy) + to.height / 2}px`;
         beam.style.transform = `rotate(${(Math.atan2(dx, dy) * -180) / Math.PI}deg)`;
         beam.animate(
-          [{ opacity: 0 }, { opacity: 0.9, offset: 0.2 }, { opacity: 0.75, offset: 0.7 }, { opacity: 0 }],
+          [
+            { opacity: 0 },
+            { opacity: 0.9, offset: 0.2 },
+            { opacity: 0.75, offset: 0.7 },
+            { opacity: 0 },
+          ],
           { duration: 1100, easing: 'ease-out' },
         );
         target.animate(
-          [{ transform: 'scale(1)' }, { transform: 'scale(1.02)', offset: 0.3 }, { transform: 'scale(1)' }],
+          [
+            { transform: 'scale(1)' },
+            { transform: 'scale(1.02)', offset: 0.3 },
+            { transform: 'scale(1)' },
+          ],
           { duration: 520, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' },
         );
       },
@@ -189,46 +209,46 @@ export function Stage({
 
   return (
     <CueContext.Provider value={setCue}>
-    <StageContext.Provider value={api}>
-      <div ref={root} className="stage" data-cue={cue} data-layout={layout}>
-        <div className="stage-beams" aria-hidden="true">
-          {LAMPS.map((x, i) => (
-            <span
-              key={x}
-              ref={(el) => {
-                beams.current[i] = el;
-              }}
-              className="beam"
-              style={{ left: `${x * 100}%`, '--c': `var(--g${i + 1})` } as React.CSSProperties}
-            />
-          ))}
-          <span ref={spotBeam} className="beam beam-spot" />
-        </div>
-        <div className="stage-rig" aria-hidden="true">
-          <span className="truss" />
-          {LAMPS.map((x, i) => (
-            <span
-              key={x}
-              ref={(el) => {
-                lamps.current[i] = el;
-              }}
-              className="lamp"
-              style={{ left: `${x * 100}%`, '--c': `var(--g${i + 1})` } as React.CSSProperties}
-            >
+      <StageContext.Provider value={api}>
+        <div ref={root} className="stage" data-cue={cue} data-layout={layout}>
+          <div className="stage-beams" aria-hidden="true">
+            {LAMPS.map((x, i) => (
               <span
-                className="head"
+                key={x}
                 ref={(el) => {
-                  heads.current[i] = el;
+                  beams.current[i] = el;
                 }}
+                className="beam"
+                style={{ left: `${x * 100}%`, '--c': `var(--g${i + 1})` } as React.CSSProperties}
+              />
+            ))}
+            <span ref={spotBeam} className="beam beam-spot" />
+          </div>
+          <div className="stage-rig" aria-hidden="true">
+            <span className="truss" />
+            {LAMPS.map((x, i) => (
+              <span
+                key={x}
+                ref={(el) => {
+                  lamps.current[i] = el;
+                }}
+                className="lamp"
+                style={{ left: `${x * 100}%`, '--c': `var(--g${i + 1})` } as React.CSSProperties}
               >
-                <span className="lens" />
+                <span
+                  className="head"
+                  ref={(el) => {
+                    heads.current[i] = el;
+                  }}
+                >
+                  <span className="lens" />
+                </span>
               </span>
-            </span>
-          ))}
+            ))}
+          </div>
+          {children}
         </div>
-        {children}
-      </div>
-    </StageContext.Provider>
+      </StageContext.Provider>
     </CueContext.Provider>
   );
 }

@@ -67,7 +67,9 @@ function useCueSheet(key: string | null) {
         await new Promise((resolve) => setTimeout(resolve, 160));
       }
       if (!cancelled)
-        animations.push(follow.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 420, fill: 'forwards' }));
+        animations.push(
+          follow.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 420, fill: 'forwards' }),
+        );
     })();
     return () => {
       cancelled = true;
@@ -167,7 +169,8 @@ export function TripPlanner({ eventId }: { eventId: string }) {
   );
   const money = (amount: number | null | undefined, currency: string | null | undefined) =>
     f.money(amount, currency) ?? t.common.priceNotListed;
-  const label = (value: string | null | undefined) => (value ? (t.trips.labels[value] ?? s(value)) : null);
+  const label = (value: string | null | undefined) =>
+    value ? (t.trips.labels[value] ?? s(value)) : null;
 
   const handleSaveToggle = async () => {
     if (!selectedTrip) return;
@@ -178,7 +181,11 @@ export function TripPlanner({ eventId }: { eventId: string }) {
         t.trips.removedToast,
       );
     } else {
-      await act('trips/save', { eventId: event.id, tripOptionId: selectedTrip.id }, t.trips.savedToast);
+      await act(
+        'trips/save',
+        { eventId: event.id, tripOptionId: selectedTrip.id },
+        t.trips.savedToast,
+      );
     }
   };
 
@@ -240,7 +247,9 @@ export function TripPlanner({ eventId }: { eventId: string }) {
       {!loading && !error && options.length === 0 && !externalSearchAllowed && (
         <div className="trip-empty">
           <p>
-            {['cancelled', 'postponed'].includes(event.status) ? t.trips.suppressed : t.trips.noCombos}
+            {['cancelled', 'postponed'].includes(event.status)
+              ? t.trips.suppressed
+              : t.trips.noCombos}
           </p>
         </div>
       )}
@@ -281,8 +290,11 @@ export function TripPlanner({ eventId }: { eventId: string }) {
                     <strong>
                       {opt.estimatedTotal !== null
                         ? money(opt.estimatedTotal, opt.totalCurrency)
-                        : opt.accommodation?.price !== null && opt.accommodation?.price !== undefined
-                          ? t.trips.stayPrice(money(opt.accommodation.price, opt.accommodation.currency))
+                        : opt.accommodation?.price !== null &&
+                            opt.accommodation?.price !== undefined
+                          ? t.trips.stayPrice(
+                              money(opt.accommodation.price, opt.accommodation.currency),
+                            )
                           : t.trips.travelUnavailable}
                     </strong>
                     <small>{opt.transport && f.duration(opt.transport.durationMinutes)}</small>
@@ -301,7 +313,9 @@ export function TripPlanner({ eventId }: { eventId: string }) {
                     : `${city(selectedTrip.originCity)} → ${city(selectedTrip.destinationCity)}`}
                 </span>
                 <span>{f.dateLong(selectedTrip.eventDate)}</span>
-                {selectedTrip.label && <span className="highlight-tag">{label(selectedTrip.label)}</span>}
+                {selectedTrip.label && (
+                  <span className="highlight-tag">{label(selectedTrip.label)}</span>
+                )}
               </div>
               <button
                 className="button secondary compact"
@@ -316,207 +330,239 @@ export function TripPlanner({ eventId }: { eventId: string }) {
             <div className="cue-sheet" ref={sheet}>
               <span className="cue-follow" aria-hidden="true" />
               <ol className="cue-steps">
-              <li className="trip-step" style={{ '--c': 'var(--rose)' } as React.CSSProperties}>
-                <span>
-                  <span className="step-icon">
-                    <Ticket size={20} aria-hidden="true" />
-                  </span>
-                  <span className="step-q" aria-hidden="true">
-                    Q1
-                  </span>
-                </span>
-                <div className="step-content">
-                  <div className="step-header">
-                    <strong>{t.trips.ticket}</strong>
-                    <span className="step-price">
-                      {money(selectedTrip.ticketPrice, selectedTrip.ticketCurrency)}
-                    </span>
-                  </div>
-                  <p className="step-details">
-                    {event.venue} · {city(event.city)} · {f.time(event.localTime) ?? t.common.tba}
-                  </p>
-                  <span className="step-source">
-                    {t.trips.source(
-                      s(selectedTrip.ticketProvider ? tripSourceLabel(selectedTrip.ticketProvider) : 'Ticketmaster'),
-                    )}
-                    {selectedTrip.ticketPrice === null &&
-                      ` · ${selectedTrip.ticketPriceState === 'stale' ? t.trips.priceStale : t.trips.priceNotUpstream}`}
-                  </span>
-                </div>
-              </li>
-
-              {selectedTrip.transport ? (
-                <li className="trip-step" style={{ '--c': 'var(--cyan)' } as React.CSSProperties}>
+                <li className="trip-step" style={{ '--c': 'var(--rose)' } as React.CSSProperties}>
                   <span>
                     <span className="step-icon">
-                      {selectedTrip.transport.mode === 'flight' ? (
-                        <Plane size={20} aria-hidden="true" />
-                      ) : selectedTrip.transport.mode === 'bus' ? (
-                        <Bus size={20} aria-hidden="true" />
-                      ) : (
-                        <TrainFront size={20} aria-hidden="true" />
+                      <Ticket size={20} aria-hidden="true" />
+                    </span>
+                    <span className="step-q" aria-hidden="true">
+                      Q1
+                    </span>
+                  </span>
+                  <div className="step-content">
+                    <div className="step-header">
+                      <strong>{t.trips.ticket}</strong>
+                      <span className="step-price">
+                        {money(selectedTrip.ticketPrice, selectedTrip.ticketCurrency)}
+                      </span>
+                    </div>
+                    <p className="step-details">
+                      {event.venue} · {city(event.city)} · {f.time(event.localTime) ?? t.common.tba}
+                    </p>
+                    <span className="step-source">
+                      {t.trips.source(
+                        s(
+                          selectedTrip.ticketProvider
+                            ? tripSourceLabel(selectedTrip.ticketProvider)
+                            : 'Ticketmaster',
+                        ),
                       )}
+                      {selectedTrip.ticketPrice === null &&
+                        ` · ${selectedTrip.ticketPriceState === 'stale' ? t.trips.priceStale : t.trips.priceNotUpstream}`}
                     </span>
-                    <span className="step-q" aria-hidden="true">
-                      Q2
-                    </span>
-                  </span>
-                  <div className="step-content">
-                    <div className="step-header">
-                      <strong>{selectedTrip.transport.operator || t.trips.transport}</strong>
-                      <span className="step-price">
-                        {scheduleOnly(selectedTrip.transport)
-                          ? t.trips.timetableOnly
-                          : money(selectedTrip.transport.price, selectedTrip.transport.currency)}
-                        {!selectedTrip.transport.priceComplete &&
-                          !scheduleOnly(selectedTrip.transport) &&
-                          ` · ${t.trips.partial}`}
-                      </span>
-                    </div>
-                    <p className="step-details">
-                      {t.trips.source(s(tripSourceLabel(selectedTrip.transport.provider)))} ·{' '}
-                      {city(selectedTrip.originCity)}{' '}
-                      <ArrowRight size={13} style={{ display: 'inline', verticalAlign: 'middle' }} aria-hidden="true" />{' '}
-                      {city(selectedTrip.destinationCity)} · {f.duration(selectedTrip.transport.durationMinutes)} ·{' '}
-                      {selectedTrip.transport.changes === 0
-                        ? t.trips.direct
-                        : t.trips.changes(selectedTrip.transport.changes)}
-                    </p>
-                    <span className="step-source">
-                      {t.trips.departure(f.clock(selectedTrip.transport.departureAt))} ·{' '}
-                      {t.trips.returnAt(f.clock(selectedTrip.transport.returnAt))}
-                    </span>
-                    {selectedTrip.transport.bookingUrl && (
-                      <a
-                        href={selectedTrip.transport.bookingUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="external-link"
-                      >
-                        {selectedTrip.transport.provider === 'sncf'
-                          ? t.trips.sncfPrices
-                          : t.trips.checkBooking}{' '}
-                        <ExternalLink size={12} aria-hidden="true" />
-                      </a>
-                    )}
                   </div>
                 </li>
-              ) : (
-                <li className="trip-step" style={{ '--c': 'var(--cyan)' } as React.CSSProperties}>
-                  <span>
-                    <span className="step-icon">
-                      <Compass size={20} aria-hidden="true" />
-                    </span>
-                    <span className="step-q" aria-hidden="true">
-                      Q2
-                    </span>
-                  </span>
-                  <div className="step-content">
-                    <div className="step-header">
-                      <strong>{t.trips.transportOptions}</strong>
-                    </div>
-                    <p className="step-details">
-                      {travelExpired ? t.trips.timetableExpired : travelMessage}
-                    </p>
-                  </div>
-                </li>
-              )}
 
-              {selectedTrip.accommodation ? (
-                <li className="trip-step" style={{ '--c': 'var(--amber)' } as React.CSSProperties}>
-                  <span>
-                    <span className="step-icon">
-                      <BedDouble size={20} aria-hidden="true" />
-                    </span>
-                    <span className="step-q" aria-hidden="true">
-                      Q3
-                    </span>
-                  </span>
-                  <div className="step-content">
-                    <div className="step-header">
-                      <strong>{selectedTrip.accommodation.name}</strong>
-                      <span className="step-price">
-                        {money(selectedTrip.accommodation.price, selectedTrip.accommodation.currency)}
-                        {!selectedTrip.accommodation.priceComplete && ` · ${t.trips.excludesTaxes}`}
+                {selectedTrip.transport ? (
+                  <li className="trip-step" style={{ '--c': 'var(--cyan)' } as React.CSSProperties}>
+                    <span>
+                      <span className="step-icon">
+                        {selectedTrip.transport.mode === 'flight' ? (
+                          <Plane size={20} aria-hidden="true" />
+                        ) : selectedTrip.transport.mode === 'bus' ? (
+                          <Bus size={20} aria-hidden="true" />
+                        ) : (
+                          <TrainFront size={20} aria-hidden="true" />
+                        )}
                       </span>
-                    </div>
-                    <p className="step-details">
-                      {t.trips.nights(
-                        nights(selectedTrip.accommodation.checkIn, selectedTrip.accommodation.checkOut),
-                      )}{' '}
-                      ·{' '}
-                      {selectedTrip.accommodation.distanceKmToVenue === null
-                        ? t.trips.distanceUnknown
-                        : t.trips.kmFrom(f.number(selectedTrip.accommodation.distanceKmToVenue), event.venue)}
-                      {selectedTrip.accommodation.board && ` · ${selectedTrip.accommodation.board}`}
-                      {selectedTrip.accommodation.refundable === true && ` · ${t.trips.freeCancel}`}
-                      {selectedTrip.accommodation.refundable === false && ` · ${t.trips.nonRefundable}`}
-                    </p>
-                    {selectedTrip.accommodation.verifiedAt && (
-                      <span className="step-verified">
-                        {t.trips.roomConfirmed(f.clock(selectedTrip.accommodation.verifiedAt))}
+                      <span className="step-q" aria-hidden="true">
+                        Q2
                       </span>
-                    )}
-                    <span className="step-source">
-                      {t.trips.source(s(tripSourceLabel(selectedTrip.accommodation.provider)))} ·{' '}
-                      {t.trips.checkIn(f.day(selectedTrip.accommodation.checkIn))}
                     </span>
-                    {selectedTrip.accommodation.bookingUrl ? (
-                      <a
-                        href={selectedTrip.accommodation.bookingUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="external-link"
-                      >
-                        {t.trips.bookHotel} <ExternalLink size={12} aria-hidden="true" />
-                      </a>
-                    ) : externalSearchAllowed ? (
-                      <>
+                    <div className="step-content">
+                      <div className="step-header">
+                        <strong>{selectedTrip.transport.operator || t.trips.transport}</strong>
+                        <span className="step-price">
+                          {scheduleOnly(selectedTrip.transport)
+                            ? t.trips.timetableOnly
+                            : money(selectedTrip.transport.price, selectedTrip.transport.currency)}
+                          {!selectedTrip.transport.priceComplete &&
+                            !scheduleOnly(selectedTrip.transport) &&
+                            ` · ${t.trips.partial}`}
+                        </span>
+                      </div>
+                      <p className="step-details">
+                        {t.trips.source(s(tripSourceLabel(selectedTrip.transport.provider)))} ·{' '}
+                        {city(selectedTrip.originCity)}{' '}
+                        <ArrowRight
+                          size={13}
+                          style={{ display: 'inline', verticalAlign: 'middle' }}
+                          aria-hidden="true"
+                        />{' '}
+                        {city(selectedTrip.destinationCity)} ·{' '}
+                        {f.duration(selectedTrip.transport.durationMinutes)} ·{' '}
+                        {selectedTrip.transport.changes === 0
+                          ? t.trips.direct
+                          : t.trips.changes(selectedTrip.transport.changes)}
+                      </p>
+                      <span className="step-source">
+                        {t.trips.departure(f.clock(selectedTrip.transport.departureAt))} ·{' '}
+                        {t.trips.returnAt(f.clock(selectedTrip.transport.returnAt))}
+                      </span>
+                      {selectedTrip.transport.bookingUrl && (
                         <a
-                          href={hotelSearchUrl(event.city, event.date, selectedTrip.accommodation)}
+                          href={selectedTrip.transport.bookingUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="external-link"
                         >
-                          {t.trips.findHotel} <ExternalLink size={12} aria-hidden="true" />
+                          {selectedTrip.transport.provider === 'sncf'
+                            ? t.trips.sncfPrices
+                            : t.trips.checkBooking}{' '}
+                          <ExternalLink size={12} aria-hidden="true" />
                         </a>
-                        <p className="trip-search-note">{t.trips.hotelNote}</p>
-                      </>
-                    ) : null}
-                  </div>
-                </li>
-              ) : (
-                <li className="trip-step" style={{ '--c': 'var(--amber)' } as React.CSSProperties}>
-                  <span>
-                    <span className="step-icon">
-                      <BedDouble size={20} aria-hidden="true" />
-                    </span>
-                    <span className="step-q" aria-hidden="true">
-                      Q3
-                    </span>
-                  </span>
-                  <div className="step-content">
-                    <div className="step-header">
-                      <strong>{t.trips.stayUnavailable}</strong>
+                      )}
                     </div>
-                    <p className="step-details">
-                      {stayExpired || selectedTrip.accommodationState === 'stale'
-                        ? t.trips.priceStale
-                        : t.trips.noHotelQuote}
-                    </p>
-                    {externalSearchAllowed && (
-                      <a
-                        href={hotelSearchUrl(event.city, event.date)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="external-link"
-                      >
-                        {t.trips.searchHotels} <ExternalLink size={12} aria-hidden="true" />
-                      </a>
-                    )}
-                  </div>
-                </li>
-              )}
+                  </li>
+                ) : (
+                  <li className="trip-step" style={{ '--c': 'var(--cyan)' } as React.CSSProperties}>
+                    <span>
+                      <span className="step-icon">
+                        <Compass size={20} aria-hidden="true" />
+                      </span>
+                      <span className="step-q" aria-hidden="true">
+                        Q2
+                      </span>
+                    </span>
+                    <div className="step-content">
+                      <div className="step-header">
+                        <strong>{t.trips.transportOptions}</strong>
+                      </div>
+                      <p className="step-details">
+                        {travelExpired ? t.trips.timetableExpired : travelMessage}
+                      </p>
+                    </div>
+                  </li>
+                )}
+
+                {selectedTrip.accommodation ? (
+                  <li
+                    className="trip-step"
+                    style={{ '--c': 'var(--amber)' } as React.CSSProperties}
+                  >
+                    <span>
+                      <span className="step-icon">
+                        <BedDouble size={20} aria-hidden="true" />
+                      </span>
+                      <span className="step-q" aria-hidden="true">
+                        Q3
+                      </span>
+                    </span>
+                    <div className="step-content">
+                      <div className="step-header">
+                        <strong>{selectedTrip.accommodation.name}</strong>
+                        <span className="step-price">
+                          {money(
+                            selectedTrip.accommodation.price,
+                            selectedTrip.accommodation.currency,
+                          )}
+                          {!selectedTrip.accommodation.priceComplete &&
+                            ` · ${t.trips.excludesTaxes}`}
+                        </span>
+                      </div>
+                      <p className="step-details">
+                        {t.trips.nights(
+                          nights(
+                            selectedTrip.accommodation.checkIn,
+                            selectedTrip.accommodation.checkOut,
+                          ),
+                        )}{' '}
+                        ·{' '}
+                        {selectedTrip.accommodation.distanceKmToVenue === null
+                          ? t.trips.distanceUnknown
+                          : t.trips.kmFrom(
+                              f.number(selectedTrip.accommodation.distanceKmToVenue),
+                              event.venue,
+                            )}
+                        {selectedTrip.accommodation.board &&
+                          ` · ${selectedTrip.accommodation.board}`}
+                        {selectedTrip.accommodation.refundable === true &&
+                          ` · ${t.trips.freeCancel}`}
+                        {selectedTrip.accommodation.refundable === false &&
+                          ` · ${t.trips.nonRefundable}`}
+                      </p>
+                      {selectedTrip.accommodation.verifiedAt && (
+                        <span className="step-verified">
+                          {t.trips.roomConfirmed(f.clock(selectedTrip.accommodation.verifiedAt))}
+                        </span>
+                      )}
+                      <span className="step-source">
+                        {t.trips.source(s(tripSourceLabel(selectedTrip.accommodation.provider)))} ·{' '}
+                        {t.trips.checkIn(f.day(selectedTrip.accommodation.checkIn))}
+                      </span>
+                      {selectedTrip.accommodation.bookingUrl ? (
+                        <a
+                          href={selectedTrip.accommodation.bookingUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="external-link"
+                        >
+                          {t.trips.bookHotel} <ExternalLink size={12} aria-hidden="true" />
+                        </a>
+                      ) : externalSearchAllowed ? (
+                        <>
+                          <a
+                            href={hotelSearchUrl(
+                              event.city,
+                              event.date,
+                              selectedTrip.accommodation,
+                            )}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="external-link"
+                          >
+                            {t.trips.findHotel} <ExternalLink size={12} aria-hidden="true" />
+                          </a>
+                          <p className="trip-search-note">{t.trips.hotelNote}</p>
+                        </>
+                      ) : null}
+                    </div>
+                  </li>
+                ) : (
+                  <li
+                    className="trip-step"
+                    style={{ '--c': 'var(--amber)' } as React.CSSProperties}
+                  >
+                    <span>
+                      <span className="step-icon">
+                        <BedDouble size={20} aria-hidden="true" />
+                      </span>
+                      <span className="step-q" aria-hidden="true">
+                        Q3
+                      </span>
+                    </span>
+                    <div className="step-content">
+                      <div className="step-header">
+                        <strong>{t.trips.stayUnavailable}</strong>
+                      </div>
+                      <p className="step-details">
+                        {stayExpired || selectedTrip.accommodationState === 'stale'
+                          ? t.trips.priceStale
+                          : t.trips.noHotelQuote}
+                      </p>
+                      {externalSearchAllowed && (
+                        <a
+                          href={hotelSearchUrl(event.city, event.date)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="external-link"
+                        >
+                          {t.trips.searchHotels} <ExternalLink size={12} aria-hidden="true" />
+                        </a>
+                      )}
+                    </div>
+                  </li>
+                )}
               </ol>
             </div>
 
@@ -636,7 +682,9 @@ export function TripsList() {
                     <h3>{city(trip.destinationCity)}</h3>
                     <p>{trip.destinationVenue}</p>
                   </div>
-                  {trip.label && <span className="pill-tag">{t.trips.labels[trip.label] ?? trip.label}</span>}
+                  {trip.label && (
+                    <span className="pill-tag">{t.trips.labels[trip.label] ?? trip.label}</span>
+                  )}
                 </div>
 
                 {trip.mode === 'sample' && <p className="step-source">{t.trips.sampleTripShort}</p>}
@@ -681,7 +729,8 @@ export function TripsList() {
                     <small>{t.trips.estimatedTotal}</small>
                     <strong>
                       {trip.estimatedTotal !== null
-                        ? (f.money(trip.estimatedTotal, trip.totalCurrency) ?? t.common.priceNotListed)
+                        ? (f.money(trip.estimatedTotal, trip.totalCurrency) ??
+                          t.common.priceNotListed)
                         : t.trips.noLongerCurrent}
                     </strong>
                   </div>

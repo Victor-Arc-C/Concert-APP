@@ -1,6 +1,6 @@
-# Encore
+# Showbound
 
-A founder-testable, artist-first concert discovery pilot. Start with the [MVP scope, journey and launch metrics](docs/MVP_SCOPE.md); [PRODUCT_AND_TECHNICAL_PLAN.md](PRODUCT_AND_TECHNICAL_PLAN.md) provides background research.
+Never miss your favourite artists live. Showbound (formerly Encore) is a founder-testable, artist-first concert discovery pilot. Start with the [MVP scope, journey and launch metrics](docs/MVP_SCOPE.md); [PRODUCT_AND_TECHNICAL_PLAN.md](PRODUCT_AND_TECHNICAL_PLAN.md) provides background research.
 
 ## Run locally
 
@@ -15,7 +15,7 @@ npm run dev
 
 Open **http://127.0.0.1:3000**. Browse the sample profile or create an account, select artists and set travel preferences. No external account or key is required. Use a test email and a unique passphrase of at least 12 characters. Accounts are local and email ownership is not verified in this closed pilot.
 
-The app creates a persistent PostgreSQL-compatible PGlite database in `.data/encore`. Stop the dev server before running `npm start`; do not open the local database from two processes. Data persists across restarts. For a disposable test environment set `LOCAL_DATABASE_PATH` to a separate folder. Never use local PGlite on Vercel or another ephemeral/multi-process host.
+The app creates a persistent PostgreSQL-compatible PGlite database in `.data/encore` (internal paths and identifiers keep the original project name). Stop the dev server before running `npm start`; do not open the local database from two processes. Data persists across restarts. For a disposable test environment set `LOCAL_DATABASE_PATH` to a separate folder. Never use local PGlite on Vercel or another ephemeral/multi-process host.
 
 ```sh
 npm run check
@@ -31,6 +31,12 @@ npm run test:e2e
 ```
 
 Tests create and delete accounts using `example.test` addresses. Provider integration tests are deterministic and do not need keys. E2E tests expect the default unconfigured-provider state.
+
+## Brand and languages
+
+- Brand guide, logo sources and the list of external places that still show the old name: [docs/BRAND.md](docs/BRAND.md). Logo and icon files live in `public/brand/`.
+- Design system (tokens, components, motion): [DESIGN.md](DESIGN.md); styles in `src/app/globals.css` and `src/components/marketing/marketing.module.css`; the lighting rig in `src/components/stage/`.
+- English first, French second. Every interface string is in `src/i18n/en.ts` and `src/i18n/fr.ts` (French is type-checked against English, so a missing translation fails `npm run typecheck`). The choice is stored in the `showbound_lang` cookie and on the account, so notifications follow it. Server messages stay English in the API and are translated for display by `src/i18n/server-text.ts`.
 
 ## What is implemented
 

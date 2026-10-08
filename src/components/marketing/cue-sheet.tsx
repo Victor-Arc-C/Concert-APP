@@ -45,7 +45,11 @@ export function CueSheet() {
               },
               { transform: `translateY(${cue.offsetTop}px)`, opacity: 1 },
             ],
-            { duration: n ? 420 : 300, easing: 'cubic-bezier(0.77, 0, 0.175, 1)', fill: 'forwards' },
+            {
+              duration: n ? 420 : 300,
+              easing: 'cubic-bezier(0.77, 0, 0.175, 1)',
+              fill: 'forwards',
+            },
           )
           .finished.catch(() => {});
         cue.setAttribute('data-lit', '');
@@ -78,7 +82,11 @@ export function CueSheet() {
           {m.cues.map((cue, i) => {
             const { icon: Icon, color } = looks[i];
             return (
-              <li key={cue.title} className={styles.cue} style={{ '--c': color } as React.CSSProperties}>
+              <li
+                key={cue.title}
+                className={styles.cue}
+                style={{ '--c': color } as React.CSSProperties}
+              >
                 <span className={styles.q} aria-hidden="true">
                   Q{i + 1}
                 </span>

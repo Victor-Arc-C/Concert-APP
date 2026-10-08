@@ -71,7 +71,11 @@ export function WaitlistForm({
     );
   const error = state.kind === 'error' ? state.message : '';
   return (
-    <form className={`${styles.form} ${withCity ? styles.formWide : ''}`} onSubmit={submit} noValidate>
+    <form
+      className={`${styles.form} ${withCity ? styles.formWide : ''}`}
+      onSubmit={submit}
+      noValidate
+    >
       <div className={styles.field}>
         <label htmlFor={`${id}-email`}>{m.email}</label>
         <input
