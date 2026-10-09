@@ -19,6 +19,7 @@ export type FlightFare = {
   arrivalAt: string | null;
   transfers: number | null;
   bookingUrl: string;
+  source: 'google' | 'aviasales';
 };
 
 type Row = {
@@ -126,6 +127,7 @@ export async function cheapestFlight(
           arrivalAt: arrival === null ? null : new Date(arrival).toISOString(),
           transfers: typeof row.transfers === 'number' ? row.transfers : null,
           bookingUrl: bookingUrl(row, from, to, date, settings.TRAVELPAYOUTS_MARKER),
+          source: 'aviasales' as const,
         },
         onTime: landBy === null || arrival === null ? null : arrival <= landBy,
       };

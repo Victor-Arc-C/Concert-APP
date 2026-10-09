@@ -567,6 +567,9 @@ export const fr: Messages = {
     sncfWindow:
       'La SNCF publie les horaires exacts 23 jours à l’avance : ceux de cette date ne sont pas encore sortis. Compare les façons d’y aller ci-dessus.',
     noTimetable: 'Aucun horaire aller-retour vérifié. Compare les façons d’y aller ci-dessus.',
+    compareAbove: 'Compare les façons d’y aller ci-dessus : chacune ouvre ses prix en direct.',
+    noFlightFare:
+      'Pas encore de prix de vol trouvé pour ce jour. Google Flights affiche les prix en direct.',
     loading: 'On construit la soirée : trajets, horaires et hébergements près de la salle…',
     loadFailed: 'Impossible de charger les options de voyage. Vérifie à nouveau.',
     checkAgain: 'Vérifier à nouveau',
@@ -694,6 +697,13 @@ export const fr: Messages = {
     fareLandingUnknown:
       'Tarif le moins cher ce jour-là, trouvé par des voyageurs Aviasales ces dernières 48 heures. Vérifie l’heure d’arrivée ; la page de réservation confirme le prix.',
     bookFlight: 'Réserver ce vol sur Aviasales',
+    fareSeenGoogle:
+      'Vol le moins cher qui arrive à temps sur Google Flights, vérifié ces 6 dernières heures. Google Flights confirme le prix.',
+    fareLandingUnknownGoogle:
+      'Vol le moins cher ce jour-là sur Google Flights, vérifié ces 6 dernières heures. Vérifie l’heure d’arrivée ; Google Flights confirme le prix.',
+    bookFlightGoogle: 'Voir ce vol sur Google Flights',
+    changeAt: (origin, via) =>
+      `Pas de train direct depuis ${origin}. Rejoins d’abord ${via} (TER ou voiture), puis change :`,
     googleFlights: 'Prix des vols en direct sur Google Flights',
     omioFlights: 'Comparer les vols sur Omio',
     routeTo: (carriers, station) => [carriers, ' jusqu’à ', station],
@@ -707,7 +717,7 @@ export const fr: Messages = {
     failed:
       'Les trajets n’ont pas pu être chargés. Les liens ci-dessous ouvrent quand même chaque recherche.',
     sources:
-      'Les prix viennent de la recherche en direct de chaque vendeur ou, pour les vols, des tarifs trouvés par des voyageurs Aviasales ces dernières 48 heures ; Showbound ne les estime jamais. Trajets en train : données ouvertes SNCF Voyageurs (ODbL).',
+      'Les prix viennent de la recherche en direct de chaque vendeur ou, pour les vols, de Google Flights (vérifié ces 6 dernières heures) ou des tarifs trouvés par des voyageurs Aviasales ces dernières 48 heures ; Showbound ne les estime jamais. Trajets en train : données ouvertes SNCF Voyageurs (ODbL).',
   },
   privacy: {
     title: 'Confidentialité et conditions de la bêta',

@@ -187,4 +187,15 @@ CREATE INDEX rate_limits_window ON rate_limits(window_at);
     CREATE INDEX push_subscriptions_user ON push_subscriptions(user_id);
   `,
   },
+  {
+    version: 12,
+    sql: `
+    -- Paid fare lookups (Google Flights through SerpApi), shared by every user for a few hours.
+    CREATE TABLE fare_cache (
+      key TEXT PRIMARY KEY,
+      value JSONB NOT NULL,
+      fetched_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `,
+  },
 ];

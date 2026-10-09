@@ -49,7 +49,7 @@ Modes appear by straight-line distance from the home city to the venue, best fir
 | ≥ 1,000 km | Plane (train only if a French route exists below 1,500 km) | Plane |
 
 - **Plane**: nearest airport city to home and to the venue (`src/domain/airport-cities.ts`, within 120 km). The main link is a Google Flights search for the concert day (`Flights from PAR to ATH on <date> one way`), which shows live flights and prices; the panel says to land three hours before the show (or fly the day before for shows before 09:00). When configured, Omio's documented dynamic search receives the airport city names and concert date; no route slugs are guessed.
-- **Train**: `src/server/providers/rail.ts` finds stations near home (15 km) and the venue (40 km) and uses the SNCF fare tables only to know which carriers run the route (no prices are read). One Omio route link per arrival town, plus SNCF Connect.
+- **Train**: `src/server/providers/rail.ts` finds stations near home (15 km) and the venue (40 km) and uses the SNCF fare tables only to know which carriers run the route (no prices are read). One Omio route link per arrival town, plus SNCF Connect. With no direct TGV, OUIGO or Intercités from home, it looks for a change at the nearest big hub on the way (Paris, Lyon, Lille, Rennes…, at most a third longer than the straight line) that has one to the venue, and says so: Auxerre → Paris → Brest. The first leg (TER or car) is not in these tables, so it is named but not detailed; Omio's search from home covers the whole journey.
 - **Car**: Google Maps driving directions (time, route, tolls). **Coach**: Omio's coach page to the arrival station's town.
 
 Real fares inside Encore (cheapest train or flight arriving before the show) need a live fare API: Omio Meta Search API (requested through the Omio partnership) or a flight API. Until then, the links open live searches.
@@ -60,12 +60,21 @@ See [Omio travel planning](OMIO.md) for the native concert planner, current offi
 
 The existing itinerary comparison also uses the documented dated search links. Its train/coach destinations retain the known arrival station town. Search links are not quotes or proof of availability, attribution or commission. Current account approval and end-to-end landing behavior must be verified before enabling the feature.
 
-## Flight fares (Travelpayouts)
+## Flight prices (Google Flights through SerpApi, first)
+
+`src/server/providers/google-flights.ts` asks SerpApi's Google Flights engine (`engine=google_flights`, one way, one adult, EUR) for the concert day. Metropolitan codes become airport lists (`PAR` → `CDG,ORY,BVA`, `STO` → `ARN,BMA,NYO`…, `airportCodes` in `airport-cities.ts`). Only the route and the day are sent, never anything about the user.
+
+- The cheapest itinerary leaving that day and landing at least three hours before the show (Google gives landing times local to the arrival airport, read in the concert's timezone) wins. The page says it is Google Flights' price checked in the last 6 hours and links to the same Google Flights search.
+- Answers (including "no flights") are stored in `fare_cache` for 6 hours and shared by every user, so the plan's monthly searches last (free plan: 250 per month). Quota or key errors are not cached; the page then falls back to Travelpayouts.
+- `SERPAPI_KEY` from serpapi.com → Dashboard. Without it, nothing is fetched.
+
+## Flight fares (Travelpayouts, fallback)
 
 `src/server/providers/travelpayouts.ts` reads the Aviasales Data API `GET /aviasales/v3/prices_for_dates` (origin and destination city codes from `airport-cities.ts`, the concert day, one way, EUR; token in the `X-Access-Token` header). These are **real fares Aviasales travellers found in the last 48 hours**, not a live booking quote, and the page says so.
 
 - Only flights leaving on the concert day. The cheapest that provably lands at least three hours before the show (show start in the venue's timezone; arrival = departure + `duration_to`/`duration`) wins. Flights without a duration count only when none is provably on time, and the page asks to check the landing time.
 - Booking link: the itinerary `link` the API returns on aviasales.com (never another host), else `https://www.aviasales.com/search/PAR1205ATH1`, with `marker=<TRAVELPAYOUTS_MARKER>` for commission.
 - Cached 30 minutes per route and day. Without `TRAVELPAYOUTS_TOKEN`, nothing is fetched and the Google Flights link remains.
+- Coverage is thin for far-off dates: it is a cache of other travellers' searches (Paris → Stockholm had nothing for February 2027 when checked on 9 October 2026). That is why Google Flights comes first.
 - The fare is added to "Trip so far" as the transport price when the plan has no transport price of its own.
 - **To verify with a real token**: the response field names (`price`, `airline`, `flight_number`, `departure_at`, `duration_to`, `link`) follow Travelpayouts' published examples; the official reference was not reachable from the build machine.

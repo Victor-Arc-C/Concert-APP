@@ -73,6 +73,7 @@ it('picks the cheapest concert-day flight that lands in time, with a marked book
       arrivalAt: '2027-05-12T10:35:00.000Z',
       transfers: 0,
       bookingUrl: 'https://www.aviasales.com/search/PAR1205ATH1?t=TO&marker=123456',
+      source: 'aviasales',
     },
   });
   const [url, init] = fetcher.mock.calls[0] as unknown as [string, RequestInit];

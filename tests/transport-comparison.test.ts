@@ -39,7 +39,11 @@ vi.mock('../src/server/providers/travelpayouts', () => ({
     },
   })),
 }));
+vi.mock('../src/server/providers/google-flights', () => ({
+  cheapestGoogleFlight: vi.fn(async () => null),
+}));
 import { trainRoutes } from '../src/server/providers/rail';
+import { cheapestGoogleFlight } from '../src/server/providers/google-flights';
 import { cheapestFlight } from '../src/server/providers/travelpayouts';
 import { landBy, transportComparison } from '../src/server/transport-comparison';
 
@@ -106,6 +110,32 @@ it('a show in Athens: the plane only, landing three hours before the show', asyn
     expect.anything(),
     expect.anything(),
   );
+});
+
+it('prefers the live Google Flights price, falling back to Aviasales fares', async () => {
+  place.venue = { latitude: 59.3083, longitude: 18.0786 }; // Fryshuset, Stockholm
+  vi.mocked(cheapestFlight).mockClear();
+  vi.mocked(cheapestGoogleFlight).mockResolvedValueOnce({
+    onTime: true,
+    fare: {
+      price: 96,
+      currency: 'EUR',
+      airline: 'SAS',
+      flightNumber: 'SK 1',
+      departureAt: '2027-05-12T07:00',
+      arrivalAt: '2027-05-12T10:10:00.000Z',
+      transfers: 1,
+      bookingUrl: 'https://www.google.com/travel/flights?tfs=abc',
+      source: 'google',
+    },
+  });
+  const result = (await transportComparison(show('Stockholm'), 'Paris'))!;
+  expect(result.flight).toMatchObject({ to: 'Stockholm', fare: { price: 96, source: 'google' } });
+  expect(cheapestFlight).not.toHaveBeenCalled();
+  // Google has nothing for the day: Aviasales travellers' fares.
+  const again = (await transportComparison(show('Stockholm'), 'Paris'))!;
+  expect(again.flight?.fare?.price).toBe(79);
+  expect(cheapestFlight).toHaveBeenCalledTimes(1);
 });
 
 it('a show 600 km away by train: train first, plane offered too', async () => {

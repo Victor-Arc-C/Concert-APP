@@ -92,6 +92,7 @@ export function TripPlanner({ eventId }: { eventId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [revision, setRevision] = useState(0);
   const [flightFare, setFlightFare] = useState<FlightFare | null>(null);
+  const [comparison, setComparison] = useState<TransportComparison | null>(null);
   const [clock, setClock] = useState(() => new Date());
   useEffect(() => {
     const timer = setInterval(() => setClock(new Date()), 1000);
@@ -172,11 +173,16 @@ export function TripPlanner({ eventId }: { eventId: string }) {
     event.date >= clock.toISOString().slice(0, 10);
   const origin = data?.user?.preferences.home ?? 'Paris';
   const atHome = origin.trim().toLowerCase() === event.city.trim().toLowerCase();
+  // Far away, or no train at all: the SNCF timetable window is beside the point.
+  const flightPlan = comparison?.recommended === 'flight' ? comparison.flight : null;
+  const noTrain = !!comparison && (!comparison.train || comparison.train.status === 'none');
   const travelMessage = atHome
     ? t.trips.homeCityTravel
-    : !withinSncfTimetableWindow(event.date, clock)
-      ? t.trips.sncfWindow
-      : t.trips.noTimetable;
+    : noTrain
+      ? t.trips.compareAbove
+      : !withinSncfTimetableWindow(event.date, clock)
+        ? t.trips.sncfWindow
+        : t.trips.noTimetable;
   const checkAgain = () => {
     setLoading(true);
     setError(null);
@@ -234,6 +240,7 @@ export function TripPlanner({ eventId }: { eventId: string }) {
           venue={event.venue}
           timeZone={event.timezone}
           onFlightFare={setFlightFare}
+          onComparison={setComparison}
         />
       )}
 
@@ -453,7 +460,7 @@ export function TripPlanner({ eventId }: { eventId: string }) {
                   <li className="trip-step" style={{ '--c': 'var(--cyan)' } as React.CSSProperties}>
                     <span>
                       <span className="step-icon">
-                        {flightFare ? (
+                        {flightFare || flightPlan ? (
                           <Plane size={20} aria-hidden="true" />
                         ) : (
                           <Compass size={20} aria-hidden="true" />
@@ -491,14 +498,45 @@ export function TripPlanner({ eventId }: { eventId: string }) {
                             flightFare.transfers,
                           )}
                         </p>
-                        <span className="step-source">{t.getThere.fareSeen}</span>
+                        <span className="step-source">
+                          {flightFare.source === 'google'
+                            ? t.getThere.fareSeenGoogle
+                            : t.getThere.fareSeen}
+                        </span>
                         <a
                           href={flightFare.bookingUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="external-link"
                         >
-                          {t.getThere.bookFlight} <ExternalLink size={12} aria-hidden="true" />
+                          {flightFare.source === 'google'
+                            ? t.getThere.bookFlightGoogle
+                            : t.getThere.bookFlight}{' '}
+                          <ExternalLink size={12} aria-hidden="true" />
+                        </a>
+                      </div>
+                    ) : flightPlan ? (
+                      // Flying is the way, but no price was found for the day yet.
+                      <div className="step-content">
+                        <div className="step-header">
+                          <strong>{t.getThere.plane}</strong>
+                        </div>
+                        <p className="step-details">
+                          {t.getThere.flightNote(
+                            city(flightPlan.from),
+                            city(flightPlan.to),
+                            f.dayMonth(flightPlan.date),
+                            flightPlan.landBy,
+                          )}
+                        </p>
+                        <span className="step-source">{t.trips.noFlightFare}</span>
+                        <a
+                          href={flightPlan.searchUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="external-link"
+                        >
+                          {t.getThere.googleFlights} <ExternalLink size={12} aria-hidden="true" />
                         </a>
                       </div>
                     ) : (
