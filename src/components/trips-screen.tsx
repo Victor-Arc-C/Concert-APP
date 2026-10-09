@@ -259,7 +259,7 @@ export function TripPlanner({ eventId }: { eventId: string }) {
           <h2>{t.trips.findTitle}</h2>
           <p>{travelMessage}</p>
           <a
-            href={hotelSearchUrl(event.city, event.date)}
+            href={hotelSearchUrl(event.city, event.date, null, data.bookingAffiliateUrl)}
             target="_blank"
             rel="noopener noreferrer"
             className="external-link"
@@ -585,6 +585,7 @@ export function TripPlanner({ eventId }: { eventId: string }) {
                               event.city,
                               event.date,
                               selectedTrip.accommodation,
+                              data.bookingAffiliateUrl,
                             )}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -621,7 +622,12 @@ export function TripPlanner({ eventId }: { eventId: string }) {
                       </p>
                       {externalSearchAllowed && (
                         <a
-                          href={hotelSearchUrl(event.city, event.date)}
+                          href={hotelSearchUrl(
+                            event.city,
+                            event.date,
+                            null,
+                            data.bookingAffiliateUrl,
+                          )}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="external-link"

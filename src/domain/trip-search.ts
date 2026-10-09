@@ -37,7 +37,16 @@ export function directionsUrl(
   return `https://www.google.com/maps/dir/?${params}`;
 }
 
-export function hotelSearchUrl(city: string, eventDate: string, stay?: AccommodationOption | null) {
+/**
+ * Booking.com search for the stay, through the CJ deep link when `affiliate` (the
+ * BOOKING_AFFILIATE_URL base) is set. The SID only says which surface sent the click.
+ */
+export function hotelSearchUrl(
+  city: string,
+  eventDate: string,
+  stay?: AccommodationOption | null,
+  affiliate?: string | null,
+) {
   const params = new URLSearchParams({
     ss: stay ? `${stay.name}, ${stay.city}` : city,
     checkin: stay?.checkIn.slice(0, 10) ?? eventDate,
@@ -46,5 +55,10 @@ export function hotelSearchUrl(city: string, eventDate: string, stay?: Accommoda
     no_rooms: '1',
     group_children: '0',
   });
-  return `https://www.booking.com/searchresults.html?${params}`;
+  const landing = `https://www.booking.com/searchresults.html?${params}`;
+  if (!affiliate) return landing;
+  const link = new URL(affiliate);
+  link.searchParams.set('sid', 'showbound-hotel');
+  link.searchParams.set('url', landing);
+  return link.toString();
 }

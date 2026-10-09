@@ -33,6 +33,20 @@ describe('external trip searches', () => {
     expect(url.searchParams.get('checkout')).toBe('2027-01-01');
   });
 
+  it('wraps the search in the CJ deep link when Booking affiliation is configured', () => {
+    const affiliate = 'https://www.dpbolvw.net/click-101898922-15734710';
+    const url = new URL(hotelSearchUrl('Saint-Étienne & co', '2026-12-31', null, affiliate));
+    expect(`${url.origin}${url.pathname}`).toBe(affiliate);
+    expect(url.searchParams.get('sid')).toBe('showbound-hotel');
+    const landing = new URL(url.searchParams.get('url')!);
+    expect(landing.origin).toBe('https://www.booking.com');
+    expect(landing.searchParams.get('ss')).toBe('Saint-Étienne & co');
+    expect(landing.searchParams.get('checkout')).toBe('2027-01-01');
+    expect(hotelSearchUrl('Lyon', '2026-12-31', null, null)).toMatch(
+      /^https:\/\/www\.booking\.com\//,
+    );
+  });
+
   it('routes to the venue, with correctly encoded origin and transport mode', () => {
     const url = new URL(directionsUrl('Paris & suburbs', 'Amnéville', 'GALAXIE', 'transit'));
     expect(url.origin).toBe('https://www.google.com');

@@ -33,6 +33,18 @@ const schema = z
       z.url({ protocol: /^https$/ }).optional(),
     ),
     BETA_INVITE_CODES: optionalString,
+    // Booking.com via CJ: the deep-link base from booking.cj.com → "Create a Deep Link", without
+    // its query, e.g. https://www.dpbolvw.net/click-<property>-<ad>. Empty = plain Booking links.
+    BOOKING_AFFILIATE_URL: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      z
+        .string()
+        .regex(
+          /^https:\/\/www\.(dpbolvw\.net|anrdoezrs\.net|jdoqocy\.com|kqzyfj\.com|tkqlhce\.com)\/click-\d+-\d+$/,
+          'Use the CJ deep-link base, e.g. https://www.dpbolvw.net/click-<property>-<ad>.',
+        )
+        .optional(),
+    ),
     // Enable only after approval in the Omio Impact programme. Invalid optional configuration
     // disables this provider instead of breaking unrelated concert pages.
     OMIO_ENABLED: optionalString,
