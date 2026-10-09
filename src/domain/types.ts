@@ -89,6 +89,8 @@ export type AppData = {
   spotifyAvailable: boolean;
   /** VAPID public key when Web Push is configured on the server. */
   pushPublicKey?: string | null;
+  /** CJ deep-link base for Booking.com hotel searches, when configured. */
+  bookingAffiliateUrl?: string | null;
   liveAvailable: boolean;
   /** True when signup needs a private-beta invite code (BETA_INVITE_CODES is set). */
   inviteRequired?: boolean;

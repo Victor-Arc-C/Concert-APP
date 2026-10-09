@@ -34,7 +34,7 @@ Priced multimodal transport (train + coach + flight with fares and checkout) nee
 
 The SNCF timetable adapter skips requests when the concert-day outbound or next-day return falls outside the published N+23 window, using the Europe/Paris calendar day. The UI explains that limit and offers train and bus seller searches plus venue directions by car or public transport, including when provider loading fails. These links are searches, not live inventory or quotes.
 
-Hotel quotes keep the configured LiteAPI white-label hotel link when available ([documented deep links](https://docs.liteapi.travel/docs/deeplinking-to-whitelabel)). Without that link, the UI offers a Booking.com search for the selected hotel's name, city, dates and guests; the price and availability there may differ. No LiteAPI rate is represented as bookable through Booking.com. Sample, cancelled and postponed concerts have no external search actions.
+Hotel quotes keep the configured LiteAPI white-label hotel link when available ([documented deep links](https://docs.liteapi.travel/docs/deeplinking-to-whitelabel)). Without that link, the UI offers a Booking.com search for the selected hotel's name, city, dates and guests; the price and availability there may differ. With `BOOKING_AFFILIATE_URL` set (the CJ deep-link base from booking.cj.com → Create a Deep Link, without its query, e.g. `https://www.dpbolvw.net/click-<property>-<ad>`), that search goes through CJ with `sid=showbound-hotel&url=<Booking search>` for commission; no personal data. No LiteAPI rate is represented as bookable through Booking.com. Sample, cancelled and postponed concerts have no external search actions.
 
 ## Getting there: the real ways to the show
 

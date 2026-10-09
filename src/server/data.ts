@@ -181,6 +181,8 @@ export async function getAppData(): Promise<AppData> {
     spotifyAvailable: spotifyAvailable(),
     // Public by design: browsers need it to subscribe. Null keeps push hidden.
     pushPublicKey: pushAvailable() ? env().VAPID_PUBLIC_KEY! : null,
+    // Public by design: the IDs are in every affiliate link anyway.
+    bookingAffiliateUrl: env().BOOKING_AFFILIATE_URL ?? null,
     liveAvailable: !!env().TICKETMASTER_API_KEY,
     inviteRequired: inviteRequired(),
     privacyContact: {
