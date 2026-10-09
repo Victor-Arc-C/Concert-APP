@@ -169,3 +169,5 @@ Checks stop when the server stops or the computer sleeps and resume on the next 
 ## Contributing
 
 See [module and development conventions](docs/CONVENTIONS.md), the [database schema and migration contract](docs/DATABASE.md), and the [CON-6 audit](docs/CON-6-AUDIT.md). Preserve the existing MVP loop and keep issue changes small. Never commit `.env.local`, database contents, OAuth credentials, provider keys, logs or session exports.
+
+Omio affiliate transportation planning: [configuration, validation and limitations](docs/OMIO.md).

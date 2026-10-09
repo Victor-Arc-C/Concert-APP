@@ -1,41 +1,59 @@
-// Omio affiliate links (Impact, "Omio Travel Partner Program"). The programme gives tracking
-// links, not an API: Showbound sends people to Omio's route page, where Omio shows live times
-// and prices, and the booking is attributed through the Impact link.
 import { env } from '../env';
+import {
+  safeOmioRedirect,
+  travelSearchSchema,
+  type TravelSearch,
+  type TravelSearchProvider,
+} from '../../domain/travel-planning';
 
-const OMIO = 'https://www.omio.fr';
-
-/** Omio's route slugs: lower case, no accents, words joined by "-" ("Saint-Étienne" → "saint-etienne"). */
-export function omioSlug(city: string) {
-  return city
-    .normalize('NFD')
-    .replace(/\p{M}/gu, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
+// Official Redirect link configurator, verified 2026-10-09:
+// https://www.omio.com/affiliate/search-widget
+const DESTINATION = 'https://www.omio.com/links/626fa8a9-f982-43d0-ace9-9a13f6b14612';
+export function omioPartnerId() {
+  const settings = env();
+  if (settings.OMIO_ENABLED !== 'true') return null;
+  const id = settings.OMIO_PARTNER_ID?.trim();
+  return id && /^[1-9]\d{0,19}$/.test(id) ? id : null;
 }
 
-/**
- * Route page on Omio for a mode, through the affiliate tracking link when configured.
- * Omio only has pages for towns with a station or coach stop, so callers pass the arrival
- * station's town, not the venue's.
- */
+export function omioSearchUrl(search: TravelSearch, partnerId = omioPartnerId()) {
+  const parsed = travelSearchSchema.safeParse(search);
+  if (!partnerId || !/^[1-9]\d{0,19}$/.test(partnerId) || !parsed.success) return null;
+  const input = parsed.data;
+  const destination = new URL(DESTINATION);
+  destination.searchParams.set('departurePosTerm', input.departure);
+  destination.searchParams.set('arrivalPosTerm', input.destination);
+  destination.searchParams.set('departureDate', input.departureDate);
+  if (input.returnDate) destination.searchParams.set('returnDate', input.returnDate);
+  if (input.travelMode) destination.searchParams.set('travelMode', input.travelMode);
+  destination.searchParams.set('locale', input.locale);
+  destination.searchParams.set('currency', 'EUR');
+  // URLSearchParams encodes each location, then the entire nested URL exactly once.
+  const affiliate = new URL(`https://omio.sjv.io/c/${partnerId}/4057579/7385`);
+  affiliate.searchParams.set('u', destination.toString());
+  const result = affiliate.toString();
+  return safeOmioRedirect(result) ? result : null;
+}
+
+export const omioProvider: TravelSearchProvider = {
+  id: 'omio',
+  configured: () => omioPartnerId() !== null,
+  buildLink: (search) => omioSearchUrl(search),
+};
+
+/** Existing itinerary links also use the documented, dated, tracked search. */
 export function omioRouteUrl(
   mode: 'trains' | 'bus' | 'vols',
   from: string,
   to: string,
-  affiliate = env().OMIO_AFFILIATE_URL ?? null,
+  date: string,
 ) {
-  const a = omioSlug(from),
-    b = omioSlug(to);
-  if (!a || !b || a === b) return null;
-  const landing = `${OMIO}/${mode}/${a}/${b}`;
-  if (!affiliate) return landing;
-  const link = new URL(affiliate);
-  link.searchParams.set('u', landing);
-  // Non-personal attribution: which surface and mode sent the booking. The 'encore-trip'
-  // value predates the Showbound name; it stays so partner reports remain comparable.
-  link.searchParams.set('subId1', 'encore-trip');
-  link.searchParams.set('subId2', mode);
-  return link.toString();
+  const modes = { trains: 'TRAIN', bus: 'BUS', vols: 'FLIGHT' } as const;
+  return omioSearchUrl({
+    departure: from,
+    destination: to,
+    departureDate: date,
+    travelMode: modes[mode],
+    locale: 'en',
+  });
 }

@@ -9,6 +9,42 @@ export const fr: Messages = {
     appTitle: 'Showbound',
     appDescription: 'Les concerts des artistes que tu suis, et comment y aller.',
   },
+  travelPlanning: {
+    button: 'Préparer ton voyage',
+    title: (city: string) => `Préparer ton voyage à ${city}`,
+    departure: 'Ville de départ',
+    destination: 'Ville de destination',
+    departureDate: 'Date de départ',
+    returnDate: 'Date de retour (facultative)',
+    travelMode: 'Transport préféré',
+    allModes: 'Tous les transports',
+    modes: { TRAIN: 'Train', BUS: 'Car', FLIGHT: 'Avion', FERRY: 'Ferry' },
+    continue: 'Continuer sur Omio',
+    dateNote: (date: string, zone: string) =>
+      `Concert : ${date} (${zone}). Le jour du concert est une suggestion. Prévois du temps pour arriver avant le concert et vérifie les horaires locaux sur Omio. Tu peux partir plus tôt ou rentrer plus tard.`,
+    unknownZone: 'fuseau horaire du concert non confirmé',
+    destinationNote:
+      'Vérifie la ville et ajoute le pays si nécessaire. Omio identifiera le lieu saisi ; la desserte n’est pas garantie.',
+    disclosure:
+      'Tu vas quitter Showbound pour consulter les trajets, horaires et prix sur Omio. Ce lien est affilié : Showbound peut recevoir une commission si tu réserves. Aucune disponibilité ni aucun prix ne sont confirmés ici.',
+    networkError: 'Impossible de charger la préparation du voyage. Réessaie.',
+    failures: {
+      unconfigured:
+        'La préparation du voyage avec Omio n’est pas encore disponible. Réessaie plus tard.',
+      sample:
+        'Ce concert est fictif. Les recherches de transport réel sont désactivées en mode démo.',
+      inactive: 'La préparation du voyage est indisponible pour un concert annulé ou reporté.',
+      event_date:
+        'La date du concert n’est pas confirmée. Tu pourras préparer le voyage une fois la date connue.',
+      past: 'La date de ce concert est passée. Choisis un concert à venir pour préparer ton voyage.',
+      locations: 'Renseigne les deux villes avant de continuer.',
+      same_city:
+        'Les deux villes sont identiques. Consulte les transports locaux ou choisis une autre ville de départ.',
+      dates: 'Choisis une date de départ à venir et un retour le même jour ou après.',
+      invalid_search: 'Vérifie les villes, les dates et le transport préféré.',
+      redirect: 'Impossible de créer un lien Omio valide. Réessaie plus tard.',
+    },
+  },
   common: {
     brand: 'Showbound',
     home: 'Accueil Showbound',
@@ -235,7 +271,7 @@ export const fr: Messages = {
     mustSee: 'Je dois voir cet artiste',
     sampleNote: 'Tout sur cette page est fictif.',
     sourceNote:
-      'Source : Ticketmaster. Les prix et la disponibilité peuvent changer ; des frais peuvent s’ajouter. Aucune commission d’affiliation n’est active.',
+      'Source : Ticketmaster. Les prix et la disponibilité peuvent changer ; des frais peuvent s’ajouter. Aucune commission d’affiliation sur les billets n’est active.',
     sampleCreated: (when) => `Démo créée le ${when}`,
     lastChecked: (when) => `Vérifié le ${when}`,
     notForMe: 'Pas pour moi',

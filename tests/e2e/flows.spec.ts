@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 const password = 'Encore-test-passphrase-2026';
-const origin = 'http://127.0.0.1:3000';
+const origin = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3000';
 test('founder flow: register, choose artists, save, persist, must-see, alert, dismiss, delete', async ({
   page,
 }) => {

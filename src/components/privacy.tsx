@@ -173,8 +173,13 @@ export function Privacy() {
           <p>
             Les données de concerts réels viennent de Ticketmaster lorsqu’il est configuré. Les
             fourchettes de prix affichées sont indicatives et peuvent exclure des frais. La
-            disponibilité est confirmée par le vendeur. Aucune commission d’affiliation n’est active
-            dans ce pilote. Les trajets et hôtels ne sont ni chiffrés ni réservés.
+            disponibilité est confirmée par le vendeur. Aucune commission d’affiliation sur les
+            billets n’est active. Quand Omio est activé, le lien de recherche de transport est
+            affilié : Showbound peut recevoir une commission si tu réserves. En continuant sur Omio,
+            les villes, dates et préférences de transport choisies sont transmises à Omio via Impact
+            pour la recherche et l’attribution. Aucun identifiant de compte Showbound n’est ajouté
+            au lien. Omio confirme les disponibilités et les prix ; Showbound ne réserve pas ce
+            transport.
           </p>
           <h2>Photographie</h2>
           <p>
@@ -302,8 +307,12 @@ export function Privacy() {
           <h2>Listings and sources</h2>
           <p>
             Live event data comes from Ticketmaster when configured. Listed price ranges are
-            indicative and may exclude fees. Availability is confirmed by the seller. No affiliate
-            commission is active in this pilot. Travel and hotels are not quoted or booked.
+            indicative and may exclude fees. Availability is confirmed by the seller. No ticket
+            affiliate commission is active. When Omio is enabled, transport search links are
+            affiliate links: Showbound may earn a commission if you book. Continuing to Omio sends
+            the chosen cities, dates and transport preference to Omio through Impact for search and
+            attribution. No Showbound account identifier is added to the link. Omio confirms
+            availability and prices; Showbound does not book this transport.
           </p>
           <h2>Photography</h2>
           <p>

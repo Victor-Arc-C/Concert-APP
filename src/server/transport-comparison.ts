@@ -1,3 +1,4 @@
+import { eventPlanningFailure } from '../domain/travel-planning';
 import type { Concert } from '../domain/types';
 import type { Coordinates, TransportComparison } from '../domain/trip-types';
 import { airportCities, type AirportCity } from '../domain/airport-cities';
@@ -48,19 +49,13 @@ export async function transportComparison(
   fetcher: typeof fetch = fetch,
   now = Date.now(),
 ): Promise<TransportComparison | null> {
-  // Fictional, cancelled or postponed concerts never get real travel links.
-  if (event.provider === 'sample' || ['cancelled', 'postponed'].includes(event.status)) return null;
+  // Ineligible concerts never get real travel links, including the legacy itinerary surface.
+  if (eventPlanningFailure(event, new Date(now))) return null;
   const context = await tripSearchContext(event, originCity);
   if (!context.origin || !context.venue) return null;
   const km = distanceKm(context.origin, context.venue);
   const homeAirport = nearestAirportCity(context.origin),
     venueAirport = nearestAirportCity(context.venue);
-  // Omio slugs are French ("London" → "londres"); the airport table knows them for big cities.
-  const originSlug =
-    homeAirport && distanceKm(homeAirport, context.origin) < 30 && homeAirport.omio
-      ? homeAirport.omio
-      : originCity;
-
   const flies =
     km >= FLIGHT_FROM_KM && homeAirport && venueAirport && homeAirport.iata !== venueAirport.iata;
   let found: Awaited<ReturnType<typeof cheapestFlight>> = null;
@@ -84,10 +79,7 @@ export async function transportComparison(
           from: homeAirport.name,
           to: venueAirport.name,
           searchUrl: flightSearchUrl(homeAirport, venueAirport, event.date),
-          omioUrl:
-            homeAirport.omio && venueAirport.omio
-              ? omioRouteUrl('vols', homeAirport.omio, venueAirport.omio)
-              : null,
+          omioUrl: omioRouteUrl('vols', homeAirport.name, venueAirport.name, event.date),
           date: event.date,
           landBy: landBy(event.localTime),
           fare: found?.fare ?? null,
@@ -106,7 +98,7 @@ export async function transportComparison(
               routes: result.routes.map((route) => ({
                 ...route,
                 bookingUrl: route.stationCity
-                  ? omioRouteUrl('trains', originSlug, route.stationCity)
+                  ? omioRouteUrl('trains', originCity, route.stationCity, event.date)
                   : null,
               })),
             }
@@ -125,11 +117,11 @@ export async function transportComparison(
 
   let road: TransportComparison['road'] = null;
   if (km < ROAD_UNTIL_KM) {
-    // Coaches stop in the same towns as the trains; small towns have no Omio route page.
+    // Offer the known station town as the coach destination when available.
     const town =
       (train?.status === 'served' && train.routes.find((r) => r.stationCity)?.stationCity) ||
       event.city;
-    const coachUrl = omioRouteUrl('bus', originSlug, town);
+    const coachUrl = omioRouteUrl('bus', originCity, town, event.date);
     road = { coachUrl, coachRoute: coachUrl ? `${originCity} → ${town}` : null };
   }
 

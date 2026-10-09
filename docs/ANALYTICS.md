@@ -103,3 +103,7 @@ Week-1 retention          50.0%  2 of 4 accounts activated Mon, 14 Sept 2026 –
 - `N/A` means the denominator is zero. `unavailable` means the number cannot be measured: activation always, and any window that reaches past the 30-day analytics retention. Counts are always shown next to percentages.
 
 Saving a trip also records a `concert_opened` event (CON-29), but the trip planner is reached from the opened concert, so distinct pairs are not inflated.
+
+## Omio travel planning
+
+The four consent-aware server events `travel_planning_opened`, `travel_search_submitted`, `omio_redirect_clicked` and `travel_planning_failed` are documented in [OMIO.md](OMIO.md). Metadata includes the authorized concert ID and stored destination, provider, account mode and supported travel mode/fixed failure reason. User-entered locations, travel dates and redirect URLs are excluded. A redirect click is a handoff request, never a booking or conversion. Existing export, opt-out deletion and retention apply.

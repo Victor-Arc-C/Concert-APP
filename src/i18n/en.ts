@@ -10,6 +10,40 @@ export const en = {
     appTitle: 'Showbound',
     appDescription: 'Concerts by the artists you follow, and how to get there.',
   },
+  travelPlanning: {
+    button: 'Plan your trip',
+    title: (city: string) => `Plan your trip to ${city}`,
+    departure: 'Departure city',
+    destination: 'Destination city',
+    departureDate: 'Departure date',
+    returnDate: 'Return date (optional)',
+    travelMode: 'Transportation preference',
+    allModes: 'All transport',
+    modes: { TRAIN: 'Train', BUS: 'Coach', FLIGHT: 'Flight', FERRY: 'Ferry' },
+    continue: 'Continue to Omio',
+    dateNote: (date: string, zone: string) =>
+      `Concert: ${date} (${zone}). The concert day is only a suggestion. Allow time to arrive before the show and check local departure and arrival times on Omio. You can travel earlier or return later.`,
+    unknownZone: 'event time zone unconfirmed',
+    destinationNote:
+      'Check the city and add the country if needed. Omio will resolve the place you enter; transport coverage is not guaranteed.',
+    disclosure:
+      'You will leave Showbound for Omio to check routes, times and prices. This is an affiliate link: Showbound may earn a commission if you book. No availability or price is confirmed here.',
+    networkError: 'Could not reach the trip planner. Please try again.',
+    failures: {
+      unconfigured: 'Omio trip planning is not available yet. Please try again later.',
+      sample: 'This is a fictional concert. Real travel searches are disabled in sample mode.',
+      inactive: 'Travel planning is unavailable for a cancelled or postponed concert.',
+      event_date:
+        'The concert date is not confirmed. Travel planning will be available once it is known.',
+      past: 'This concert date has passed. Choose an upcoming concert to plan a trip.',
+      locations: 'Enter both cities before continuing.',
+      same_city:
+        'These cities are the same. Check local transport, or enter a different departure city.',
+      dates: 'Choose a departure date that has not passed and a return on or after departure.',
+      invalid_search: 'Check both cities, travel dates and transportation preference.',
+      redirect: 'We could not create a valid Omio link. Please try again later.',
+    },
+  },
   common: {
     brand: 'Showbound',
     home: 'Showbound home',
@@ -235,7 +269,7 @@ export const en = {
     mustSee: 'I need to see this artist',
     sampleNote: 'Everything on this page is fictional.',
     sourceNote:
-      'Source: Ticketmaster. Prices and availability can change; fees may apply. No affiliate commission is active.',
+      'Source: Ticketmaster. Prices and availability can change; fees may apply. No ticket affiliate commission is active.',
     sampleCreated: (when: string) => `Sample created ${when}`,
     lastChecked: (when: string) => `Last checked ${when}`,
     notForMe: 'Not for me',

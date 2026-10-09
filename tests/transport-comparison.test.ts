@@ -45,11 +45,13 @@ import { landBy, transportComparison } from '../src/server/transport-comparison'
 
 const show = (city: string, localTime = '20:00:00') =>
   ({ provider: 'ticketmaster', status: 'onsale', city, date: '2027-05-12', localTime }) as never;
-const u = (link: string | null | undefined) => (link ? new URL(link).searchParams.get('u') : null);
+const u = (link: string | null | undefined) =>
+  link ? Object.fromEntries(new URL(new URL(link).searchParams.get('u')!).searchParams) : null;
 
 beforeEach(() => {
   vi.stubEnv('APP_ENV', 'local');
-  vi.stubEnv('OMIO_AFFILIATE_URL', 'https://omio.sjv.io/c/7922007/409973/7385');
+  vi.stubEnv('OMIO_ENABLED', 'true');
+  vi.stubEnv('OMIO_PARTNER_ID', '987654321234');
 });
 afterEach(() => vi.unstubAllEnvs());
 
@@ -61,10 +63,19 @@ it('a show 300 km away: train first, car and coach, no plane, no estimated price
   expect(cheapestFlight).not.toHaveBeenCalled();
   expect(result.train?.status).toBe('served');
   if (result.train?.status !== 'served') return;
-  expect(u(result.train.routes[0].bookingUrl)).toBe('https://www.omio.fr/trains/paris/metz');
-  // Coaches go to the station town, not the small venue town Omio has no page for.
+  expect(u(result.train.routes[0].bookingUrl)).toMatchObject({
+    departurePosTerm: 'Paris',
+    arrivalPosTerm: 'Metz',
+    departureDate: '2027-05-12',
+    travelMode: 'TRAIN',
+  });
+  // Coaches use the known station town.
   expect(result.road?.coachRoute).toBe('Paris → Metz');
-  expect(u(result.road?.coachUrl)).toBe('https://www.omio.fr/bus/paris/metz');
+  expect(u(result.road?.coachUrl)).toMatchObject({
+    departurePosTerm: 'Paris',
+    arrivalPosTerm: 'Metz',
+    travelMode: 'BUS',
+  });
   expect(JSON.stringify(result)).not.toMatch(/fuel|price"|min"|max"/);
 });
 
@@ -80,7 +91,11 @@ it('a show in Athens: the plane only, landing three hours before the show', asyn
   const search = new URL(result.flight!.searchUrl);
   expect(search.hostname).toBe('www.google.com');
   expect(search.searchParams.get('q')).toBe('Flights from PAR to ATH on 2027-05-12 one way');
-  expect(u(result.flight!.omioUrl)).toBe('https://www.omio.fr/vols/paris/athenes');
+  expect(u(result.flight!.omioUrl)).toMatchObject({
+    departurePosTerm: 'Paris',
+    arrivalPosTerm: 'Athens',
+    travelMode: 'FLIGHT',
+  });
   // The cheapest flight landing in time, from the concert day's fares.
   expect(result.flight).toMatchObject({ fareOnTime: true, fare: { price: 79, airline: 'TO' } });
   expect(cheapestFlight).toHaveBeenCalledWith(
@@ -115,4 +130,14 @@ it('never routes fictional, cancelled or postponed concerts', async () => {
     { provider: 'ticketmaster', status: 'postponed' },
   ])
     expect(await transportComparison(event as never, 'Paris')).toBeNull();
+});
+
+it('does not create itinerary searches for past or unconfirmed concert dates', async () => {
+  for (const date of ['2020-01-01', '', '2027-02-30'])
+    expect(
+      await transportComparison(
+        { provider: 'ticketmaster', status: 'onsale', city: 'Berlin', date } as never,
+        'Paris',
+      ),
+    ).toBeNull();
 });

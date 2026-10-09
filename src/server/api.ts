@@ -39,6 +39,7 @@ import { onboardingProgress, unsupportedLiveArtists } from '../domain/onboarding
 import { inviteCodes, inviteValid } from './invite';
 import { ticketSources, selectTicketSource } from './tickets';
 import { generateTripOptions } from './trips';
+import { openTravelPlanning, submitTravelSearch } from './travel-planning';
 import { transportComparison } from './transport-comparison';
 import { savedTripsForUser, saveTrip, tripEvent } from './saved-trips';
 import { exportBetaFeedback, saveBetaFeedback } from './beta-feedback';
@@ -504,6 +505,19 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
       );
       await recordConcertAnalytics(user, event, 'ticket_link_clicked', 'detail');
       return ok({ url: selected.url });
+    }
+    if (key === 'travel/planning/open' || key === 'travel/planning/search') {
+      await rateLimit(`travel-planning:${user.id}`, 30, 60);
+      const input = z
+        .object({ eventId: z.string().min(1).max(200), search: z.unknown().optional() })
+        .strict()
+        .parse(await body(request));
+      const event = await ownEvent(input.eventId, user);
+      return ok(
+        key === 'travel/planning/open'
+          ? await openTravelPlanning(event, user)
+          : await submitTravelSearch(event, user, input.search),
+      );
     }
     if (key === 'trips/save') {
       const event = await saveTrip(user, await body(request));
