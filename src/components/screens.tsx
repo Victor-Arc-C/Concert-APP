@@ -25,6 +25,7 @@ import {
   X,
 } from 'lucide-react';
 import type { Artist, Intent, Preferences } from '@/domain/types';
+import { TravelPlanner } from './travel-planner';
 import { CityOptions } from './city-options';
 import { groupByArtist } from '@/domain/feed-groups';
 import { useI18n } from '@/i18n/client';
@@ -734,6 +735,7 @@ export function EventDetail({ id }: { id: string }) {
             <Bookmark size={17} fill={event.saved ? 'currentColor' : 'none'} aria-hidden="true" />
             {event.saved ? t.detail.saved : t.detail.save}
           </button>
+          <TravelPlanner key={event.id} event={event} />
           {!inactive && (
             <Link
               href={`/app/trips/${event.id}`}

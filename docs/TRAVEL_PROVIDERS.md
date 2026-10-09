@@ -48,7 +48,7 @@ Modes appear by straight-line distance from the home city to the venue, best fir
 | 500–1,000 km | Train, plane, car, coach | Train when served, else plane |
 | ≥ 1,000 km | Plane (train only if a French route exists below 1,500 km) | Plane |
 
-- **Plane**: nearest airport city to home and to the venue (`src/domain/airport-cities.ts`, within 120 km). The main link is a Google Flights search for the concert day (`Flights from PAR to ATH on <date> one way`), which shows live flights and prices; the panel says to land three hours before the show (or fly the day before for shows before 09:00). Omio's flight page is added when it exists (`omio` slug, checked on omio.fr on 7 October 2026; Vienna, Prague, Dublin and others have none).
+- **Plane**: nearest airport city to home and to the venue (`src/domain/airport-cities.ts`, within 120 km). The main link is a Google Flights search for the concert day (`Flights from PAR to ATH on <date> one way`), which shows live flights and prices; the panel says to land three hours before the show (or fly the day before for shows before 09:00). When configured, Omio's documented dynamic search receives the airport city names and concert date; no route slugs are guessed.
 - **Train**: `src/server/providers/rail.ts` finds stations near home (15 km) and the venue (40 km) and uses the SNCF fare tables only to know which carriers run the route (no prices are read). One Omio route link per arrival town, plus SNCF Connect.
 - **Car**: Google Maps driving directions (time, route, tolls). **Coach**: Omio's coach page to the arrival station's town.
 
@@ -56,11 +56,9 @@ Real fares inside Encore (cheapest train or flight arriving before the show) nee
 
 ## Omio affiliate links
 
-Omio approved Encore on Impact ("Omio Travel Partner Program", campaign 7385; online sales earn 2–10 %, 30-day referral). The programme provides tracking links, banners, coupons and widgets, **not an API or price feed**, so Encore cannot show Omio prices; it sends people to Omio's route page, where Omio shows live times and prices.
+See [Omio travel planning](OMIO.md) for the native concert planner, current official redirect template, Impact configuration, account verification and limitations. The provider requires `OMIO_ENABLED=true` and your real `OMIO_PARTNER_ID`; without them no Omio URL is generated. The legacy `OMIO_AFFILIATE_URL` and untracked route-page fallback are no longer used.
 
-- Link builder: `src/server/providers/omio.ts`. Route pages are `https://www.omio.fr/{trains|bus}/{from}/{to}` with Omio's slugs (lower case, no accents, `-`). They exist for towns with a station or coach stop (Metz, Thionville, Saint-Étienne…), not for small venue towns (Amnéville returns 410), so links use the **town of the arrival station** from the fare comparison, resolved from the station's INSEE code through geo.api.gouv.fr (arrondissements fold into Paris, Lyon, Marseille).
-- Tracking: `OMIO_AFFILIATE_URL` is the long Impact link without query, e.g. `https://omio.sjv.io/c/<partner>/<ad>/<campaign>` (Impact → link icon → "Create and share link" gives a short `omio.sjv.io/…` link; its redirect reveals the long form). Encore adds `u=<route page>`, `subId1=encore-trip`, `subId2=<trains|bus>`; no personal data. Without the variable, links go to omio.fr unattributed.
-- Checked by hand on 7 October 2026: the long link lands on `/trains/paris/metz` with Impact's click ID.
+The existing itinerary comparison also uses the documented dated search links. Its train/coach destinations retain the known arrival station town. Search links are not quotes or proof of availability, attribution or commission. Current account approval and end-to-end landing behavior must be verified before enabling the feature.
 
 ## Flight fares (Travelpayouts)
 

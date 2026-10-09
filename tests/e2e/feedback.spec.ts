@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 const password = 'Encore-test-passphrase-2026';
-const origin = 'http://127.0.0.1:3000';
+const origin = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3000';
 
 test('beta feedback: send from settings, export it, reject bad input, delete with account', async ({
   page,
