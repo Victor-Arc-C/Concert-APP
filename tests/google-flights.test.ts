@@ -90,6 +90,8 @@ it('picks the cheapest Google Flights itinerary landing in time, searched once f
   );
   expect(found).toEqual({
     onTime: true,
+    // Ryanair at €49 lands 18:50 for a 19:30 show: not even tight (40 min), so not offered.
+    tight: null,
     fare: {
       price: 96,
       currency: 'EUR',
@@ -110,6 +112,10 @@ it('picks the cheapest Google Flights itinerary landing in time, searched once f
     outbound_date: '2027-02-12',
     type: '2',
     currency: 'EUR',
+    // As complete as the Google Flights page.
+    deep_search: 'true',
+    show_hidden: 'true',
+    sort_by: '2',
   });
   // Within six hours, another user's page uses the stored answer.
   await cheapestGoogleFlight(
@@ -158,4 +164,33 @@ it('says nothing without a key, and caches an empty day', async () => {
   await expect(
     cheapestGoogleFlight('PAR', 'STO', '2027-02-12', deadline, null, '', failing as never),
   ).rejects.toThrow();
+});
+
+it('offers a cheaper flight landing after the deadline but at least 1 h 30 before the show', async () => {
+  const tightAnswer = {
+    other_flights: [
+      { price: 107, flights: [leg('CDG', 'ARN', '2027-02-12 12:25', '2027-02-12 14:55')] },
+      // Lands 17:40 for a 19:30 show: after the 16:30 deadline, 1 h 50 before.
+      {
+        price: 62,
+        flights: [leg('ORY', 'ARN', '2027-02-12 14:55', '2027-02-12 17:40', 'Transavia')],
+      },
+    ],
+  };
+  const fetcher = (async () => json(tightAnswer)) as unknown as typeof fetch;
+  const found = await cheapestGoogleFlight(
+    'PAR',
+    'STO',
+    '2027-02-12',
+    deadline,
+    'Europe/Stockholm',
+    'https://www.google.com/travel/flights?q=fallback',
+    fetcher,
+  );
+  expect(found?.fare.price).toBe(107);
+  expect(found?.tight).toMatchObject({
+    price: 62,
+    airline: 'Transavia',
+    arrivalAt: '2027-02-12T16:40:00.000Z',
+  });
 });

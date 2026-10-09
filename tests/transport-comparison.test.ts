@@ -128,13 +128,27 @@ it('prefers the live Google Flights price, falling back to Aviasales fares', asy
       bookingUrl: 'https://www.google.com/travel/flights?tfs=abc',
       source: 'google',
     },
+    tight: {
+      price: 62,
+      currency: 'EUR',
+      airline: 'Transavia',
+      flightNumber: 'TO 4500',
+      departureAt: '2027-05-12T14:55',
+      arrivalAt: '2027-05-12T15:10:00.000Z',
+      transfers: 0,
+      bookingUrl: 'https://www.google.com/travel/flights?tfs=abc',
+      source: 'google',
+    },
   });
   const result = (await transportComparison(show('Stockholm'), 'Paris'))!;
   expect(result.flight).toMatchObject({ to: 'Stockholm', fare: { price: 96, source: 'google' } });
+  // The cheaper flight landing 1 h 50 before the show (17:00Z) is offered, not counted.
+  expect(result.flight?.tightFare).toMatchObject({ fare: { price: 62 }, minutesBeforeShow: 110 });
   expect(cheapestFlight).not.toHaveBeenCalled();
   // Google has nothing for the day: Aviasales travellers' fares.
   const again = (await transportComparison(show('Stockholm'), 'Paris'))!;
   expect(again.flight?.fare?.price).toBe(79);
+  expect(again.flight?.tightFare).toBeNull();
   expect(cheapestFlight).toHaveBeenCalledTimes(1);
 });
 

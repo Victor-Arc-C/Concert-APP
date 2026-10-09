@@ -119,6 +119,27 @@ export function GettingThere({
                 </Link>
               </div>
             )}
+            {flight.tightFare && (
+              <p className="fare-tight">
+                {t.getThere.tightFare(
+                  f.money(flight.tightFare.fare.price, 'EUR') ?? '',
+                  [flight.tightFare.fare.airline, flight.tightFare.fare.flightNumber]
+                    .filter(Boolean)
+                    .join(' '),
+                  flight.tightFare.fare.arrivalAt
+                    ? new Intl.DateTimeFormat('en-GB', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        timeZone: timeZone || undefined,
+                      }).format(new Date(flight.tightFare.fare.arrivalAt))
+                    : '',
+                  `${Math.floor(flight.tightFare.minutesBeforeShow / 60)} h ${String(
+                    flight.tightFare.minutesBeforeShow % 60,
+                  ).padStart(2, '0')}`,
+                )}{' '}
+                <Link href={flight.tightFare.fare.bookingUrl}>{t.getThere.seeTight}</Link>
+              </p>
+            )}
             <p className="mode-note">
               {t.getThere.flightNote(
                 place(flight.from),

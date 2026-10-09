@@ -64,6 +64,8 @@ The existing itinerary comparison also uses the documented dated search links. I
 
 `src/server/providers/google-flights.ts` asks SerpApi's Google Flights engine (`engine=google_flights`, one way, one adult, EUR) for the concert day. Metropolitan codes become airport lists (`PAR` → `CDG,ORY,BVA`, `STO` → `ARN,BMA,NYO`…, `airportCodes` in `airport-cities.ts`). Only the route and the day are sent, never anything about the user.
 
+- Searches use `deep_search=true`, `show_hidden=true` and `sort_by=2` (price): the quick search missed flights the Google Flights page lists (Paris → Stockholm, 12 Feb 2027: it returned a €140 one-stop and missed a €107 SAS nonstop). Deep search is slower, hence a 40 s timeout.
+- A cheaper flight landing after the deadline but at least 1 h 30 before the show is offered as "cheaper but tight", never counted in the trip total.
 - The cheapest itinerary leaving that day and landing at least three hours before the show (Google gives landing times local to the arrival airport, read in the concert's timezone) wins. The page says it is Google Flights' price checked in the last 6 hours and links to the same Google Flights search.
 - Answers (including "no flights") are stored in `fare_cache` for 6 hours and shared by every user, so the plan's monthly searches last (free plan: 250 per month). Quota or key errors are not cached; the page then falls back to Travelpayouts.
 - `SERPAPI_KEY` from serpapi.com → Dashboard. Without it, nothing is fetched.

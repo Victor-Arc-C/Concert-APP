@@ -1,6 +1,6 @@
 import { eventPlanningFailure } from '../domain/travel-planning';
 import type { Concert } from '../domain/types';
-import type { Coordinates, TransportComparison } from '../domain/trip-types';
+import type { Coordinates, FlightFareInfo, TransportComparison } from '../domain/trip-types';
 import { airportCities, type AirportCity } from '../domain/airport-cities';
 import { trainRoutes } from './providers/rail';
 import { distanceKm } from './providers/liteapi';
@@ -59,7 +59,9 @@ export async function transportComparison(
     venueAirport = nearestAirportCity(context.venue);
   const flies =
     km >= FLIGHT_FROM_KM && homeAirport && venueAirport && homeAirport.iata !== venueAirport.iata;
-  let found: Awaited<ReturnType<typeof cheapestFlight>> = null;
+  let found: Awaited<ReturnType<typeof cheapestFlight>> = null,
+    tight: FlightFareInfo | null = null;
+  let showStart: number | null = null;
   if (flies) {
     const deadline = landingDeadline(
       event.date,
@@ -67,10 +69,11 @@ export async function transportComparison(
       event.timezone,
       LANDING_MARGIN_HOURS,
     );
+    showStart = deadline === null ? null : deadline + LANDING_MARGIN_HOURS * 3600000;
     // Google Flights' live price first; Aviasales travellers' recent fares when it has none.
     // No fare is better than a wrong one: the live search link still works.
     try {
-      found = await cheapestGoogleFlight(
+      const google = await cheapestGoogleFlight(
         homeAirport.iata,
         venueAirport.iata,
         event.date,
@@ -80,6 +83,7 @@ export async function transportComparison(
         fetcher,
         now,
       );
+      if (google) [found, tight] = [google, google.tight];
     } catch {
       reportError('provider_failed');
     }
@@ -108,6 +112,13 @@ export async function transportComparison(
           landBy: landBy(event.localTime),
           fare: found?.fare ?? null,
           fareOnTime: found?.onTime ?? null,
+          tightFare:
+            tight?.arrivalAt && showStart !== null
+              ? {
+                  fare: tight,
+                  minutesBeforeShow: Math.round((showStart - Date.parse(tight.arrivalAt)) / 60000),
+                }
+              : null,
         }
       : null;
 

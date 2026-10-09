@@ -176,6 +176,14 @@ export function TripPlanner({ eventId }: { eventId: string }) {
   // Far away, or no train at all: the SNCF timetable window is beside the point.
   const flightPlan = comparison?.recommended === 'flight' ? comparison.flight : null;
   const noTrain = !!comparison && (!comparison.train || comparison.train.status === 'none');
+  // The train Getting there found, shown in the itinerary instead of the timetable window.
+  const trainPlan =
+    !flightPlan &&
+    comparison?.train &&
+    comparison.train.status !== 'none' &&
+    comparison.train.routes[0]
+      ? { train: comparison.train, route: comparison.train.routes[0] }
+      : null;
   const travelMessage = atHome
     ? t.trips.homeCityTravel
     : noTrain
@@ -462,6 +470,8 @@ export function TripPlanner({ eventId }: { eventId: string }) {
                       <span className="step-icon">
                         {flightFare || flightPlan ? (
                           <Plane size={20} aria-hidden="true" />
+                        ) : trainPlan ? (
+                          <TrainFront size={20} aria-hidden="true" />
                         ) : (
                           <Compass size={20} aria-hidden="true" />
                         )}
@@ -537,6 +547,32 @@ export function TripPlanner({ eventId }: { eventId: string }) {
                           className="external-link"
                         >
                           {t.getThere.googleFlights} <ExternalLink size={12} aria-hidden="true" />
+                        </a>
+                      </div>
+                    ) : trainPlan && !travelExpired ? (
+                      <div className="step-content">
+                        <div className="step-header">
+                          <strong>
+                            {t.getThere.train} · {trainPlan.route.carriers.join(', ')} →{' '}
+                            {trainPlan.route.station}
+                          </strong>
+                        </div>
+                        {trainPlan.train.status === 'connection' && (
+                          <p className="step-details">
+                            {t.getThere.changeAt(city(origin), city(trainPlan.train.via))}
+                          </p>
+                        )}
+                        <span className="step-source">{t.trips.trainPriceSource}</span>
+                        <a
+                          href={trainPlan.route.bookingUrl ?? 'https://www.sncf-connect.com/'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="external-link"
+                        >
+                          {trainPlan.route.bookingUrl && trainPlan.route.stationCity
+                            ? t.getThere.omioTrain(city(origin), trainPlan.route.stationCity)
+                            : t.getThere.sncf}{' '}
+                          <ExternalLink size={12} aria-hidden="true" />
                         </a>
                       </div>
                     ) : (

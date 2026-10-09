@@ -22,7 +22,8 @@ export async function providerJson(
   try {
     response = await fetcher(url, {
       ...init,
-      signal: AbortSignal.timeout(10000),
+      // A caller may allow a slow provider longer; ten seconds otherwise.
+      signal: init.signal ?? AbortSignal.timeout(10000),
       cache: 'no-store',
     });
   } catch {

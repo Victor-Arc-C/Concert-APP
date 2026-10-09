@@ -567,6 +567,8 @@ export const fr: Messages = {
     sncfWindow:
       'La SNCF publie les horaires exacts 23 jours à l’avance : ceux de cette date ne sont pas encore sortis. Compare les façons d’y aller ci-dessus.',
     noTimetable: 'Aucun horaire aller-retour vérifié. Compare les façons d’y aller ci-dessus.',
+    trainPriceSource:
+      'Les prix des trains ne sont pour l’instant que sur la recherche en direct du vendeur ; Showbound n’affiche jamais d’estimation.',
     compareAbove: 'Compare les façons d’y aller ci-dessus : chacune ouvre ses prix en direct.',
     noFlightFare:
       'Pas encore de prix de vol trouvé pour ce jour. Google Flights affiche les prix en direct.',
@@ -701,6 +703,9 @@ export const fr: Messages = {
       'Vol le moins cher qui arrive à temps sur Google Flights, vérifié ces 6 dernières heures. Google Flights confirme le prix.',
     fareLandingUnknownGoogle:
       'Vol le moins cher ce jour-là sur Google Flights, vérifié ces 6 dernières heures. Vérifie l’heure d’arrivée ; Google Flights confirme le prix.',
+    tightFare: (price, flight, lands, before) =>
+      `Moins cher mais serré : ${price} avec ${flight}, arrivée ${lands} heure locale, seulement ${before} avant le concert.`,
+    seeTight: 'Le comparer sur Google Flights',
     bookFlightGoogle: 'Voir ce vol sur Google Flights',
     changeAt: (origin, via) =>
       `Pas de train direct depuis ${origin}. Rejoins d’abord ${via} (TER ou voiture), puis change :`,

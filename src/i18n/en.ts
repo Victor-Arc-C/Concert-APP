@@ -560,6 +560,8 @@ export const en = {
       'SNCF publishes exact train times 23 days ahead, so times for this date are not out yet. Compare the ways to get there above.',
     noTimetable:
       'No verified round-trip timetable is available. Compare the ways to get there above.',
+    trainPriceSource:
+      'Train fares are only on the seller’s live search for now; Showbound never shows an estimate.',
     compareAbove: 'Compare the ways to get there above: each one opens its live prices.',
     noFlightFare: 'No flight price found for this day yet. Google Flights shows the live prices.',
     loading: 'Building the night: routes, timings and stays near the venue…',
@@ -693,6 +695,9 @@ export const en = {
       'Cheapest flight landing in time on Google Flights, checked in the last 6 hours. Google Flights confirms the price.',
     fareLandingUnknownGoogle:
       'Cheapest flight that day on Google Flights, checked in the last 6 hours. Check it lands in time; Google Flights confirms the price.',
+    tightFare: (price: string, flight: string, lands: string, before: string) =>
+      `Cheaper but tight: ${price} with ${flight}, landing ${lands} local time, only ${before} before the show.`,
+    seeTight: 'Compare it on Google Flights',
     bookFlightGoogle: 'See this flight on Google Flights',
     changeAt: (origin: string, via: string) =>
       `No direct train from ${origin}. Get to ${via} first (regional TER or car), then change:`,
