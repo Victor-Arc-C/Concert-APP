@@ -59,6 +59,9 @@ const schema = z
         .regex(/^\d{1,12}$/, 'The marker is the numeric partner ID.')
         .optional(),
     ),
+    // SerpApi (Google Flights engine): live Google Flights prices for the concert day. Key from
+    // serpapi.com → Dashboard; answers are cached 6 h in the database to stay within the plan.
+    SERPAPI_KEY: optionalString,
     // Web Push (VAPID). Generate once with `npx web-push generate-vapid-keys`; without both keys
     // the app keeps alerts in the in-app inbox only.
     VAPID_PUBLIC_KEY: optionalString,

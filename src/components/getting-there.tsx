@@ -25,6 +25,7 @@ export function GettingThere({
   venue,
   timeZone,
   onFlightFare,
+  onComparison,
 }: {
   eventId: string;
   origin: string;
@@ -34,6 +35,8 @@ export function GettingThere({
   timeZone?: string | null;
   /** Hands the flight fare to the trip total. */
   onFlightFare?: (fare: NonNullable<TransportComparison['flight']>['fare']) => void;
+  /** Hands the whole comparison to the itinerary, so its transport step matches. */
+  onComparison?: (comparison: TransportComparison | null) => void;
 }) {
   const { t, f, s, city: place } = useI18n();
   const [comparison, setComparison] = useState<TransportComparison | null>(null),
@@ -47,18 +50,20 @@ export function GettingThere({
         if (!active) return;
         setComparison(result.comparison);
         onFlightFare?.(result.comparison?.flight?.fare ?? null);
+        onComparison?.(result.comparison);
         setState('ready');
       })
       .catch(() => active && setState('failed'));
     return () => {
       active = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- onFlightFare is a setter
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the callbacks are setters
   }, [eventId]);
 
   const flight = comparison?.flight ?? null,
     train = comparison?.train ?? null,
-    road = comparison?.road ?? null;
+    road = comparison?.road ?? null,
+    google = flight?.fare?.source === 'google';
   // Without an answer, still offer the searches that work for any distance.
   const showRoad = comparison ? !!road : state === 'failed';
   const best = (mode: TransportComparison['recommended']) =>
@@ -102,10 +107,16 @@ export function GettingThere({
                 </p>
                 <small>
                   {flight.fareOnTime === false || flight.fareOnTime === null
-                    ? t.getThere.fareLandingUnknown
-                    : t.getThere.fareSeen}
+                    ? google
+                      ? t.getThere.fareLandingUnknownGoogle
+                      : t.getThere.fareLandingUnknown
+                    : google
+                      ? t.getThere.fareSeenGoogle
+                      : t.getThere.fareSeen}
                 </small>
-                <Link href={flight.fare.bookingUrl}>{t.getThere.bookFlight}</Link>
+                <Link href={flight.fare.bookingUrl}>
+                  {google ? t.getThere.bookFlightGoogle : t.getThere.bookFlight}
+                </Link>
               </div>
             )}
             <p className="mode-note">
@@ -117,7 +128,7 @@ export function GettingThere({
               )}
             </p>
             <div className="mode-links">
-              <Link href={flight.searchUrl}>{t.getThere.googleFlights}</Link>
+              {!google && <Link href={flight.searchUrl}>{t.getThere.googleFlights}</Link>}
               {flight.omioUrl && <Link href={flight.omioUrl}>{t.getThere.omioFlights}</Link>}
             </div>
           </div>
@@ -138,8 +149,13 @@ export function GettingThere({
               <strong>{t.getThere.train}</strong>
               {best('train')}
             </div>
-            {train.status === 'served' ? (
+            {train.status !== 'none' ? (
               <>
+                {train.status === 'connection' && (
+                  <p className="mode-note">
+                    {t.getThere.changeAt(place(origin), place(train.via))}
+                  </p>
+                )}
                 <ul className="route-list">
                   {train.routes.map((route) => {
                     const [carriers, to] = t.getThere.routeTo(

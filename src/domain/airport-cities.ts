@@ -7,6 +7,20 @@ import type { Coordinates } from './trip-types';
  */
 export type AirportCity = Coordinates & { name: string; iata: string; omio: string | null };
 
+/** Airports behind the metropolitan codes, for searches that take airport codes only. */
+const METRO_AIRPORTS: Record<string, string> = {
+  PAR: 'CDG,ORY,BVA',
+  LON: 'LHR,LGW,STN,LTN,LCY,SEN',
+  MIL: 'MXP,LIN,BGY',
+  ROM: 'FCO,CIA',
+  STO: 'ARN,BMA,NYO',
+  BUH: 'OTP',
+  REK: 'KEF',
+  BRU: 'BRU,CRL',
+  IST: 'IST,SAW',
+};
+export const airportCodes = (iata: string) => METRO_AIRPORTS[iata] ?? iata;
+
 const city = (
   name: string,
   iata: string,

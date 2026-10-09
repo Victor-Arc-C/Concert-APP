@@ -560,6 +560,8 @@ export const en = {
       'SNCF publishes exact train times 23 days ahead, so times for this date are not out yet. Compare the ways to get there above.',
     noTimetable:
       'No verified round-trip timetable is available. Compare the ways to get there above.',
+    compareAbove: 'Compare the ways to get there above: each one opens its live prices.',
+    noFlightFare: 'No flight price found for this day yet. Google Flights shows the live prices.',
     loading: 'Building the night: routes, timings and stays near the venue…',
     loadFailed: 'Could not load travel options. Check again to retry.',
     checkAgain: 'Check again',
@@ -687,6 +689,13 @@ export const en = {
     fareLandingUnknown:
       'Cheapest fare that day, found by Aviasales travellers in the last 48 hours. Check it lands in time; the booking page confirms the price.',
     bookFlight: 'Book this flight on Aviasales',
+    fareSeenGoogle:
+      'Cheapest flight landing in time on Google Flights, checked in the last 6 hours. Google Flights confirms the price.',
+    fareLandingUnknownGoogle:
+      'Cheapest flight that day on Google Flights, checked in the last 6 hours. Check it lands in time; Google Flights confirms the price.',
+    bookFlightGoogle: 'See this flight on Google Flights',
+    changeAt: (origin: string, via: string) =>
+      `No direct train from ${origin}. Get to ${via} first (regional TER or car), then change:`,
     googleFlights: 'Live flight prices on Google Flights',
     omioFlights: 'Compare flights on Omio',
     routeTo: (carriers: string, station: string) => [carriers, ' to ', station] as const,
@@ -700,7 +709,7 @@ export const en = {
     loading: 'Finding the best ways there…',
     failed: 'Routes could not be loaded. The links below still open each live search.',
     sources:
-      'Prices come from each seller’s live search or, for flights, fares Aviasales travellers found in the last 48 hours; Showbound never estimates them. Train routes: SNCF Voyageurs open data (ODbL).',
+      'Prices come from each seller’s live search or, for flights, Google Flights (checked in the last 6 hours) or fares Aviasales travellers found in the last 48 hours; Showbound never estimates them. Train routes: SNCF Voyageurs open data (ODbL).',
   },
   privacy: {
     title: 'Privacy and beta terms',

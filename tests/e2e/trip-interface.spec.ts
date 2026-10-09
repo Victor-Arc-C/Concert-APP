@@ -318,6 +318,7 @@ test('a far-away show offers the plane first, with the landing deadline, and no 
               arrivalAt: '2027-01-20T11:35:00.000Z',
               transfers: 0,
               bookingUrl: 'https://www.aviasales.com/search/PAR2001ATH1?marker=123456',
+              source: 'aviasales',
             },
             fareOnTime: true,
           },
@@ -362,4 +363,99 @@ test('a far-away show offers the plane first, with the landing deadline, and no 
   await expect(step.getByRole('link', { name: 'Book this flight on Aviasales' })).toBeVisible();
   await expect(page.getByText('No verified round-trip timetable', { exact: false })).toHaveCount(0);
   await getThere.screenshot({ path: 'test-results/getting-there-far.png' });
+});
+
+const farComparison = (fare: unknown, train: unknown = null) => ({
+  comparison: {
+    origin: 'Paris',
+    distanceKm: 1540,
+    recommended: 'flight',
+    flight: {
+      from: 'Paris',
+      to: 'Stockholm',
+      searchUrl:
+        'https://www.google.com/travel/flights?q=Flights+from+PAR+to+STO+on+2027-01-20+one+way&hl=en&curr=EUR',
+      omioUrl: null,
+      date: '2027-01-20',
+      landBy: '16:30',
+      fare,
+      fareOnTime: fare ? true : null,
+    },
+    train,
+    road: null,
+  },
+});
+
+test('a far show with no fare yet: the itinerary says fly, never the SNCF timetable window', async ({
+  page,
+}) => {
+  await tripFixture(page);
+  await page.route('**/api/trips/compare?*', (route) =>
+    route.fulfill({ json: farComparison(null) }),
+  );
+  await page.reload();
+  const step = page.locator('.trip-step', { hasText: 'No flight price found for this day yet' });
+  await expect(step).toContainText('Plane');
+  await expect(step).toContainText('Paris → Stockholm on 20 January');
+  await expect(
+    step.getByRole('link', { name: 'Live flight prices on Google Flights' }),
+  ).toHaveAttribute('href', /PAR\+to\+STO/);
+  await expect(page.getByText('SNCF publishes exact train times', { exact: false })).toHaveCount(0);
+});
+
+test('a Google Flights price shows on the right, and a train with a change says where', async ({
+  page,
+}) => {
+  await tripFixture(page);
+  await page.route('**/api/trips/compare?*', (route) =>
+    route.fulfill({
+      json: farComparison(
+        {
+          price: 96,
+          currency: 'EUR',
+          airline: 'SAS',
+          flightNumber: 'SK 576',
+          departureAt: '2027-01-20T07:00',
+          arrivalAt: '2027-01-20T10:10:00.000Z',
+          transfers: 1,
+          bookingUrl: 'https://www.google.com/travel/flights?hl=en&tfs=abc',
+          source: 'google',
+        },
+        {
+          status: 'connection',
+          via: 'Paris',
+          routes: [
+            {
+              station: 'Brest',
+              stationCity: 'Brest',
+              carriers: ['TGV INOUI'],
+              lastMileKm: 0.6,
+              bookingUrl: null,
+            },
+          ],
+        },
+      ),
+    }),
+  );
+  await page.reload();
+  const getThere = page.getByRole('region', { name: 'Getting there' });
+  await expect(getThere.locator('[data-mode=flight] .mode-price')).toHaveText('€96');
+  await expect(
+    getThere.getByRole('link', { name: 'See this flight on Google Flights' }),
+  ).toHaveAttribute('href', 'https://www.google.com/travel/flights?hl=en&tfs=abc');
+  // One Google Flights link, not two.
+  await expect(getThere.getByRole('link', { name: /Google Flights/ })).toHaveCount(1);
+  await expect(
+    getThere.getByText('landing in time on Google Flights, checked in the last 6 hours', {
+      exact: false,
+    }),
+  ).toBeVisible();
+  await expect(
+    getThere.getByText('Get to Paris first (regional TER or car)', { exact: false }),
+  ).toBeVisible();
+  await expect(getThere.locator('[data-mode=train]')).toContainText('TGV INOUI to Brest');
+  const step = page.locator('.trip-step', { hasText: 'Plane · SAS SK 576' });
+  await expect(step).toContainText('€96');
+  await expect(step.getByRole('link', { name: 'See this flight on Google Flights' })).toBeVisible();
+  await getThere.screenshot({ path: 'test-results/getting-there-google.png' });
 });

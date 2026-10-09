@@ -5,6 +5,7 @@ import { airportCities, type AirportCity } from '../domain/airport-cities';
 import { trainRoutes } from './providers/rail';
 import { distanceKm } from './providers/liteapi';
 import { omioRouteUrl } from './providers/omio';
+import { cheapestGoogleFlight } from './providers/google-flights';
 import { cheapestFlight, landingDeadline } from './providers/travelpayouts';
 import { reportError } from './monitoring';
 import { tripSearchContext } from './trips';
@@ -59,20 +60,43 @@ export async function transportComparison(
   const flies =
     km >= FLIGHT_FROM_KM && homeAirport && venueAirport && homeAirport.iata !== venueAirport.iata;
   let found: Awaited<ReturnType<typeof cheapestFlight>> = null;
-  if (flies)
+  if (flies) {
+    const deadline = landingDeadline(
+      event.date,
+      event.localTime,
+      event.timezone,
+      LANDING_MARGIN_HOURS,
+    );
+    // Google Flights' live price first; Aviasales travellers' recent fares when it has none.
+    // No fare is better than a wrong one: the live search link still works.
     try {
-      found = await cheapestFlight(
+      found = await cheapestGoogleFlight(
         homeAirport.iata,
         venueAirport.iata,
         event.date,
-        landingDeadline(event.date, event.localTime, event.timezone, LANDING_MARGIN_HOURS),
+        deadline,
+        event.timezone,
+        flightSearchUrl(homeAirport, venueAirport, event.date),
         fetcher,
         now,
       );
     } catch {
-      // No fare is better than a wrong one: the live search link still works.
       reportError('provider_failed');
     }
+    if (!found)
+      try {
+        found = await cheapestFlight(
+          homeAirport.iata,
+          venueAirport.iata,
+          event.date,
+          deadline,
+          fetcher,
+          now,
+        );
+      } catch {
+        reportError('provider_failed');
+      }
+  }
   const flight =
     flies && homeAirport && venueAirport
       ? {
@@ -92,9 +116,9 @@ export async function transportComparison(
     try {
       const result = await trainRoutes(context.origin, context.venue, fetcher, now);
       train =
-        result.status === 'served'
+        result.status !== 'none'
           ? {
-              status: 'served',
+              ...result,
               routes: result.routes.map((route) => ({
                 ...route,
                 bookingUrl: route.stationCity
@@ -119,7 +143,7 @@ export async function transportComparison(
   if (km < ROAD_UNTIL_KM) {
     // Offer the known station town as the coach destination when available.
     const town =
-      (train?.status === 'served' && train.routes.find((r) => r.stationCity)?.stationCity) ||
+      (train && train.status !== 'none' && train.routes.find((r) => r.stationCity)?.stationCity) ||
       event.city;
     const coachUrl = omioRouteUrl('bus', originCity, town, event.date);
     road = { coachUrl, coachRoute: coachUrl ? `${originCity} → ${town}` : null };
@@ -131,7 +155,7 @@ export async function transportComparison(
     recommended:
       flight && km >= ROAD_UNTIL_KM
         ? 'flight'
-        : train?.status === 'served'
+        : train && train.status !== 'none'
           ? 'train'
           : flight
             ? 'flight'

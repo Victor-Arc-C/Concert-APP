@@ -174,8 +174,9 @@ export type TransportComparison = {
     /** Latest sensible landing time, local to the concert, when the show time is known. */
     landBy: string | null;
     /**
-     * Cheapest fare on the concert day that Aviasales travellers found in the last 48 hours
-     * (Travelpayouts), with a link to book it. Null without a token or without a result.
+     * Cheapest flight on the concert day landing in time: Google Flights' live price (SerpApi)
+     * when available, else a fare Aviasales travellers found in the last 48 hours
+     * (Travelpayouts). Null without a provider or without a result.
      */
     fare: {
       price: number;
@@ -186,10 +187,16 @@ export type TransportComparison = {
       arrivalAt: string | null;
       transfers: number | null;
       bookingUrl: string;
+      source: 'google' | 'aviasales';
     } | null;
     /** True when the fare provably lands by `landBy`; null when its landing time is unknown. */
     fareOnTime: boolean | null;
   } | null;
-  train: { status: 'served'; routes: TrainRoute[] } | { status: 'none'; reason: string } | null;
+  train:
+    | { status: 'served'; routes: TrainRoute[] }
+    /** No direct long-distance train from home: change at a hub (`via`) that has one. */
+    | { status: 'connection'; via: string; routes: TrainRoute[] }
+    | { status: 'none'; reason: string }
+    | null;
   road: { coachUrl: string | null; coachRoute: string | null } | null;
 };

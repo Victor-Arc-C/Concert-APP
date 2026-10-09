@@ -99,3 +99,40 @@ it('names the town of a station, folding city arrondissements into the city', as
   expect(await communeName('75101', fn)).toBe('Paris');
   expect(await communeName(null, fn)).toBeNull();
 });
+
+it('no direct train from a small town: change at the hub that has one (Auxerre → Paris → Brest)', async () => {
+  const auxerre = { latitude: 47.7982, longitude: 3.5673 };
+  const brest = { latitude: 48.3904, longitude: -4.4861 };
+  const { fn } = fetcher((url) => {
+    if (url.hostname === 'geo.api.gouv.fr') return { nom: 'Brest' };
+    const where = url.searchParams.get('where')!;
+    if (url.pathname.endsWith('/gares-de-voyageurs/records')) {
+      if (where.includes('3.5673'))
+        return { results: [station('Auxerre', '87683003', 47.7936, 3.5813)] };
+      if (where.includes('-4.4861'))
+        return { results: [station('Brest', '87474098', 48.3879, -4.4795, '29019')] };
+      if (where.includes('2.3522'))
+        return { results: [station('Paris Montparnasse', '87391003', 48.8412, 2.3209)] };
+      return { results: [] };
+    }
+    if (url.pathname.endsWith('/tarifs-tgv-inoui-ouigo/records'))
+      // Only Paris has a TGV to Brest; Auxerre has none to anywhere listed.
+      return where.includes('87391003') && where.includes('87474098')
+        ? { results: [{ transporteur: 'TGV INOUI', uic: '87474098' }] }
+        : { results: [] };
+    return { results: [] };
+  });
+  expect(await trainRoutes(auxerre, brest, fn)).toEqual({
+    status: 'connection',
+    via: 'Paris',
+    routes: [
+      {
+        station: 'Brest',
+        stationCity: 'Brest',
+        carriers: ['TGV INOUI'],
+        lastMileKm: 0.6,
+        bookingUrl: null,
+      },
+    ],
+  });
+});
