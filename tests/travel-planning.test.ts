@@ -155,3 +155,13 @@ it('does not use the venue timezone to reject a departure day still current at t
   );
   expect(result.url).toBeTruthy();
 });
+
+it('tolerates absent location fields in older stored records', async () => {
+  const result = await openTravelPlanning(
+    { ...event, city: null } as unknown as Concert,
+    { ...user, preferences: { ...user.preferences, home: undefined } } as unknown as User,
+    provider,
+    now,
+  );
+  expect(result.defaults).toMatchObject({ departure: '', destination: '' });
+});

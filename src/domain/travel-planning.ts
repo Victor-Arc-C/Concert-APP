@@ -21,8 +21,9 @@ export function validDate(value: string) {
   return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }
 
-export function knownLocation(value: string) {
+export function knownLocation(value: unknown): value is string {
   return (
+    typeof value === 'string' &&
     value.trim().length >= 2 &&
     value.trim().length <= 120 &&
     /\p{L}/u.test(value) &&
