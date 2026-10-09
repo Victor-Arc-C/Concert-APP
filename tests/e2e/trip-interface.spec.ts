@@ -175,9 +175,13 @@ test('lists the real ways there, best first, each linked to a live search and no
   page,
 }) => {
   await tripFixture(page);
+  // Step 2 shows the train found, with its live search, not the SNCF timetable window.
+  const trainStep = page.locator('.trip-step', { hasText: 'Train · TGV INOUI → Thionville' });
+  await expect(trainStep).toContainText('Train fares are only on the seller’s live search');
   await expect(
-    page.getByText('SNCF publishes exact train times 23 days ahead', { exact: false }),
+    trainStep.getByRole('link', { name: 'Live times and prices Paris → Thionville on Omio' }),
   ).toBeVisible();
+  await expect(page.getByText('SNCF publishes exact train times', { exact: false })).toHaveCount(0);
   const getThere = page.getByRole('region', { name: 'Getting there' });
   await expect(getThere.getByText('Paris → Amneville Les Thermes · 280 km')).toBeVisible();
   // Train first (best way), then car, coach, venue. No plane for 280 km.
@@ -380,6 +384,22 @@ const farComparison = (fare: unknown, train: unknown = null) => ({
       landBy: '16:30',
       fare,
       fareOnTime: fare ? true : null,
+      tightFare: fare
+        ? {
+            fare: {
+              price: 62,
+              currency: 'EUR',
+              airline: 'Transavia',
+              flightNumber: 'TO 4500',
+              departureAt: '2027-01-20T14:55',
+              arrivalAt: '2027-01-20T16:40:00.000Z',
+              transfers: 0,
+              bookingUrl: 'https://www.google.com/travel/flights?hl=en&tfs=abc',
+              source: 'google',
+            },
+            minutesBeforeShow: 110,
+          }
+        : null,
     },
     train,
     road: null,
@@ -443,8 +463,15 @@ test('a Google Flights price shows on the right, and a train with a change says 
   await expect(
     getThere.getByRole('link', { name: 'See this flight on Google Flights' }),
   ).toHaveAttribute('href', 'https://www.google.com/travel/flights?hl=en&tfs=abc');
-  // One Google Flights link, not two.
-  await expect(getThere.getByRole('link', { name: /Google Flights/ })).toHaveCount(1);
+  // The cheaper flight landing 1 h 50 before the show is offered, not counted.
+  await expect(
+    getThere.getByText(
+      'Cheaper but tight: €62 with Transavia TO 4500, landing 17:40 local time, only 1 h 50 before the show.',
+      { exact: false },
+    ),
+  ).toBeVisible();
+  // One Google Flights link for the fare, one for the tight option; no generic search link.
+  await expect(getThere.getByRole('link', { name: /Google Flights/ })).toHaveCount(2);
   await expect(
     getThere.getByText('landing in time on Google Flights, checked in the last 6 hours', {
       exact: false,

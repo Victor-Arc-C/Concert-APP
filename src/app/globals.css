@@ -3951,6 +3951,11 @@ legend {
   font-size: 13px;
   color: var(--ink-mute);
 }
+.fare-tight {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
 .mode-tag {
   padding: 3px 9px;
   border-radius: 8px;

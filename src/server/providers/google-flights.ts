@@ -11,6 +11,12 @@ import type { FlightFare } from './travelpayouts';
 const API = 'https://serpapi.com/search.json';
 const GOOGLE_FLIGHTS = 'https://www.google.com/travel/flights';
 export const GOOGLE_FARE_CACHE_HOURS = 6;
+/** Deep search matches the Google Flights page but takes longer than a quick search. */
+const SEARCH_TIMEOUT_MS = 40000;
+/** Bump when the search parameters change, so older answers are not reused. */
+const CACHE_VERSION = 'google:v2:';
+/** A flight landing after the deadline but at least this long before the show is "tight". */
+export const TIGHT_EXTRA_MS = 90 * 60000;
 
 /** One itinerary as Google Flights listed it; times are local at each airport. */
 type Itinerary = {
@@ -82,12 +88,20 @@ async function search(from: string, to: string, date: string, key: string, fetch
     currency: 'EUR',
     hl: 'en',
     gl: 'fr',
+    // The quick search misses flights the Google Flights page lists (a SAS nonstop at €107
+    // was missing, a €140 one-stop shown instead). Deep search is "identical to the browser";
+    // hidden results and price order make sure the cheapest are in the answer.
+    deep_search: 'true',
+    show_hidden: 'true',
+    sort_by: '2',
     api_key: key,
   }))
     url.searchParams.set(name, value);
-  const body = (await providerJson(url.toString(), {}, fetcher)) as Parameters<
-    typeof parseGoogleFlights
-  >[0] & { error?: unknown };
+  const body = (await providerJson(
+    url.toString(),
+    { signal: AbortSignal.timeout(SEARCH_TIMEOUT_MS) },
+    fetcher,
+  )) as Parameters<typeof parseGoogleFlights>[0] & { error?: unknown };
   // "No results" is an answer worth caching; any other error is not.
   if (typeof body.error === 'string' && !/hasn.t returned any results/i.test(body.error))
     throw new Error('SerpApi error');
@@ -95,7 +109,7 @@ async function search(from: string, to: string, date: string, key: string, fetch
 }
 
 export async function clearGoogleFareCache() {
-  await query(`DELETE FROM fare_cache WHERE key LIKE 'google:%'`);
+  await query(`DELETE FROM fare_cache WHERE key LIKE 'google%'`);
 }
 
 /**
@@ -113,10 +127,15 @@ export async function cheapestGoogleFlight(
   searchUrl: string,
   fetcher: typeof fetch = fetch,
   now = Date.now(),
-): Promise<{ fare: FlightFare; onTime: boolean | null } | null> {
+): Promise<{
+  fare: FlightFare;
+  onTime: boolean | null;
+  /** Cheaper than `fare`, landing after the deadline but still before the show. */
+  tight: FlightFare | null;
+} | null> {
   const key = env().SERPAPI_KEY;
   if (!key || !/^[A-Z]{3}$/.test(from) || !/^[A-Z]{3}$/.test(to)) return null;
-  const cacheKey = `google:${from}|${to}|${date}`;
+  const cacheKey = `${CACHE_VERSION}${from}|${to}|${date}`;
   const [hit] = await query<{ value: Answer; fetched_at: string | Date }>(
     'SELECT value, fetched_at FROM fare_cache WHERE key=$1',
     [cacheKey],
@@ -132,7 +151,7 @@ export async function cheapestGoogleFlight(
       [cacheKey, JSON.stringify(answer), new Date(now).toISOString()],
     );
   }
-  const fares = answer.itineraries
+  const all = answer.itineraries
     .filter((it) => it.departs.startsWith(date))
     .map((it) => {
       const [day, time] = it.lands.split(' ');
@@ -150,9 +169,20 @@ export async function cheapestGoogleFlight(
           source: 'google' as const,
         },
         onTime: landBy === null || !Number.isFinite(arrival) ? null : arrival <= landBy,
+        arrival,
       };
     })
-    .filter((entry) => entry.onTime !== false)
     .sort((a, b) => a.fare.price - b.fare.price);
-  return fares[0] ?? null;
+  const best = all.find((entry) => entry.onTime !== false);
+  if (!best) return null;
+  const tight =
+    landBy === null
+      ? null
+      : all.find(
+          (entry) =>
+            entry.onTime === false &&
+            entry.fare.price < best.fare.price &&
+            entry.arrival <= landBy + TIGHT_EXTRA_MS,
+        );
+  return { fare: best.fare, onTime: best.onTime, tight: tight?.fare ?? null };
 }

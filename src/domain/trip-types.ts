@@ -154,6 +154,17 @@ export type TrainRoute = {
   /** Omio route page (live times and prices) through the affiliate link. */
   bookingUrl: string | null;
 };
+export type FlightFareInfo = {
+  price: number;
+  currency: 'EUR';
+  airline: string | null;
+  flightNumber: string | null;
+  departureAt: string;
+  arrivalAt: string | null;
+  transfers: number | null;
+  bookingUrl: string;
+  source: 'google' | 'aviasales';
+};
 /**
  * Ways to reach a concert. No figure here is an estimate: prices come only from the seller's
  * live search behind each link. Modes appear by distance (far shows fly, near shows drive).
@@ -178,19 +189,14 @@ export type TransportComparison = {
      * when available, else a fare Aviasales travellers found in the last 48 hours
      * (Travelpayouts). Null without a provider or without a result.
      */
-    fare: {
-      price: number;
-      currency: 'EUR';
-      airline: string | null;
-      flightNumber: string | null;
-      departureAt: string;
-      arrivalAt: string | null;
-      transfers: number | null;
-      bookingUrl: string;
-      source: 'google' | 'aviasales';
-    } | null;
+    fare: FlightFareInfo | null;
     /** True when the fare provably lands by `landBy`; null when its landing time is unknown. */
     fareOnTime: boolean | null;
+    /**
+     * A cheaper flight that lands after `landBy` but still well before the show, so travellers
+     * can choose it knowingly. Never counted in the trip total.
+     */
+    tightFare?: { fare: FlightFareInfo; minutesBeforeShow: number } | null;
   } | null;
   train:
     | { status: 'served'; routes: TrainRoute[] }
