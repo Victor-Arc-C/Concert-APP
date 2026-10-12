@@ -512,22 +512,31 @@ export function EventDetail({ id }: { id: string }) {
       </Empty>
     );
   const home = data.user?.preferences.home ?? 'Paris';
-  const ticketDestination =
-    event.url && safeTicketUrl(event.url) ? new URL(event.url).hostname : null;
+  const ownDestination = event.url && safeTicketUrl(event.url) ? new URL(event.url).hostname : null;
+  const second = event.secondSeller ?? null;
+  // The main button follows the price: one seller's price never sits beside another's link.
+  const viaSecond = !!second && (!!event.priceFromSecondSeller || !ownDestination);
+  const ticketDestination = viaSecond ? second.host : ownDestination;
+  const otherDestination = second ? (viaSecond ? ownDestination : second.host) : null;
   const tours = data.allEvents
     .filter((e) => e.artistIds.some((id) => event.artistIds.includes(id)))
     .sort((a, b) => a.date.localeCompare(b.date) || a.city.localeCompare(b.city));
   const inactive = ['cancelled', 'postponed'].includes(event.status);
   const time = f.time(event.localTime);
   const zone = event.timezone ?? 'Europe/Paris';
-  async function ticket() {
+  async function ticket(seller: 'main' | 'other') {
     if (!data.user) {
       router.push('/signup');
       return;
     }
     setOutbound(true);
     try {
-      const result = await api<{ url: string }>('outbound', { eventId: id });
+      const result = await api<{ url: string }>('outbound', {
+        eventId: id,
+        ...(second && (seller === 'main') === viaSecond
+          ? { source: { provider: second.provider, externalId: second.externalId } }
+          : {}),
+      });
       window.location.assign(result.url);
     } catch (e) {
       toast((e as Error).message);
@@ -676,7 +685,11 @@ export function EventDetail({ id }: { id: string }) {
         </div>
         <aside className="ticket-panel" aria-label={t.detail.ticketFrom}>
           <span className="ticket-label">
-            {event.provider === 'sample' ? t.detail.samplePrice : t.detail.providerPrice}
+            {event.provider === 'sample'
+              ? t.detail.samplePrice
+              : second && event.priceFromSecondSeller
+                ? t.detail.priceOn(second.host)
+                : t.detail.providerPrice}
           </span>
           <div className="ticket-price">
             {f.money(event.price, event.currency) ?? t.common.priceNotListed}
@@ -710,7 +723,7 @@ export function EventDetail({ id }: { id: string }) {
           {event.saleAt && <p>{t.detail.sale(f.dateTime(event.saleAt, zone), zone)}</p>}
           <button
             className="button primary full"
-            onClick={ticket}
+            onClick={() => ticket('main')}
             disabled={outbound || !ticketDestination || event.provider === 'sample' || inactive}
           >
             <Ticket size={18} aria-hidden="true" />
@@ -721,6 +734,19 @@ export function EventDetail({ id }: { id: string }) {
                 : t.detail.ticketUnavailable}
             <ArrowUpRight size={16} aria-hidden="true" />
           </button>
+          {otherDestination && !inactive && (
+            <button
+              className="button secondary full"
+              onClick={() => ticket('other')}
+              disabled={outbound}
+            >
+              {t.detail.alsoOn(
+                otherDestination,
+                viaSecond ? null : f.money(second?.price ?? null, second?.currency ?? null),
+              )}
+              <ArrowUpRight size={16} aria-hidden="true" />
+            </button>
+          )}
           <button
             className="button secondary full"
             disabled={busy}
@@ -753,7 +779,11 @@ export function EventDetail({ id }: { id: string }) {
             </button>
           )}
           <p className="fineprint">
-            {event.provider === 'sample' ? t.detail.sampleNote : t.detail.sourceNote}
+            {event.provider === 'sample'
+              ? t.detail.sampleNote
+              : second
+                ? t.detail.sourceNoteFnac
+                : t.detail.sourceNote}
           </p>
           <span className="freshness">
             {event.provider === 'sample'

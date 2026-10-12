@@ -248,6 +248,7 @@ export const fr: Messages = {
       'Aucun temps de trajet, aucune disponibilité d’hôtel ni aucun prix total n’est confirmé. Vérifie-les avant d’acheter un billet.',
     samplePrice: 'Prix fictif de démo',
     providerPrice: 'Prix du vendeur',
+    priceOn: (host) => `Prix sur ${host}`,
     priceObserved: (when) => `Prix relevé le ${when}`,
     priceUnavailable:
       'Aucun prix vérifié pour ce concert en ce moment. Consulte la billetterie officielle pour les prix et la disponibilité.',
@@ -264,6 +265,7 @@ export const fr: Messages = {
     sale: (when, zone) => `Vente : ${when} (${zone})`,
     noRealTickets: 'Pas de vrais billets en mode démo',
     checkTickets: (host) => `Voir les billets sur ${host}`,
+    alsoOn: (host, price) => (price ? `Aussi sur ${host}, dès ${price}` : `Aussi sur ${host}`),
     ticketUnavailable: 'Lien billetterie indisponible',
     save: 'Garder ce concert',
     saved: 'Gardé dans tes concerts',
@@ -272,6 +274,8 @@ export const fr: Messages = {
     sampleNote: 'Tout sur cette page est fictif.',
     sourceNote:
       'Source : Ticketmaster. Les prix et la disponibilité peuvent changer ; des frais peuvent s’ajouter. Aucune commission d’affiliation sur les billets n’est active.',
+    sourceNoteFnac:
+      'Sources : Ticketmaster et Fnac Spectacles. Les prix et la disponibilité peuvent changer ; des frais peuvent s’ajouter. Le lien Fnac Spectacles est affilié : Showbound peut recevoir une commission si tu achètes.',
     sampleCreated: (when) => `Démo créée le ${when}`,
     lastChecked: (when) => `Vérifié le ${when}`,
     notForMe: 'Pas pour moi',

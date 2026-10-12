@@ -452,6 +452,73 @@ test('detail tolerates missing data and identifies the external ticket destinati
   await expect(page.getByRole('button', { name: 'Ticket link unavailable' })).toBeDisabled();
 });
 
+test('a second seller keeps its price with its own link and the other seller stays offered', async ({
+  page,
+}) => {
+  let fromSecond = true;
+  const sent: unknown[] = [];
+  await page.goto('/signup');
+  await page.getByLabel('Your name').fill('Alex');
+  await page.getByLabel('Email', { exact: true }).fill(`sellers-${Date.now()}@example.test`);
+  await page.getByLabel('Password', { exact: true }).fill(password);
+  await page.getByRole('button', { name: 'Create account', exact: true }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Where should the music take you?' }),
+  ).toBeVisible();
+  await page.route('**/api/state', async (route) => {
+    const response = await route.fetch();
+    const data = await response.json();
+    for (const events of [data.events, data.allEvents]) {
+      const event = events.find((e: { id: string }) => e.id === 'sample-1');
+      if (event)
+        Object.assign(event, {
+          price: fromSecond ? 55 : 60,
+          currency: 'EUR',
+          priceObservedAt: new Date().toISOString(),
+          provider: 'ticketmaster',
+          url: 'https://www.ticketmaster.fr/event/listing',
+          priceFromSecondSeller: fromSecond,
+          secondSeller: {
+            provider: 'fnac',
+            externalId: '21085856',
+            host: 'www.fnacspectacles.com',
+            price: 55,
+            currency: 'EUR',
+            observedAt: new Date().toISOString(),
+          },
+        });
+    }
+    await route.fulfill({ response, json: data });
+  });
+  await page.route('**/api/outbound', async (route) => {
+    sent.push(route.request().postDataJSON());
+    // A fragment of the current page: the app navigates without leaving the test.
+    await route.fulfill({ json: { url: `${origin}/app/events/sample-1#seller` } });
+  });
+  const panel = page.getByLabel('Ticket from');
+  const fnac = { provider: 'fnac', externalId: '21085856' };
+
+  await page.goto('/app/events/sample-1');
+  await expect(panel.getByText('Price on www.fnacspectacles.com', { exact: true })).toBeVisible();
+  await expect(panel.locator('.ticket-price')).toHaveText('€55');
+  await expect(panel.getByText(/The Fnac Spectacles link is an affiliate link/)).toBeVisible();
+  await panel.getByRole('button', { name: 'Check tickets on www.fnacspectacles.com' }).click();
+  await expect.poll(() => sent).toEqual([{ eventId: 'sample-1', source: fnac }]);
+  await panel.getByRole('button', { name: 'Also on www.ticketmaster.fr', exact: true }).click();
+  await expect.poll(() => sent.at(-1)).toEqual({ eventId: 'sample-1' });
+
+  fromSecond = false;
+  await page.reload();
+  await expect(panel.getByText('Price from the seller', { exact: true })).toBeVisible();
+  await expect(panel.locator('.ticket-price')).toHaveText('€60');
+  await panel.getByRole('button', { name: 'Check tickets on www.ticketmaster.fr' }).click();
+  await expect.poll(() => sent.at(-1)).toEqual({ eventId: 'sample-1' });
+  await panel
+    .getByRole('button', { name: 'Also on www.fnacspectacles.com, from €55', exact: true })
+    .click();
+  await expect.poll(() => sent.at(-1)).toEqual({ eventId: 'sample-1', source: fnac });
+});
+
 test('live price display keeps unavailable state, provider currency and attribution', async ({
   page,
 }) => {

@@ -4,6 +4,8 @@ Prepared on 7 October 2026. These are drafts for Victor to review and submit; no
 
 ## Fnac Spectacles / France Billet — first request
 
+**Update, 12 October:** the programme is joined and the feed is integrated ([Fnac Spectacles prices](FNAC_SPECTACLES.md)). The request below was not needed for access; its questions on fees and member tariffs remain open.
+
 Victor's Awin publisher account is active; [programme 12494](https://ui.awin.com/merchant-profile/12494) remains Pending Approval as verified on 7 October. Do not repeat the application. After obtaining access, use the programme's business contact to confirm the feed specification. The [France Billet affiliate page](https://www.francebillet.com/campaign/affiliation-partenaire) confirms XML catalogue tools; it does not guarantee exact-session tariffs.
 
 **Objet : Encore — accès au flux Fnac Spectacles et tarifs des concerts**

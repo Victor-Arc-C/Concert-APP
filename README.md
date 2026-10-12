@@ -61,7 +61,7 @@ No affiliate commissions, premium subscription, sponsored placement, payment or 
 
 ## Configure live concerts
 
-French ticket prices remain incomplete: Discovery often supplies no tariff. The [CON-28 source evaluation](docs/CON-28-TICKET-PRICES.md) recommends validating Fnac Spectacles / France Billet feed access first, with Weezevent as a second candidate. Neither is enabled; [access requests](docs/CON-28-ACCESS-REQUESTS.md) are prepared but have not been sent.
+French ticket prices: Discovery often supplies no tariff. Fnac Spectacles / France Billet fills the gap as a second seller through its Awin product feed once `AWIN_FEED_LIST_URL` is set; see [Fnac Spectacles prices](docs/FNAC_SPECTACLES.md). The [CON-28 source evaluation](docs/CON-28-TICKET-PRICES.md) keeps Weezevent as the next candidate; its [access request](docs/CON-28-ACCESS-REQUESTS.md) is prepared but has not been sent.
 
 1. Copy `.env.example` to `.env.local`.
 2. Add a legitimate `TICKETMASTER_API_KEY` and restart the server.

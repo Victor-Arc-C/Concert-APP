@@ -38,6 +38,7 @@ import { schedulerAuthorized } from './scheduler-auth';
 import { onboardingProgress, unsupportedLiveArtists } from '../domain/onboarding';
 import { inviteCodes, inviteValid } from './invite';
 import { ticketSources, selectTicketSource } from './tickets';
+import { refreshFnacPrices } from './providers/fnac';
 import { generateTripOptions } from './trips';
 import { openTravelPlanning, submitTravelSearch } from './travel-planning';
 import { transportComparison } from './transport-comparison';
@@ -103,6 +104,11 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
       if (!schedulerAuthorized(request.headers.get('authorization'), env().CRON_SECRET))
         throw new HttpError(401, 'Invalid scheduler credentials.');
       return ok(await runConcertChecks());
+    }
+    if (key === 'jobs/fnac' && (request.method === 'POST' || request.method === 'GET')) {
+      if (!schedulerAuthorized(request.headers.get('authorization'), env().CRON_SECRET))
+        throw new HttpError(401, 'Invalid scheduler credentials.');
+      return ok(await refreshFnacPrices());
     }
     if (request.method === 'GET') {
       if (key === 'state') return ok(await getAppData());
