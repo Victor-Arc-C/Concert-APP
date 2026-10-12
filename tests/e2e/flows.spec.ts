@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { findConcerts } from './helpers';
 const password = 'Encore-test-passphrase-2026';
 const origin = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3000';
 test('founder flow: register, choose artists, save, persist, must-see, alert, dismiss, delete', async ({
@@ -20,8 +21,7 @@ test('founder flow: register, choose artists, save, persist, must-see, alert, di
     await page
       .getByRole('button', { name: new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) })
       .click();
-  await page.getByRole('button', { name: 'Find my concerts' }).click();
-  await expect(page.getByRole('heading', { name: 'Who’s on' })).toBeVisible();
+  await findConcerts(page);
   const initial = await (await page.request.get('/api/state')).json();
   expect(initial.user.preferences.notifications).toBe('off');
   expect(initial.alerts).toEqual([]);
@@ -578,8 +578,7 @@ test('trip intelligence flow: concert -> plan trip -> compare itineraries -> sav
   await page.getByLabel('Home city').selectOption('Paris');
   await page.getByRole('button', { name: 'Choose artists', exact: true }).click();
   await page.getByRole('button', { name: 'Fred again..' }).click();
-  await page.getByRole('button', { name: 'Find my concerts' }).click();
-  await expect(page.getByRole('heading', { name: 'Who’s on' })).toBeVisible();
+  await findConcerts(page);
 
   // Navigate to an out-of-town concert (Amsterdam)
   await page.goto('/app/events/sample-3');

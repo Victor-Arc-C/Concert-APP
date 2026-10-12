@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { defaults } from '../../src/domain/catalog';
+import { findConcerts } from './helpers';
 
 test('a provincial fan sees their artists in Paris, with no concerts from another account', async ({
   page,
@@ -22,8 +23,7 @@ test('a provincial fan sees their artists in Paris, with no concerts from anothe
   await page.screenshot({ path: testInfo.outputPath('province-onboarding.png'), fullPage: true });
   await page.getByRole('button', { name: 'Choose artists', exact: true }).click();
   await page.getByRole('button', { name: /Fred again/ }).click();
-  await page.getByRole('button', { name: 'Find my concerts' }).click();
-  await expect(page.getByRole('heading', { name: 'Who’s on' })).toBeVisible();
+  await findConcerts(page);
   await expect(
     page.getByRole('button', { name: 'Save Fred again.. in Paris', exact: true }),
   ).toBeVisible();

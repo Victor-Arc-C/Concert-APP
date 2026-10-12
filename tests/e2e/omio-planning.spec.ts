@@ -183,12 +183,47 @@ test('loading failures retry; server validation and unsafe URLs keep the form ed
   await expect(page).toHaveURL(/\/app\/events\/omio-ui$/);
 });
 
+/**
+ * Resolves once the page has fully received a refresh of the route it is on (router.refresh(),
+ * as the language switch does). WebKit cancels that fetch as soon as another document starts
+ * loading, and Next.js answers a failed route fetch with a hard navigation back to the current
+ * page, which interrupts a page.goto() issued too early.
+ */
+function routeRefreshed(page: Page) {
+  const { pathname } = new URL(page.url());
+  return page
+    .waitForResponse((response) => {
+      const headers = response.request().headers();
+      // The refresh itself, not a <Link> prefetch of the same route.
+      return (
+        new URL(response.url()).pathname === pathname &&
+        headers['rsc'] === '1' &&
+        !headers['next-router-prefetch'] &&
+        !headers['next-router-segment-prefetch']
+      );
+    })
+    .then(async (response) => {
+      expect(response.ok()).toBe(true);
+      // The page's own record of the finished load: response.finished() never settles for this
+      // request in Chromium.
+      await page.waitForFunction(
+        (url) =>
+          performance
+            .getEntriesByName(url, 'resource')
+            .some((entry) => (entry as PerformanceResourceTiming).responseEnd > 0),
+        response.url(),
+      );
+    });
+}
+
 test('French labels and handoff locale follow the selected language', async ({ page }) => {
   await fixture(page);
   await page.getByRole('button', { name: 'Close dialog' }).click();
   await page.goto('/app/settings');
+  const refreshed = routeRefreshed(page);
   await page.getByRole('button', { name: 'Français' }).first().click();
   await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
+  await refreshed;
   await page.goto('/app/events/omio-ui');
   await page.getByRole('button', { name: 'Préparer ton voyage', exact: true }).click();
   await expect(page.getByLabel('Ville de départ')).toHaveValue('Paris');
