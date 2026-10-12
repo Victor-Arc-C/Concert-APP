@@ -45,6 +45,18 @@ const schema = z
         )
         .optional(),
     ),
+    // Fnac Spectacles prices through Awin (programme 12494): the "Feed List Download" address
+    // from Awin → Toolbox → Create-a-Feed. It contains the account's feed key: keep it secret.
+    AWIN_FEED_LIST_URL: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      z
+        .string()
+        .regex(
+          /^https:\/\/ui\.awin\.com\/productdata-darwin-download\/publisher\/\d+\/[0-9a-f]{32}\/1\/feedList$/,
+          'Use the Feed List Download address from Awin → Toolbox → Create-a-Feed.',
+        )
+        .optional(),
+    ),
     // Enable only after approval in the Omio Impact programme. Invalid optional configuration
     // disables this provider instead of breaking unrelated concert pages.
     OMIO_ENABLED: optionalString,
@@ -108,6 +120,7 @@ const schema = z
       (settings.AUTO_CONCERT_CHECKS === 'true' ||
         settings.DATABASE_URL ||
         settings.TICKETMASTER_API_KEY ||
+        settings.AWIN_FEED_LIST_URL ||
         settings.SNCF_API_KEY ||
         settings.TRAVELPAYOUTS_TOKEN ||
         settings.LITEAPI_API_KEY ||

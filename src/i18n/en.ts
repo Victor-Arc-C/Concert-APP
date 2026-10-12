@@ -246,6 +246,7 @@ export const en = {
       'No journey time, hotel availability or total price is confirmed. Check them before buying a ticket.',
     samplePrice: 'Fictional sample price',
     providerPrice: 'Price from the seller',
+    priceOn: (host: string) => `Price on ${host}`,
     priceObserved: (when: string) => `Price observed ${when}`,
     priceUnavailable:
       'A current verified price is unavailable for this show. Check official tickets for current prices and availability.',
@@ -262,6 +263,8 @@ export const en = {
     sale: (when: string, zone: string) => `Sale: ${when} (${zone})`,
     noRealTickets: 'No real tickets in sample mode',
     checkTickets: (host: string) => `Check tickets on ${host}`,
+    alsoOn: (host: string, price: string | null) =>
+      price ? `Also on ${host}, from ${price}` : `Also on ${host}`,
     ticketUnavailable: 'Ticket link unavailable',
     save: 'Save this show',
     saved: 'Saved to your shows',
@@ -270,6 +273,8 @@ export const en = {
     sampleNote: 'Everything on this page is fictional.',
     sourceNote:
       'Source: Ticketmaster. Prices and availability can change; fees may apply. No ticket affiliate commission is active.',
+    sourceNoteFnac:
+      'Sources: Ticketmaster and Fnac Spectacles. Prices and availability can change; fees may apply. The Fnac Spectacles link is an affiliate link: Showbound may earn a commission if you buy.',
     sampleCreated: (when: string) => `Sample created ${when}`,
     lastChecked: (when: string) => `Last checked ${when}`,
     notForMe: 'Not for me',

@@ -7,6 +7,7 @@ import { inviteRequired } from './invite';
 import { defaults } from '../domain/catalog';
 import { europe, rankEvents } from '../domain/recommendations';
 import { safeTicketUrl } from '../domain/normalization';
+import { ticketSellerHost } from '../domain/ticket-links';
 import { reportError } from './monitoring';
 import type {
   Affinity,
@@ -69,9 +70,15 @@ export async function evaluateAlerts(
 // ingestion and artist search; another account's follows must never populate this feed.
 export const LIVE_EVENTS_SQL = `
   SELECT e.data,t.price_min::float AS price,t.currency,
-    t.observed_at AS "observedAt",t.disabled_at AS "disabledAt"
+    t.observed_at AS "observedAt",t.disabled_at AS "disabledAt",
+    f.external_id AS "fnacId",f.url AS "fnacUrl",f.price_min::float AS "fnacPrice",
+    f.currency AS "fnacCurrency",f.observed_at AS "fnacObservedAt"
   FROM events e LEFT JOIN ticket_sources t ON t.event_id=e.id
     AND t.provider=e.data->>'provider' AND t.external_id=e.data->>'externalId'
+  LEFT JOIN LATERAL (SELECT s.external_id,s.url,s.price_min,s.currency,s.observed_at
+    FROM ticket_sources s
+    WHERE s.event_id=e.id AND s.provider='fnac' AND s.disabled_at IS NULL
+    ORDER BY s.observed_at DESC,s.external_id LIMIT 1) f ON TRUE
   WHERE e.sample=FALSE AND (
     e.id IN (SELECT event_id FROM feedback WHERE user_id=$1
              UNION SELECT event_id FROM alerts WHERE user_id=$1
@@ -107,6 +114,11 @@ export async function getAppData(): Promise<AppData> {
     currency: string | null;
     observedAt: Date | null;
     disabledAt: Date | null;
+    fnacId?: string | null;
+    fnacUrl?: string | null;
+    fnacPrice?: number | null;
+    fnacCurrency?: string | null;
+    fnacObservedAt?: Date | null;
   };
   const eventRows =
     sample || !user
@@ -125,19 +137,56 @@ export async function getAppData(): Promise<AppData> {
           // Hidden artists too: their own page still lists dates; ranking keeps them out of the feed.
           lists.affinities.map((a) => a.artistId),
         ]);
-  const events = eventRows.map(({ data: event, price, currency, observedAt, disabledAt }) =>
-    event.provider === 'sample'
-      ? event
-      : {
-          ...event,
-          // Keep the exact listing's attribution; never borrow another source's price.
-          price:
-            observedAt && !disabledAt && !['cancelled', 'postponed'].includes(event.status)
-              ? displayPrice(price, currency, event.provider, observedAt)
-              : null,
-          currency,
-          priceObservedAt: observedAt ? new Date(observedAt).toISOString() : null,
-        },
+  const events = eventRows.map(
+    ({ data: event, price, currency, observedAt, disabledAt, ...row }) => {
+      if (event.provider === 'sample') return event;
+      const active = !['cancelled', 'postponed'].includes(event.status);
+      const own = {
+        price:
+          observedAt && !disabledAt && active
+            ? displayPrice(price, currency, event.provider, observedAt)
+            : null,
+        currency,
+        priceObservedAt: observedAt ? new Date(observedAt).toISOString() : null,
+      };
+      const host = row.fnacUrl ? ticketSellerHost(row.fnacUrl) : null;
+      // Same seven-day link rule as the tickets endpoint, so every listed seller can be opened.
+      const secondSeller =
+        active &&
+        host &&
+        row.fnacId &&
+        row.fnacObservedAt &&
+        new Date(row.fnacObservedAt).getTime() >= Date.now() - 7 * 86400000
+          ? {
+              provider: 'fnac',
+              externalId: row.fnacId,
+              host,
+              price: displayPrice(
+                row.fnacPrice ?? null,
+                row.fnacCurrency ?? null,
+                'fnac',
+                row.fnacObservedAt,
+              ),
+              currency: row.fnacCurrency ?? null,
+              observedAt: new Date(row.fnacObservedAt).toISOString(),
+            }
+          : null;
+      // Each price keeps its seller: the second seller's price is shown only when the concert's
+      // own listing has none, and the flag tells the page to send the fan to that seller.
+      const borrowed = own.price === null && secondSeller !== null && secondSeller.price !== null;
+      return {
+        ...event,
+        ...(borrowed
+          ? {
+              price: secondSeller.price,
+              currency: secondSeller.currency,
+              priceObservedAt: secondSeller.observedAt,
+            }
+          : own),
+        secondSeller,
+        priceFromSecondSeller: borrowed,
+      };
+    },
   );
   if (user) await evaluateAlerts(user, events, lists.affinities, lists.intents, lists.feedback);
   const alerts = user

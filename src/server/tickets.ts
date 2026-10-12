@@ -43,7 +43,10 @@ export async function selectTicketSource(
     ? available.find(
         (row) => row.provider === source.provider && row.externalId === source.externalId,
       )
-    : available[0];
+    : // Without a choice, only the concert's own seller: a second seller is never a silent fallback.
+      (available.find(
+        (row) => row.provider === event.provider && row.externalId === event.externalId,
+      ) ?? available.find((row) => row.provider === event.provider));
   if (!selected)
     throw new HttpError(
       422,

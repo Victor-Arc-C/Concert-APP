@@ -29,6 +29,15 @@ export type Intent = {
   tickets: number;
 };
 export type Affinity = { artistId: string; favorite: boolean; hidden: boolean };
+/** Another seller's listing of the same show, reached through the outbound endpoint. */
+export type SellerListing = {
+  provider: string;
+  externalId: string;
+  host: string;
+  price: number | null;
+  currency: string | null;
+  observedAt: string;
+};
 export type Concert = {
   id: string;
   artistIds: string[];
@@ -49,6 +58,10 @@ export type Concert = {
   url: string | null;
   fetchedAt: string;
   priceObservedAt?: string | null;
+  /** Fnac Spectacles' listing of this exact show, when one was matched. */
+  secondSeller?: SellerListing | null;
+  /** True when price, currency and priceObservedAt come from secondSeller, not from `url`. */
+  priceFromSecondSeller?: boolean;
   image: string;
   genre: string;
 };
